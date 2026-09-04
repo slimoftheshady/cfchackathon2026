@@ -185,6 +185,15 @@
     const cameraStatus =
         $('cameraStatus');
 
+    const cameraIdentification =
+        $('cameraIdentification');
+
+    const identifiedPlantName =
+        $('identifiedPlantName');
+
+    const identifiedPlantDetails =
+        $('identifiedPlantDetails');
+
     const closeCameraButton =
         $('closeCameraButton');
 
@@ -214,10 +223,12 @@
         const response = await fetch(url, {
             credentials: 'same-origin',
 
-            headers: {
-                'Content-Type': 'application/json',
-                ...(options.headers || {})
-            },
+            headers: options.body instanceof FormData
+                ? (options.headers || {})
+                : {
+                    'Content-Type': 'application/json',
+                    ...(options.headers || {})
+                },
 
             ...options
         });
@@ -436,7 +447,7 @@
             Array.isArray(
                 state.gardenSlots
             ) &&
-            state.gardenSlots.length ===
+                state.gardenSlots.length ===
                 MAX_SLOTS
 
                 ? state.gardenSlots.map(
@@ -540,10 +551,9 @@
                     'button';
 
                 plot.className =
-                    `plot ${
-                        item
-                            ? `filled rarity-${item.rarity} kind-${item.kind}`
-                            : 'empty-plot'
+                    `plot ${item
+                        ? `filled rarity-${item.rarity} kind-${item.kind}`
+                        : 'empty-plot'
                     }`;
 
                 plot.dataset.slot =
@@ -633,7 +643,7 @@
         if (latestPlant) {
             const config =
                 RARITY_CONFIG[
-                    latestPlant.rarity
+                latestPlant.rarity
                 ] ||
                 RARITY_CONFIG.common;
 
@@ -721,7 +731,7 @@
                 tab.classList.toggle(
                     'active',
                     tab.dataset.filter ===
-                        'all'
+                    'all'
                 );
             });
 
@@ -804,14 +814,12 @@
                     'button';
 
                 card.className =
-                    `collection-item rarity-${item.rarity} ${
-                        unlocked
-                            ? 'unlocked'
-                            : 'locked'
-                    } ${
-                        selected
-                            ? 'selected'
-                            : ''
+                    `collection-item rarity-${item.rarity} ${unlocked
+                        ? 'unlocked'
+                        : 'locked'
+                    } ${selected
+                        ? 'selected'
+                        : ''
                     }`;
 
                 card.disabled =
@@ -819,11 +827,10 @@
 
                 card.innerHTML = `
                     <span class="collection-icon">
-                        <i class="fas ${
-                            unlocked
-                                ? escapeClass(item.icon)
-                                : 'fa-lock'
-                        }"></i>
+                        <i class="fas ${unlocked
+                        ? escapeClass(item.icon)
+                        : 'fa-lock'
+                    }"></i>
                     </span>
 
                     <span class="collection-name">
@@ -831,15 +838,14 @@
                     </span>
 
                     <span class="collection-meta">
-                        ${
-                            unlocked
-                                ? (
-                                    item.kind === 'decor'
-                                        ? 'Owned'
-                                        : RARITY_CONFIG[item.rarity].label
-                                )
-                                : 'Locked'
-                        }
+                        ${unlocked
+                        ? (
+                            item.kind === 'decor'
+                                ? 'Owned'
+                                : RARITY_CONFIG[item.rarity].label
+                        )
+                        : 'Locked'
+                    }
                     </span>
                 `;
 
@@ -984,15 +990,15 @@
 
         const plant =
             pool[
-                Math.floor(
-                    Math.random() *
-                    pool.length
-                )
+            Math.floor(
+                Math.random() *
+                pool.length
+            )
             ];
 
         const config =
             RARITY_CONFIG[
-                rarity
+            rarity
             ];
 
         const alreadyUnlocked =
@@ -1033,11 +1039,10 @@
                 </div>
 
                 <div class="result-kicker">
-                    ${
-                        alreadyUnlocked
-                            ? 'You found another'
-                            : 'New plant unlocked!'
-                    }
+                    ${alreadyUnlocked
+                ? 'You found another'
+                : 'New plant unlocked!'
+            }
                 </div>
 
                 <div class="result-name">
@@ -1053,11 +1058,10 @@
                 </div>
 
                 <div class="result-note">
-                    ${
-                        alreadyUnlocked
-                            ? 'Already in your collection — score still awarded.'
-                            : 'Tap a garden plot on Home to place it.'
-                    }
+                    ${alreadyUnlocked
+                ? 'Already in your collection — score still awarded.'
+                : 'Tap a garden plot on Home to place it.'
+            }
                 </div>
 
             </div>
@@ -1085,437 +1089,460 @@
     }
 
     // =========================================================
-// CAMERA
-// =========================================================
+    // CAMERA
+    // =========================================================
 
-async function openCamera() {
+    async function openCamera() {
 
-    cameraBackdrop
-        .classList
-        .remove('hidden');
-
-    document.body
-        .classList
-        .add('modal-open');
-
-    resetCameraView();
-
-    await startCamera();
-}
-
-
-async function startCamera() {
-
-    cameraStatus
-        .classList
-        .add('hidden');
-
-    /*
-        Camera access only works if the browser
-        supports getUserMedia.
-    */
-
-    if (
-        !navigator.mediaDevices ||
-        !navigator.mediaDevices.getUserMedia
-    ) {
-
-        showCameraError(
-            'Camera access is not supported in this browser.'
-        );
-
-        return;
-    }
-
-
-    /*
-        Stop any camera that might already
-        be running before starting another.
-    */
-
-    stopCamera();
-
-
-    try {
-
-        cameraStream =
-            await navigator.mediaDevices
-                .getUserMedia({
-
-                    video: {
-
-                        /*
-                            environment = rear camera
-                            user = selfie camera
-                        */
-
-                        facingMode: {
-                            ideal:
-                                cameraFacingMode
-                        },
-
-                        width: {
-                            ideal: 1280
-                        },
-
-                        height: {
-                            ideal: 720
-                        }
-
-                    },
-
-                    // We do not need the microphone.
-                    audio: false
-                });
-
-
-        cameraVideo.srcObject =
-            cameraStream;
-
-
-        await cameraVideo.play();
-
-
-    } catch (error) {
-
-        console.error(
-            'Camera error:',
-            error
-        );
-
-
-        if (
-            error.name ===
-            'NotAllowedError'
-        ) {
-
-            showCameraError(
-                'Camera permission was denied. Please allow camera access in your browser settings.'
-            );
-
-        } else if (
-            error.name ===
-            'NotFoundError'
-        ) {
-
-            showCameraError(
-                'No camera was found on this device.'
-            );
-
-        } else {
-
-            showCameraError(
-                'GardenQuest could not open the camera.'
-            );
-
-        }
-    }
-}
-
-
-function stopCamera() {
-
-    if (!cameraStream) {
-        return;
-    }
-
-
-    cameraStream
-        .getTracks()
-        .forEach(
-            track =>
-                track.stop()
-        );
-
-
-    cameraStream =
-        null;
-
-
-    cameraVideo.srcObject =
-        null;
-}
-
-
-function capturePhoto() {
-
-    /*
-        We need an active video frame before
-        attempting to capture anything.
-    */
-
-    if (
-        !cameraVideo.videoWidth ||
-        !cameraVideo.videoHeight
-    ) {
-
-        showCameraError(
-            'The camera is still starting. Try again in a moment.'
-        );
-
-        return;
-    }
-
-
-    const width =
-        cameraVideo.videoWidth;
-
-    const height =
-        cameraVideo.videoHeight;
-
-
-    cameraCanvas.width =
-        width;
-
-    cameraCanvas.height =
-        height;
-
-
-    const context =
-        cameraCanvas.getContext(
-            '2d'
-        );
-
-
-    /*
-        Copy the current video frame
-        into the hidden canvas.
-    */
-
-    context.drawImage(
-        cameraVideo,
-        0,
-        0,
-        width,
-        height
-    );
-
-
-    /*
-        Convert it into a JPEG image.
-
-        This remains in the browser.
-        It is NOT uploaded anywhere.
-    */
-
-    capturedImageData =
-        cameraCanvas.toDataURL(
-            'image/jpeg',
-            0.9
-        );
-
-
-    capturedPhoto.src =
-        capturedImageData;
-
-
-    capturedPhoto
-        .classList
-        .remove('hidden');
-
-
-    cameraVideo
-        .classList
-        .add('hidden');
-
-
-    liveCameraControls
-        .classList
-        .add('hidden');
-
-
-    photoConfirmControls
-        .classList
-        .remove('hidden');
-
-
-    /*
-        Turn the physical camera off after
-        capturing the frame.
-    */
-
-    stopCamera();
-}
-
-
-async function retakePhoto() {
-
-    capturedImageData =
-        null;
-
-
-    capturedPhoto.src =
-        '';
-
-
-    capturedPhoto
-        .classList
-        .add('hidden');
-
-
-    cameraVideo
-        .classList
-        .remove('hidden');
-
-
-    photoConfirmControls
-        .classList
-        .add('hidden');
-
-
-    liveCameraControls
-        .classList
-        .remove('hidden');
-
-
-    await startCamera();
-}
-
-
-async function switchCamera() {
-
-    /*
-        Toggle between phone back/front camera.
-    */
-
-    cameraFacingMode =
-        cameraFacingMode ===
-        'environment'
-
-            ? 'user'
-
-            : 'environment';
-
-
-    await startCamera();
-}
-
-
-function useCapturedPhoto() {
-
-    if (!capturedImageData) {
-        return;
-    }
-
-
-    /*
-        This is where the game reward happens.
-    */
-
-    points += 10;
-
-
-    updateStats();
-
-    scheduleSave();
-
-
-    closeCamera();
-
-
-    showToast(
-        '+10 points for your biodiversity snap!',
-        'fa-camera'
-    );
-
-
-    /*
-        For now we discard the image after
-        rewarding the player.
-
-        Later, this is the value we can
-        upload to the backend for species
-        recognition.
-    */
-
-    capturedImageData =
-        null;
-}
-
-
-function closeCamera() {
-
-    stopCamera();
-
-
-    cameraBackdrop
-        .classList
-        .add('hidden');
-
-
-    /*
-        Only remove modal-open if another
-        modal is not already open.
-    */
-
-    if (
-        gardenPickerBackdrop
+        cameraBackdrop
             .classList
-            .contains('hidden') &&
-
-        friendVisitBackdrop
-            .classList
-            .contains('hidden')
-    ) {
+            .remove('hidden');
 
         document.body
             .classList
-            .remove('modal-open');
+            .add('modal-open');
+
+        resetCameraView();
+
+        await startCamera();
     }
 
 
-    resetCameraView();
-}
+    async function startCamera() {
+
+        cameraStatus
+            .classList
+            .add('hidden');
+
+        /*
+            Camera access only works if the browser
+            supports getUserMedia.
+        */
+
+        if (
+            !navigator.mediaDevices ||
+            !navigator.mediaDevices.getUserMedia
+        ) {
+
+            showCameraError(
+                'Camera access is not supported in this browser.'
+            );
+
+            return;
+        }
 
 
-function resetCameraView() {
+        /*
+            Stop any camera that might already
+            be running before starting another.
+        */
 
-    capturedImageData =
-        null;
-
-
-    capturedPhoto.src =
-        '';
+        stopCamera();
 
 
-    capturedPhoto
-        .classList
-        .add('hidden');
+        try {
+
+            cameraStream =
+                await navigator.mediaDevices
+                    .getUserMedia({
+
+                        video: {
+
+                            /*
+                                environment = rear camera
+                                user = selfie camera
+                            */
+
+                            facingMode: {
+                                ideal:
+                                    cameraFacingMode
+                            },
+
+                            width: {
+                                ideal: 1280
+                            },
+
+                            height: {
+                                ideal: 720
+                            }
+
+                        },
+
+                        // We do not need the microphone.
+                        audio: false
+                    });
 
 
-    cameraVideo
-        .classList
-        .remove('hidden');
+            cameraVideo.srcObject =
+                cameraStream;
 
 
-    liveCameraControls
-        .classList
-        .remove('hidden');
+            await cameraVideo.play();
 
 
-    photoConfirmControls
-        .classList
-        .add('hidden');
+        } catch (error) {
+
+            console.error(
+                'Camera error:',
+                error
+            );
 
 
-    cameraStatus
-        .classList
-        .add('hidden');
-}
+            if (
+                error.name ===
+                'NotAllowedError'
+            ) {
+
+                showCameraError(
+                    'Camera permission was denied. Please allow camera access in your browser settings.'
+                );
+
+            } else if (
+                error.name ===
+                'NotFoundError'
+            ) {
+
+                showCameraError(
+                    'No camera was found on this device.'
+                );
+
+            } else {
+
+                showCameraError(
+                    'GardenQuest could not open the camera.'
+                );
+
+            }
+        }
+    }
 
 
-function showCameraError(
-    message
-) {
+    function stopCamera() {
 
-    cameraStatus.textContent =
-        message;
+        if (!cameraStream) {
+            return;
+        }
 
 
-    cameraStatus
-        .classList
-        .remove('hidden');
-}
+        cameraStream
+            .getTracks()
+            .forEach(
+                track =>
+                    track.stop()
+            );
+
+
+        cameraStream =
+            null;
+
+
+        cameraVideo.srcObject =
+            null;
+    }
+
+
+    function capturePhoto() {
+
+        /*
+            We need an active video frame before
+            attempting to capture anything.
+        */
+
+        if (
+            !cameraVideo.videoWidth ||
+            !cameraVideo.videoHeight
+        ) {
+
+            showCameraError(
+                'The camera is still starting. Try again in a moment.'
+            );
+
+            return;
+        }
+
+
+        const width =
+            cameraVideo.videoWidth;
+
+        const height =
+            cameraVideo.videoHeight;
+
+
+        cameraCanvas.width =
+            width;
+
+        cameraCanvas.height =
+            height;
+
+
+        const context =
+            cameraCanvas.getContext(
+                '2d'
+            );
+
+
+        /*
+            Copy the current video frame
+            into the hidden canvas.
+        */
+
+        context.drawImage(
+            cameraVideo,
+            0,
+            0,
+            width,
+            height
+        );
+
+
+        /*
+            Convert it into a JPEG image.
+    
+            This remains in the browser.
+            It is NOT uploaded anywhere.
+        */
+
+        capturedImageData =
+            cameraCanvas.toDataURL(
+                'image/jpeg',
+                0.9
+            );
+
+
+        capturedPhoto.src =
+            capturedImageData;
+
+
+        capturedPhoto
+            .classList
+            .remove('hidden');
+
+
+        cameraVideo
+            .classList
+            .add('hidden');
+
+
+        liveCameraControls
+            .classList
+            .add('hidden');
+
+
+        photoConfirmControls
+            .classList
+            .remove('hidden');
+
+
+        /*
+            Turn the physical camera off after
+            capturing the frame.
+        */
+
+        stopCamera();
+    }
+
+
+    async function retakePhoto() {
+
+        capturedImageData =
+            null;
+
+        cameraIdentification
+            .classList
+            .add('hidden');
+
+        identifiedPlantName.textContent =
+            '';
+
+        identifiedPlantDetails.textContent =
+            '';
+
+        cameraStatus
+            .classList
+            .add('hidden');
+
+        usePhotoButton.disabled =
+            false;
+
+        usePhotoButton.innerHTML =
+            '<i class="fas fa-check"></i> Use photo <span>+10 ★</span>';
+
+
+        capturedPhoto.src =
+            '';
+
+
+        capturedPhoto
+            .classList
+            .add('hidden');
+
+
+        cameraVideo
+            .classList
+            .remove('hidden');
+
+
+        photoConfirmControls
+            .classList
+            .add('hidden');
+
+
+        liveCameraControls
+            .classList
+            .remove('hidden');
+
+
+        await startCamera();
+    }
+
+
+    async function switchCamera() {
+
+        /*
+            Toggle between phone back/front camera.
+        */
+
+        cameraFacingMode =
+            cameraFacingMode ===
+                'environment'
+
+                ? 'user'
+
+                : 'environment';
+
+
+        await startCamera();
+    }
+
+
+    async function useCapturedPhoto() {
+        if (!capturedImageData) {
+            return;
+        }
+
+        usePhotoButton.disabled = true;
+        cameraStatus.textContent = 'Identifying your plant...';
+        cameraStatus.classList.remove('hidden');
+
+        try {
+            const imageBlob = await fetch(capturedImageData).then(response => response.blob());
+            const formData = new FormData();
+            formData.append('image', imageBlob, 'gardenquest-snap.jpg');
+
+            const data = await api('/api/identify', {
+                method: 'POST',
+                body: formData
+            });
+            const identification = data.identification;
+
+            identifiedPlantName.textContent = identification.common_name || identification.scientific_name;
+            identifiedPlantDetails.textContent = identification.common_name
+                ? identification.scientific_name
+                : 'PlantNet match';
+            cameraIdentification.classList.remove('hidden');
+            cameraStatus.classList.add('hidden');
+
+            points += 10;
+            updateStats();
+            scheduleSave();
+            usePhotoButton.innerHTML = '<i class="fas fa-check"></i> Identified <span>+10 ★</span>';
+            showToast(`Identified as ${identification.common_name || identification.scientific_name}! +10 points.`, 'fa-leaf');
+        } catch (error) {
+            usePhotoButton.disabled = false;
+            showCameraError(error.message);
+        }
+    }
+
+
+    function closeCamera() {
+
+        stopCamera();
+
+
+        cameraBackdrop
+            .classList
+            .add('hidden');
+
+
+        /*
+            Only remove modal-open if another
+            modal is not already open.
+        */
+
+        if (
+            gardenPickerBackdrop
+                .classList
+                .contains('hidden') &&
+
+            friendVisitBackdrop
+                .classList
+                .contains('hidden')
+        ) {
+
+            document.body
+                .classList
+                .remove('modal-open');
+        }
+
+
+        resetCameraView();
+    }
+
+
+    function resetCameraView() {
+
+        capturedImageData =
+            null;
+
+
+        capturedPhoto.src =
+            '';
+
+
+        capturedPhoto
+            .classList
+            .add('hidden');
+
+
+        cameraVideo
+            .classList
+            .remove('hidden');
+
+
+        liveCameraControls
+            .classList
+            .remove('hidden');
+
+
+        photoConfirmControls
+            .classList
+            .add('hidden');
+
+
+        cameraStatus
+            .classList
+            .add('hidden');
+
+        cameraIdentification.classList.add('hidden');
+        identifiedPlantName.textContent = '';
+        identifiedPlantDetails.textContent = '';
+        usePhotoButton.disabled = false;
+        usePhotoButton.innerHTML = '<i class="fas fa-check"></i> Use photo <span>+10 ★</span>';
+    }
+
+
+    function showCameraError(
+        message
+    ) {
+
+        cameraStatus.textContent =
+            message;
+
+
+        cameraStatus
+            .classList
+            .remove('hidden');
+    }
 
     // =========================================================
     // STORE
@@ -1681,55 +1708,55 @@ function showCameraError(
     }
 
     function renderFriendCards(
-    friends
-) {
-    friendsGrid.innerHTML =
-        '';
+        friends
+    ) {
+        friendsGrid.innerHTML =
+            '';
 
-    emptyFriends
-        .classList
-        .toggle(
-            'hidden',
-            friends.length > 0
-        );
+        emptyFriends
+            .classList
+            .toggle(
+                'hidden',
+                friends.length > 0
+            );
 
-    friends.forEach(
-        friend => {
+        friends.forEach(
+            friend => {
 
-            const card =
-                document.createElement(
-                    'article'
+                const card =
+                    document.createElement(
+                        'article'
+                    );
+
+                card.className =
+                    'friend-card';
+
+                card.tabIndex =
+                    0;
+
+                card.setAttribute(
+                    'role',
+                    'button'
                 );
 
-            card.className =
-                'friend-card';
+                card.setAttribute(
+                    'aria-label',
+                    `Visit ${friend.username}'s garden`
+                );
 
-            card.tabIndex =
-                0;
+                const config =
+                    friend.latest_rarity
 
-            card.setAttribute(
-                'role',
-                'button'
-            );
-
-            card.setAttribute(
-                'aria-label',
-                `Visit ${friend.username}'s garden`
-            );
-
-            const config =
-                friend.latest_rarity
-
-                    ? (
-                        RARITY_CONFIG[
+                        ? (
+                            RARITY_CONFIG[
                             friend.latest_rarity
-                        ] ||
-                        RARITY_CONFIG.common
-                    )
+                            ] ||
+                            RARITY_CONFIG.common
+                        )
 
-                    : null;
+                        : null;
 
-            card.innerHTML = `
+                card.innerHTML = `
 
                 <div class="friend-avatar">
                     <i class="fas fa-seedling"></i>
@@ -1741,15 +1768,14 @@ function showCameraError(
 
                 <div class="friend-latest">
 
-                    ${
-                        friend.latest_name
+                    ${friend.latest_name
 
-                            ? `
+                        ? `
                                 ${config?.emoji || ''}
                                 ${escapeHtml(friend.latest_name)}
                             `
 
-                            : 'No discoveries yet'
+                        : 'No discoveries yet'
                     }
 
                 </div>
@@ -1781,206 +1807,205 @@ function showCameraError(
             `;
 
 
-            const visit = () => {
+                const visit = () => {
 
-                openFriendGarden(
-                    friend.id
+                    openFriendGarden(
+                        friend.id
+                    );
+
+                };
+
+
+                card.addEventListener(
+                    'click',
+                    visit
                 );
 
-            };
 
+                // Also makes it keyboard accessible.
+                card.addEventListener(
+                    'keydown',
+                    event => {
 
-            card.addEventListener(
-                'click',
-                visit
-            );
+                        if (
+                            event.key === 'Enter' ||
+                            event.key === ' '
+                        ) {
+                            event.preventDefault();
 
+                            visit();
+                        }
 
-            // Also makes it keyboard accessible.
-            card.addEventListener(
-                'keydown',
-                event => {
-
-                    if (
-                        event.key === 'Enter' ||
-                        event.key === ' '
-                    ) {
-                        event.preventDefault();
-
-                        visit();
                     }
+                );
 
-                }
+
+                friendsGrid.appendChild(
+                    card
+                );
+
+            }
+        );
+    }
+
+    async function openFriendGarden(
+        friendId
+    ) {
+        try {
+
+            const data =
+                await api(
+                    `/api/friends/${Number(friendId)}/profile`
+                );
+
+            renderFriendGarden(
+                data
             );
 
+            friendVisitBackdrop
+                .classList
+                .remove(
+                    'hidden'
+                );
 
-            friendsGrid.appendChild(
-                card
+            document.body
+                .classList
+                .add(
+                    'modal-open'
+                );
+
+        } catch (error) {
+
+            showToast(
+                error.message,
+                'fa-triangle-exclamation'
             );
 
         }
-    );
-}
+    }
 
-async function openFriendGarden(
-    friendId
-) {
-    try {
 
-        const data =
-            await api(
-                `/api/friends/${Number(friendId)}/profile`
-            );
-
-        renderFriendGarden(
-            data
-        );
+    function closeFriendGarden() {
 
         friendVisitBackdrop
             .classList
-            .remove(
-                'hidden'
-            );
-
-        document.body
-            .classList
             .add(
-                'modal-open'
-            );
-
-    } catch (error) {
-
-        showToast(
-            error.message,
-            'fa-triangle-exclamation'
-        );
-
-    }
-}
-
-
-function closeFriendGarden() {
-
-    friendVisitBackdrop
-        .classList
-        .add(
-            'hidden'
-        );
-
-    // Don't remove modal-open if the garden picker
-    // happens to still be open.
-    if (
-        gardenPickerBackdrop
-            .classList
-            .contains(
                 'hidden'
+            );
+
+        // Don't remove modal-open if the garden picker
+        // happens to still be open.
+        if (
+            gardenPickerBackdrop
+                .classList
+                .contains(
+                    'hidden'
+                )
+        ) {
+
+            document.body
+                .classList
+                .remove(
+                    'modal-open'
+                );
+
+        }
+    }
+
+
+    function renderFriendGarden(
+        data
+    ) {
+
+        const friend =
+            data.user;
+
+        const profile =
+            data.profile || {};
+
+        const slots =
+            Array.isArray(
+                profile.gardenSlots
             )
-    ) {
 
-        document.body
-            .classList
-            .remove(
-                'modal-open'
-            );
+                ? profile.gardenSlots
 
-    }
-}
+                : Array(
+                    MAX_SLOTS
+                ).fill(
+                    null
+                );
 
 
-function renderFriendGarden(
-    data
-) {
+        // FRIEND NAME
 
-    const friend =
-        data.user;
-
-    const profile =
-        data.profile || {};
-
-    const slots =
-        Array.isArray(
-            profile.gardenSlots
-        )
-
-            ? profile.gardenSlots
-
-            : Array(
-                MAX_SLOTS
-            ).fill(
-                null
-            );
+        friendVisitName.textContent =
+            `@${friend.username}'s garden`;
 
 
-    // FRIEND NAME
+        // STATS
 
-    friendVisitName.textContent =
-        `@${friend.username}'s garden`;
+        friendVisitPlaced.textContent =
+            profile.placedCount ||
+            0;
 
+        friendVisitUnlocked.textContent =
+            profile.collectionCount ||
+            0;
 
-    // STATS
-
-    friendVisitPlaced.textContent =
-        profile.placedCount ||
-        0;
-
-    friendVisitUnlocked.textContent =
-        profile.collectionCount ||
-        0;
-
-    friendVisitScore.textContent =
-        profile.score ||
-        0;
+        friendVisitScore.textContent =
+            profile.score ||
+            0;
 
 
-    // LATEST PLANT
+        // LATEST PLANT
 
-    if (
-        profile.latestPlant
-    ) {
+        if (
+            profile.latestPlant
+        ) {
 
-        const config =
-            RARITY_CONFIG[
+            const config =
+                RARITY_CONFIG[
                 profile.latestPlant.rarity
-            ] ||
-            RARITY_CONFIG.common;
+                ] ||
+                RARITY_CONFIG.common;
 
-        friendVisitLatest.textContent =
-            `${config.emoji} ${profile.latestPlant.name}`;
+            friendVisitLatest.textContent =
+                `${config.emoji} ${profile.latestPlant.name}`;
 
-    } else {
+        } else {
 
-        friendVisitLatest.textContent =
-            '—';
+            friendVisitLatest.textContent =
+                '—';
 
-    }
-
-
-    // RENDER THE 16 GARDEN PLOTS
-
-    friendVisitGrid.innerHTML =
-        '';
+        }
 
 
-    for (
-        let index = 0;
-        index < MAX_SLOTS;
-        index += 1
-    ) {
+        // RENDER THE 16 GARDEN PLOTS
 
-        const item =
-            slots[index] ||
-            null;
+        friendVisitGrid.innerHTML =
+            '';
 
 
-        const plot =
-            document.createElement(
-                'div'
-            );
+        for (
+            let index = 0;
+            index < MAX_SLOTS;
+            index += 1
+        ) {
+
+            const item =
+                slots[index] ||
+                null;
 
 
-        plot.className =
-            `friend-visit-plot ${
-                item
+            const plot =
+                document.createElement(
+                    'div'
+                );
+
+
+            plot.className =
+                `friend-visit-plot ${item
 
                     ? `
                         filled
@@ -1989,14 +2014,14 @@ function renderFriendGarden(
                     `
 
                     : 'empty'
-            }`;
+                }`;
 
 
-        if (
-            item
-        ) {
+            if (
+                item
+            ) {
 
-            plot.innerHTML = `
+                plot.innerHTML = `
 
                 <span class="plot-sparkle"></span>
 
@@ -2008,9 +2033,9 @@ function renderFriendGarden(
 
             `;
 
-        } else {
+            } else {
 
-            plot.innerHTML = `
+                plot.innerHTML = `
 
                 <i class="fas fa-seedling"></i>
 
@@ -2020,16 +2045,16 @@ function renderFriendGarden(
 
             `;
 
+            }
+
+
+            friendVisitGrid
+                .appendChild(
+                    plot
+                );
+
         }
-
-
-        friendVisitGrid
-            .appendChild(
-                plot
-            );
-
     }
-}
 
     function renderFriendRequests(
         requests
@@ -2398,7 +2423,7 @@ function renderFriendGarden(
                 view.classList.toggle(
                     'active',
                     view.id ===
-                        viewId
+                    viewId
                 )
         );
 
@@ -2407,7 +2432,7 @@ function renderFriendGarden(
                 btn.classList.toggle(
                     'active-tab',
                     btn.dataset.view ===
-                        viewId
+                    viewId
                 )
         );
 
@@ -2581,36 +2606,36 @@ function renderFriendGarden(
         );
 
         closeFriendVisitButton
-    .addEventListener(
-        'click',
-        closeFriendGarden
-    );
+            .addEventListener(
+                'click',
+                closeFriendGarden
+            );
 
 
-friendVisitDoneButton
-    .addEventListener(
-        'click',
-        closeFriendGarden
-    );
+        friendVisitDoneButton
+            .addEventListener(
+                'click',
+                closeFriendGarden
+            );
 
 
-friendVisitBackdrop
-    .addEventListener(
-        'click',
-        event => {
+        friendVisitBackdrop
+            .addEventListener(
+                'click',
+                event => {
 
-            // Clicking the dark background
-            // closes the friend's garden.
+                    // Clicking the dark background
+                    // closes the friend's garden.
 
-            if (
-                event.target ===
-                friendVisitBackdrop
-            ) {
-                closeFriendGarden();
-            }
+                    if (
+                        event.target ===
+                        friendVisitBackdrop
+                    ) {
+                        closeFriendGarden();
+                    }
 
-        }
-    );
+                }
+            );
 
         // Collection
         openCollectionButton.addEventListener(
@@ -2645,59 +2670,59 @@ friendVisitBackdrop
 
         // Escape also closes it.
         document.addEventListener(
-    'keydown',
-    event => {
+            'keydown',
+            event => {
 
-        if (
-            event.key !==
-            'Escape'
-        ) {
-            return;
-        }
-
-
-        if (
-            !cameraBackdrop
-                .classList
-                .contains('hidden')
-        ) {
-
-            closeCamera();
-
-            return;
-        }
+                if (
+                    event.key !==
+                    'Escape'
+                ) {
+                    return;
+                }
 
 
-        // Close friend garden first.
-        if (
-            !friendVisitBackdrop
-                .classList
-                .contains(
-                    'hidden'
-                )
-        ) {
+                if (
+                    !cameraBackdrop
+                        .classList
+                        .contains('hidden')
+                ) {
 
-            closeFriendGarden();
+                    closeCamera();
 
-            return;
-        }
+                    return;
+                }
 
 
-        // Otherwise close your garden picker.
-        if (
-            !gardenPickerBackdrop
-                .classList
-                .contains(
-                    'hidden'
-                )
-        ) {
+                // Close friend garden first.
+                if (
+                    !friendVisitBackdrop
+                        .classList
+                        .contains(
+                            'hidden'
+                        )
+                ) {
 
-            closePicker();
+                    closeFriendGarden();
 
-        }
+                    return;
+                }
 
-    }
-);
+
+                // Otherwise close your garden picker.
+                if (
+                    !gardenPickerBackdrop
+                        .classList
+                        .contains(
+                            'hidden'
+                        )
+                ) {
+
+                    closePicker();
+
+                }
+
+            }
+        );
 
         // Collection filters
         document
@@ -2723,7 +2748,7 @@ friendVisitBackdrop
                                         other.classList.toggle(
                                             'active',
                                             other ===
-                                                tab
+                                            tab
                                         )
                                 );
 

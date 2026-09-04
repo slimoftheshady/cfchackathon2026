@@ -3,6 +3,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 from pathlib import Path
 import re
+import os
+import requests
+from model.api_call import identify_plant_from_file, parse_results
 
 BASE_DIR = Path(__file__).resolve().parent
 GAME_DB = BASE_DIR / "game.db"
@@ -21,10 +24,34 @@ MAX_GARDEN_SLOTS = 16
 MAX_COLLECTION_ITEMS = 40
 
 STARTER_ITEMS = [
-    {"key": "daisy", "name": "Daisy", "icon": "fa-leaf", "rarity": "common", "kind": "plant"},
-    {"key": "rose", "name": "Rose", "icon": "fa-seedling", "rarity": "rare", "kind": "plant"},
-    {"key": "monstera", "name": "Monstera", "icon": "fa-cannabis", "rarity": "epic", "kind": "plant"},
-    {"key": "golden-lotus", "name": "Golden Lotus", "icon": "fa-clover", "rarity": "legendary", "kind": "plant"},
+    {
+        "key": "daisy",
+        "name": "Daisy",
+        "icon": "fa-leaf",
+        "rarity": "common",
+        "kind": "plant",
+    },
+    {
+        "key": "rose",
+        "name": "Rose",
+        "icon": "fa-seedling",
+        "rarity": "rare",
+        "kind": "plant",
+    },
+    {
+        "key": "monstera",
+        "name": "Monstera",
+        "icon": "fa-cannabis",
+        "rarity": "epic",
+        "kind": "plant",
+    },
+    {
+        "key": "golden-lotus",
+        "name": "Golden Lotus",
+        "icon": "fa-clover",
+        "rarity": "legendary",
+        "kind": "plant",
+    },
 ]
 
 
@@ -41,13 +68,17 @@ def slugify(name):
 
 
 def infer_kind(name):
-    return "decor" if name.lower() in {"gnome", "bench", "lamp", "solar lamp", "fountain", "birdhouse", "compost"} else "plant"
+    return (
+        "decor"
+        if name.lower()
+        in {"gnome", "bench", "lamp", "solar lamp", "fountain", "birdhouse", "compost"}
+        else "plant"
+    )
 
 
 def init_db():
     with get_db() as db:
-        db.executescript(
-            """
+        db.executescript("""
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT NOT NULL COLLATE NOCASE UNIQUE,
@@ -106,13 +137,14 @@ def init_db():
                 ON friendships(requester_id, status);
             CREATE INDEX IF NOT EXISTS idx_friendships_addressee
                 ON friendships(addressee_id, status);
-            """
-        )
+            """)
 
         # Migration for databases created by the earlier version.
         plant_columns = {row[1] for row in db.execute("PRAGMA table_info(plants)")}
         if "kind" not in plant_columns:
-            db.execute("ALTER TABLE plants ADD COLUMN kind TEXT NOT NULL DEFAULT 'plant'")
+            db.execute(
+                "ALTER TABLE plants ADD COLUMN kind TEXT NOT NULL DEFAULT 'plant'"
+            )
         if "item_key" not in plant_columns:
             db.execute("ALTER TABLE plants ADD COLUMN item_key TEXT")
 
@@ -216,7 +248,8 @@ def state_for_user(db, user_id):
         "score": state["score"],
         "latestPlant": (
             {"name": state["latest_name"], "rarity": state["latest_rarity"]}
-            if state["latest_name"] else None
+            if state["latest_name"]
+            else None
         ),
         "gardenSlots": garden_slots,
         "collection": collection,
@@ -275,6 +308,63 @@ def script():
     return send_from_directory(BASE_DIR, "mainscript.js")
 
 
+@app.post("/api/identify")
+def identify():
+    _, error = login_required()
+    if error:
+        return error
+
+    image = request.files.get("image")
+    if not image or not image.filename:
+        return jsonify({"error": "Please provide a photo."}), 400
+
+    if image.mimetype not in {"image/jpeg", "image/png", "image/webp"}:
+        return jsonify({"error": "Please upload a JPEG, PNG or WebP image."}), 400
+
+    if not os.environ.get("PLANTNET_API_KEY"):
+        return jsonify({"error": "Plant identification is not configured yet."}), 503
+
+    image_path = None
+    try:
+        import tempfile
+
+        with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as temp_file:
+            image.save(temp_file)
+            image_path = temp_file.name
+
+        predictions = parse_results(identify_plant_from_file(image_path))
+    except RuntimeError:
+        return jsonify({"error": "Plant identification is not configured yet."}), 503
+    except requests.HTTPError as exc:
+        app.logger.warning(
+            "PlantNet rejected identification request: status=%s body=%s",
+            exc.response.status_code if exc.response is not None else "unknown",
+            exc.response.text[:500] if exc.response is not None else "",
+        )
+        return (
+            jsonify(
+                {
+                    "error": "PlantNet rejected the identification request. Please check the API key and try again."
+                }
+            ),
+            502,
+        )
+    except (requests.RequestException, OSError, ValueError):
+        return (
+            jsonify(
+                {"error": "PlantNet could not identify that photo. Please try again."}
+            ),
+            502,
+        )
+    finally:
+        if image_path:
+            Path(image_path).unlink(missing_ok=True)
+
+    if not predictions:
+        return jsonify({"error": "PlantNet did not find a plant in that photo."}), 422
+    return jsonify({"identification": predictions[0], "predictions": predictions})
+
+
 @app.post("/api/register")
 def register():
     data = request.get_json(silent=True) or {}
@@ -282,7 +372,12 @@ def register():
     password = str(data.get("password", ""))
 
     if not USERNAME_RE.fullmatch(username):
-        return jsonify({"error": "Username must be 3–20 letters, numbers or underscores."}), 400
+        return (
+            jsonify(
+                {"error": "Username must be 3–20 letters, numbers or underscores."}
+            ),
+            400,
+        )
     if len(password) < 8:
         return jsonify({"error": "Password must be at least 8 characters."}), 400
 
@@ -308,14 +403,29 @@ def register():
                         (user_id, item_key, name, icon, rarity, kind)
                     VALUES (?, ?, ?, ?, ?, ?)
                     """,
-                    (user_id, item["key"], item["name"], item["icon"], item["rarity"], item["kind"]),
+                    (
+                        user_id,
+                        item["key"],
+                        item["name"],
+                        item["icon"],
+                        item["rarity"],
+                        item["kind"],
+                    ),
                 )
                 db.execute(
                     """
                     INSERT INTO plants(user_id, slot, item_key, name, icon, rarity, kind)
                     VALUES (?, ?, ?, ?, ?, ?, ?)
                     """,
-                    (user_id, slot, item["key"], item["name"], item["icon"], item["rarity"], item["kind"]),
+                    (
+                        user_id,
+                        slot,
+                        item["key"],
+                        item["name"],
+                        item["icon"],
+                        item["rarity"],
+                        item["kind"],
+                    ),
                 )
     except sqlite3.IntegrityError:
         return jsonify({"error": "That username is already taken."}), 409
@@ -358,7 +468,9 @@ def me():
         return error
 
     with get_db() as db:
-        user = db.execute("SELECT id, username FROM users WHERE id = ?", (uid,)).fetchone()
+        user = db.execute(
+            "SELECT id, username FROM users WHERE id = ?", (uid,)
+        ).fetchone()
         if not user:
             session.clear()
             return jsonify({"error": "Account not found"}), 401
@@ -407,7 +519,12 @@ def save_state():
                 continue
             cleaned = clean_item(item)
             if cleaned["key"] not in seen_keys:
-                return jsonify({"error": "Only unlocked items can be placed in the garden."}), 400
+                return (
+                    jsonify(
+                        {"error": "Only unlocked items can be placed in the garden."}
+                    ),
+                    400,
+                )
             cleaned_slots.append(cleaned)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
@@ -442,7 +559,14 @@ def save_state():
                     (user_id, item_key, name, icon, rarity, kind)
                 VALUES (?, ?, ?, ?, ?, ?)
                 """,
-                (uid, item["key"], item["name"], item["icon"], item["rarity"], item["kind"]),
+                (
+                    uid,
+                    item["key"],
+                    item["name"],
+                    item["icon"],
+                    item["rarity"],
+                    item["kind"],
+                ),
             )
 
         db.execute("DELETE FROM plants WHERE user_id = ?", (uid,))
@@ -454,7 +578,15 @@ def save_state():
                 INSERT INTO plants(user_id, slot, item_key, name, icon, rarity, kind)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
-                (uid, slot, item["key"], item["name"], item["icon"], item["rarity"], item["kind"]),
+                (
+                    uid,
+                    slot,
+                    item["key"],
+                    item["name"],
+                    item["icon"],
+                    item["rarity"],
+                    item["kind"],
+                ),
             )
 
     return jsonify({"ok": True})
@@ -483,7 +615,11 @@ def search_users():
         ).fetchall()
 
         users = [
-            {"id": row["id"], "username": row["username"], "relation": relation_for(db, uid, row["id"])}
+            {
+                "id": row["id"],
+                "username": row["username"],
+                "relation": relation_for(db, uid, row["id"]),
+            }
             for row in rows
         ]
 
@@ -516,7 +652,10 @@ def send_friend_request():
         if rel["status"] == "outgoing":
             return jsonify({"error": "Friend request already sent."}), 409
         if rel["status"] == "incoming":
-            db.execute("UPDATE friendships SET status = 'accepted' WHERE id = ?", (rel["request_id"],))
+            db.execute(
+                "UPDATE friendships SET status = 'accepted' WHERE id = ?",
+                (rel["request_id"],),
+            )
             return jsonify({"ok": True, "accepted": True})
 
         db.execute(
@@ -577,11 +716,14 @@ def list_friends():
             (uid,),
         ).fetchall()
 
-    return jsonify({
-        "friends": [dict(row) for row in accepted],
-        "incoming": [dict(row) for row in incoming],
-        "outgoing": [dict(row) for row in outgoing],
-    })
+    return jsonify(
+        {
+            "friends": [dict(row) for row in accepted],
+            "incoming": [dict(row) for row in incoming],
+            "outgoing": [dict(row) for row in outgoing],
+        }
+    )
+
 
 @app.get("/api/friends/<int:friend_id>/profile")
 def friend_profile(friend_id):
@@ -593,16 +735,10 @@ def friend_profile(friend_id):
     with get_db() as db:
 
         # Only accepted friends are allowed to view each other's gardens.
-        relation = relation_for(
-            db,
-            uid,
-            friend_id
-        )
+        relation = relation_for(db, uid, friend_id)
 
         if relation.get("status") != "friends":
-            return jsonify({
-                "error": "You can only visit accepted friends."
-            }), 403
+            return jsonify({"error": "You can only visit accepted friends."}), 403
 
         friend = db.execute(
             """
@@ -610,46 +746,29 @@ def friend_profile(friend_id):
             FROM users
             WHERE id = ?
             """,
-            (friend_id,)
+            (friend_id,),
         ).fetchone()
 
         if not friend:
-            return jsonify({
-                "error": "Friend not found."
-            }), 404
+            return jsonify({"error": "Friend not found."}), 404
 
-        state = state_for_user(
-            db,
-            friend_id
-        )
+        state = state_for_user(db, friend_id)
 
-    return jsonify({
-        "user": dict(friend),
-
-        "profile": {
-            "score":
-                state["score"],
-
-            "latestPlant":
-                state["latestPlant"],
-
-            "placedCount":
-                sum(
-                    1
-                    for item
-                    in state["gardenSlots"]
-                    if item is not None
+    return jsonify(
+        {
+            "user": dict(friend),
+            "profile": {
+                "score": state["score"],
+                "latestPlant": state["latestPlant"],
+                "placedCount": sum(
+                    1 for item in state["gardenSlots"] if item is not None
                 ),
-
-            "collectionCount":
-                len(
-                    state["collection"]
-                ),
-
-            "gardenSlots":
-                state["gardenSlots"]
+                "collectionCount": len(state["collection"]),
+                "gardenSlots": state["gardenSlots"],
+            },
         }
-    })
+    )
+
 
 @app.post("/api/friends/accept")
 def accept_friend():
