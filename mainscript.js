@@ -40,10 +40,10 @@
 
             // Friends data with latest plant and score
             const friends = [
-                { name: 'Lena', icon: 'fa-flower', latest: { name: 'Rose', rarity: 'rare' }, score: 320 },
-                { name: 'Marco', icon: 'fa-tree', latest: { name: 'Dragon Tree', rarity: 'legendary' }, score: 540 },
-                { name: 'Sofia', icon: 'fa-leaf', latest: { name: 'Mint', rarity: 'common' }, score: 180 },
-                { name: 'Jamal', icon: 'fa-seedling', latest: { name: 'Monstera', rarity: 'epic' }, score: 410 }
+                { name: 'Lena', icon: 'fas fa-user-friends', latest: { name: 'Rose', rarity: 'rare' }, score: 320 },
+                { name: 'Marco', icon: 'fas fa-user-friends', latest: { name: 'Dragon Tree', rarity: 'legendary' }, score: 540 },
+                { name: 'Sofia', icon: 'fas fa-user-friends', latest: { name: 'Mint', rarity: 'common' }, score: 180 },
+                { name: 'James', icon: 'fas fa-user-friends', latest: { name: 'Monstera', rarity: 'epic' }, score: 410 }
             ];
 
             // ---- DOM refs ----
@@ -157,7 +157,7 @@
                 clearTimeout(toast._timeout);
                 toast._timeout = setTimeout(() => {
                     toast.innerHTML =
-                    `<i class="fas fa-spa"></i> Rarities: green- common, blue- rare, purple- epic, orange- legendary`;
+                    `<i class="fas fa-spa"></i> Rarities: green = common, blue = rare, purple = epic, orange = legendary`;
                 }, 3500);
             }
 
@@ -228,7 +228,7 @@
                     </div>
                 `;
 
-                showToast(`🎉 pulled ${plant.name} (${rarityInfo.label}) +${rarityInfo.points} score!`, 'fa-gift');
+                showToast('Rarity Chances: common = 80%, rare = 10%, epic = 8%, legendary = 2%');
             }
 
             // ---- render friends ----
