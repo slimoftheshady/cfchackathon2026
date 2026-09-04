@@ -714,3 +714,277 @@
             opacity: 0.7;
             flex-shrink: 0;
         }
+
+/* ===== LOGIN + LIVE FRIEND SYSTEM ===== */
+.hidden { display: none !important; }
+
+.app-container.app-locked {
+    visibility: hidden;
+}
+
+.auth-shell {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: radial-gradient(circle at 20% 30%, #1a402a, #051007);
+}
+
+.auth-shell.hidden {
+    display: none;
+}
+
+.auth-card {
+    width: min(390px, 100%);
+    background: linear-gradient(165deg, #f0f7ea 0%, #d4e8c8 100%);
+    border: 2px solid #7aa074;
+    border-radius: 38px;
+    padding: 30px 24px 26px;
+    box-shadow: 0 20px 45px rgba(0,0,0,0.55);
+}
+
+.auth-logo {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 8px;
+    border-radius: 50%;
+    background: #1f411f;
+    color: #f7d44a;
+    display: grid;
+    place-items: center;
+    font-size: 34px;
+    box-shadow: 0 6px 0 #0f2a0f;
+}
+
+.auth-card h1 {
+    text-align: center;
+    color: #1d421d;
+    font-size: 30px;
+    margin-top: 12px;
+}
+
+.auth-subtitle {
+    text-align: center;
+    color: #456445;
+    margin: 6px 0 20px;
+}
+
+.auth-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    background: #c3d9b8;
+    border-radius: 30px;
+    padding: 4px;
+    margin-bottom: 18px;
+}
+
+.auth-tab {
+    border: 0;
+    border-radius: 26px;
+    padding: 10px;
+    font-weight: 700;
+    background: transparent;
+    color: #456445;
+    cursor: pointer;
+}
+
+.auth-tab.active {
+    background: #f5ffd6;
+    color: #1f451f;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+}
+
+.auth-card label {
+    display: block;
+    color: #1d421d;
+    font-size: 13px;
+    font-weight: 700;
+    margin: 12px 0;
+}
+
+.auth-card input,
+.friend-search input {
+    width: 100%;
+    margin-top: 5px;
+    border: 2px solid #a8c49d;
+    border-radius: 18px;
+    background: #fbfff7;
+    color: #173617;
+    padding: 12px 14px;
+    font-size: 16px;
+    outline: none;
+}
+
+.auth-card input:focus,
+.friend-search input:focus {
+    border-color: #5f8b55;
+    box-shadow: 0 0 0 3px rgba(95,139,85,0.15);
+}
+
+.auth-submit,
+.logout-btn {
+    width: 100%;
+    border: 0;
+    border-radius: 22px;
+    cursor: pointer;
+    font-weight: 800;
+}
+
+.auth-submit {
+    margin-top: 8px;
+    padding: 13px;
+    background: linear-gradient(145deg, #f5d060, #e8b830);
+    color: #1f3f1a;
+    box-shadow: 0 5px 0 #a07d29;
+    font-size: 16px;
+}
+
+.auth-error {
+    min-height: 20px;
+    margin-top: 12px;
+    color: #9b2929;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.friend-search {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.friend-search input {
+    margin: 0;
+    min-width: 0;
+    font-size: 14px;
+    padding: 10px 12px;
+}
+
+.friend-search button {
+    width: 46px;
+    border: 0;
+    border-radius: 18px;
+    background: #2f6532;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.friend-search-results,
+.request-list {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.user-result,
+.request-row {
+    background: #edf7e5;
+    border: 1px solid #b6d1aa;
+    border-radius: 20px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.user-result-name,
+.request-name {
+    flex: 1;
+    min-width: 0;
+    font-weight: 700;
+    color: #1d421d;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.friend-action {
+    border: 0;
+    border-radius: 15px;
+    padding: 7px 10px;
+    font-weight: 700;
+    cursor: pointer;
+    background: #39753d;
+    color: white;
+}
+
+.friend-action.secondary {
+    background: #dce7d5;
+    color: #315431;
+}
+
+.friend-action[disabled] {
+    cursor: default;
+    opacity: 0.6;
+}
+
+.friend-section {
+    margin: 10px 0 14px;
+}
+
+.friend-section-title {
+    color: #496649;
+    font-weight: 800;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 12px 3px 8px;
+}
+
+.empty-friends {
+    text-align: center;
+    color: #658065;
+    font-size: 13px;
+    padding: 24px 10px;
+}
+
+.logout-btn {
+    margin-top: 16px;
+    padding: 11px;
+    background: #dce8d5;
+    color: #365336;
+    border: 1px solid #b6cbaa;
+}
+
+.friend-card {
+    cursor: default;
+}
+
+/* ===== FRIEND REQUEST NOTIFICATION ===== */
+
+#friendsNavButton {
+    position: relative;
+}
+
+.friend-notification {
+    position: absolute;
+
+    top: -5px;
+    right: 3px;
+
+    width: 20px;
+    height: 20px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #e53935;
+    color: white;
+
+    border: 2px solid #f0f7ea;
+    border-radius: 50%;
+
+    font-size: 10px;
+    font-weight: 800;
+
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+
+    z-index: 10;
+}

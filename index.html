@@ -9,7 +9,35 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="app-container" id="app">
+    <div class="auth-shell" id="authShell">
+        <div class="auth-card">
+            <div class="auth-logo"><i class="fas fa-seedling"></i></div>
+            <h1>GardenQuest</h1>
+            <p class="auth-subtitle">Grow your garden with friends.</p>
+
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="loginTab" type="button">Log in</button>
+                <button class="auth-tab" id="registerTab" type="button">Create account</button>
+            </div>
+
+            <form id="authForm">
+                <label>
+                    Username
+                    <input id="authUsername" name="username" autocomplete="username"
+                           minlength="3" maxlength="20" required>
+                </label>
+                <label>
+                    Password
+                    <input id="authPassword" name="password" type="password"
+                           autocomplete="current-password" minlength="8" maxlength="72" required>
+                </label>
+                <button class="auth-submit" id="authSubmit" type="submit">Log in</button>
+                <div class="auth-error" id="authError" aria-live="polite"></div>
+            </form>
+        </div>
+    </div>
+
+    <div class="app-container app-locked" id="app">
 
         <div class="view-container">
             <!-- ===== HOME VIEW ===== -->
@@ -41,7 +69,24 @@
             <div id="friendsView" class="view-page">
                 <div class="friends-view">
                     <div class="view-title"><i class="fas fa-user-friends"></i> Garden Buddies</div>
+
+                    <div class="friend-search">
+                        <input id="friendSearchInput" type="search" placeholder="Find a player by username"
+                               maxlength="20" autocomplete="off">
+                        <button id="friendSearchButton" type="button" aria-label="Search users">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <div id="friendSearchResults" class="friend-search-results"></div>
+
+                    <div id="friendRequestsSection" class="friend-section hidden">
+                        <div class="friend-section-title">Friend requests</div>
+                        <div id="friendRequests" class="request-list"></div>
+                    </div>
+
+                    <div class="friend-section-title">Your friends</div>
                     <div class="friend-grid" id="friendsGrid"></div>
+                    <div class="empty-friends" id="emptyFriends">No garden buddies yet. Search for someone above.</div>
                 </div>
             </div>
 
@@ -109,7 +154,7 @@
                     <div class="view-title"><i class="fas fa-user"></i> Your Profile</div>
                     <div class="profile-card" id="profileCard">
                         <div class="avatar"><i class="fas fa-seedling"></i></div>
-                        <div class="pname">🌱 John Smith</div>
+                        <div class="pname">🌱 <span id="profileName">Player</span></div>
                         <div class="pstats">
                             <div><i class="fas fa-leaf"></i> <span id="profilePlantCount">0</span></div>
                             <div><i class="fas fa-star"></i> <span id="profilePoints">240</span></div>
@@ -122,6 +167,9 @@
                                 <span class="latest-rarity" id="profileLatestRarity">—</span>
                             </div>
                         </div>
+                        <button class="logout-btn" id="logoutButton" type="button">
+                            <i class="fas fa-right-from-bracket"></i> Log out
+                        </button>
                     </div>
                 </div>
             </div>
@@ -135,7 +183,11 @@
         <!-- ===== BOTTOM NAV (5 tabs) ===== -->
         <div class="bottom-nav">
             <button class="nav-btn active-tab" data-view="homeView"><i class="fas fa-home"></i><span>Home</span></button>
-            <button class="nav-btn" data-view="friendsView"><i class="fas fa-user-friends"></i><span>Friends</span></button>
+            <button class="nav-btn" data-view="friendsView" id="friendsNavButton">
+                <i class="fas fa-user-friends"></i>
+                <span>Friends</span>
+                <span class="friend-notification hidden" id="friendNotification">0</span>
+            </button>
             <button class="nav-btn" data-view="storeView"><i class="fas fa-store"></i><span>Store</span></button>
             <button class="nav-btn" data-view="gachaView"><i class="fas fa-dice"></i><span>Gacha</span></button>
             <button class="nav-btn" data-view="profileView"><i class="fas fa-user-circle"></i><span>Profile</span></button>
