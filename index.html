@@ -1,151 +1,151 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-  <title>GardenQuest · gacha collection</title>
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>GardenQuest · gacha collection</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="app-container" id="app">
+    <div class="app-container" id="app">
 
-  <div class="view-container">
-    <!-- ===== HOME VIEW ===== -->
-    <div id="homeView" class="view-page active">
-      <div class="garden-section">
-        <div class="garden-header">
-          <h2><i class="fas fa-seedling"></i> my garden</h2>
-          <div class="points-badge">
-            <i class="fas fa-star"></i> <span id="pointDisplay">240</span>
-          </div>
-        </div>
-        <div class="plot-grid" id="plotGrid"></div>
-        <div class="garden-hint">
-          <span><i class="fas fa-leaf"></i> tap plant to delete</span>
-          <span id="plantCounter">0 / 16</span>
-        </div>
-      </div>
+        <div class="view-container">
+            <!-- ===== HOME VIEW ===== -->
+            <div id="homeView" class="view-page active">
+                <div class="garden-section">
+                    <div class="garden-header">
+                        <h2><i class="fas fa-tree"></i>My Garden</h2>
+                        <div class="points-badge">
+                            <i class="fas fa-star"></i> <span id="pointDisplay">240</span>
+                        </div>
+                    </div>
+                    <div class="plot-grid" id="plotGrid"></div>
+                    <div class="garden-hint">
+                        <span><i class="fas fa-spa"></i> click on a plant to make space for new ones!</span>
+                        <span id="plantCounter">0 / 16</span>
+                    </div>
+                </div>
 
-      <div class="camera-section">
-        <button class="snap-btn" id="snapButton">
-          <i class="fas fa-camera"></i> snap
-          <small><i class="fas fa-tag"></i> +5</small>
-        </button>
-      </div>
-      <div style="flex:1;"></div>
-    </div>
-
-    <!-- ===== FRIENDS VIEW ===== -->
-    <div id="friendsView" class="view-page">
-      <div class="friends-view">
-        <div class="view-title"><i class="fas fa-user-friends"></i> garden buddies</div>
-        <div class="friend-grid" id="friendsGrid"></div>
-      </div>
-    </div>
-
-    <!-- ===== STORE VIEW ===== -->
-    <div id="storeView" class="view-page">
-      <div class="store-view">
-        <div class="view-title"><i class="fas fa-gem"></i> upgrades & décor</div>
-        <div class="store-grid" id="storeGrid">
-          <div class="store-item" data-item="gnome" data-cost="60">
-            <i class="fas fa-frog"></i>
-            <div class="label">gnome</div>
-            <div class="cost">60 ★</div>
-          </div>
-          <div class="store-item" data-item="bench" data-cost="100">
-            <i class="fas fa-tree"></i>
-            <div class="label">bench</div>
-            <div class="cost">100 ★</div>
-          </div>
-          <div class="store-item" data-item="lamp" data-cost="80">
-            <i class="fas fa-sun"></i>
-            <div class="label">solar lamp</div>
-            <div class="cost">80 ★</div>
-          </div>
-          <div class="store-item" data-item="fountain" data-cost="150">
-            <i class="fas fa-water"></i>
-            <div class="label">fountain</div>
-            <div class="cost">150 ★</div>
-          </div>
-          <div class="store-item" data-item="birdhouse" data-cost="70">
-            <i class="fas fa-dove"></i>
-            <div class="label">birdhouse</div>
-            <div class="cost">70 ★</div>
-          </div>
-          <div class="store-item" data-item="compost" data-cost="40">
-            <i class="fas fa-recycle"></i>
-            <div class="label">compost</div>
-            <div class="cost">40 ★</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===== GACHA VIEW ===== -->
-    <div id="gachaView" class="view-page">
-      <div class="gacha-view">
-        <div class="view-title"><i class="fas fa-dice"></i> plant gacha</div>
-        <div class="gacha-box">
-          <div class="gacha-icon"><i class="fas fa-seedling"></i></div>
-          <div class="gacha-cost"><i class="fas fa-star"></i> 60 points per pull</div>
-          <button class="gacha-btn" id="gachaButton">
-            <i class="fas fa-gift"></i> pull plant
-          </button>
-        </div>
-        <div class="gacha-result" id="gachaResult">
-          <div style="color: #4d6b4d; opacity: 0.7; font-size: 16px;">
-            <i class="fas fa-hand-pointer"></i> pull to discover a new plant!
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===== PROFILE VIEW ===== -->
-    <div id="profileView" class="view-page">
-      <div class="profile-view">
-        <div class="view-title"><i class="fas fa-user"></i> your profile</div>
-        <div class="profile-card" id="profileCard">
-          <div class="avatar"><i class="fas fa-seedling"></i></div>
-          <div class="pname">🌱 Gardener</div>
-          <div class="pstats">
-            <div><i class="fas fa-leaf"></i> <span id="profilePlantCount">0</span></div>
-            <div><i class="fas fa-star"></i> <span id="profilePoints">240</span></div>
-            <div><i class="fas fa-trophy"></i> <span id="profileScore">0</span></div>
-          </div>
-          <div class="latest-section">
-            <div class="latest-label">latest plant acquired</div>
-            <div>
-              <span class="latest-plant" id="profileLatestPlant">—</span>
-              <span class="latest-rarity" id="profileLatestRarity">—</span>
+                <div class="camera-section">
+                    <button class="snap-btn" id="snapButton">
+                        <i class="fas fa-camera"></i>
+                        <span class="snap-text">snap <small><i class="fas fa-star"></i> +10</small></span>
+                    </button>
+                </div>
+                <div style="flex:1;"></div>
             </div>
-          </div>
+
+            <!-- ===== FRIENDS VIEW ===== -->
+            <div id="friendsView" class="view-page">
+                <div class="friends-view">
+                    <div class="view-title"><i class="fas fa-user-friends"></i> garden buddies</div>
+                    <div class="friend-grid" id="friendsGrid"></div>
+                </div>
+            </div>
+
+            <!-- ===== STORE VIEW ===== -->
+            <div id="storeView" class="view-page">
+                <div class="store-view">
+                    <div class="view-title"><i class="fas fa-gem"></i> upgrades & décor</div>
+                    <div class="store-grid" id="storeGrid">
+                        <div class="store-item" data-item="gnome" data-cost="60">
+                            <i class="fas fa-frog"></i>
+                            <div class="label">gnome</div>
+                            <div class="cost">60 ★</div>
+                        </div>
+                        <div class="store-item" data-item="bench" data-cost="100">
+                            <i class="fas fa-tree"></i>
+                            <div class="label">bench</div>
+                            <div class="cost">100 ★</div>
+                        </div>
+                        <div class="store-item" data-item="lamp" data-cost="80">
+                            <i class="fas fa-sun"></i>
+                            <div class="label">solar lamp</div>
+                            <div class="cost">80 ★</div>
+                        </div>
+                        <div class="store-item" data-item="fountain" data-cost="150">
+                            <i class="fas fa-water"></i>
+                            <div class="label">fountain</div>
+                            <div class="cost">150 ★</div>
+                        </div>
+                        <div class="store-item" data-item="birdhouse" data-cost="70">
+                            <i class="fas fa-dove"></i>
+                            <div class="label">birdhouse</div>
+                            <div class="cost">70 ★</div>
+                        </div>
+                        <div class="store-item" data-item="compost" data-cost="40">
+                            <i class="fas fa-recycle"></i>
+                            <div class="label">compost</div>
+                            <div class="cost">40 ★</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== GACHA VIEW ===== -->
+            <div id="gachaView" class="view-page">
+                <div class="gacha-view">
+                    <div class="view-title"><i class="fas fa-dice"></i> plant gacha</div>
+                    <div class="gacha-box">
+                        <div class="gacha-icon"><i class="fas fa-spa"></i></div>
+                        <div class="gacha-cost"><i class="fas fa-star"></i> 60 points per pull</div>
+                        <button class="gacha-btn" id="gachaButton">
+                            <i class="fas fa-gift"></i> pull plant
+                        </button>
+                    </div>
+                    <div class="gacha-result" id="gachaResult">
+                        <div style="color: #4d6b4d; opacity: 0.7; font-size: 16px;">
+                            <i class="fas fa-hand-pointer"></i> pull to discover a new plant!
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== PROFILE VIEW ===== -->
+            <div id="profileView" class="view-page">
+                <div class="profile-view">
+                    <div class="view-title"><i class="fas fa-user"></i> your profile</div>
+                    <div class="profile-card" id="profileCard">
+                        <div class="avatar"><i class="fas fa-seedling"></i></div>
+                        <div class="pname">🌱 Gardener</div>
+                        <div class="pstats">
+                            <div><i class="fas fa-leaf"></i> <span id="profilePlantCount">0</span></div>
+                            <div><i class="fas fa-star"></i> <span id="profilePoints">240</span></div>
+                            <div><i class="fas fa-trophy"></i> <span id="profileScore">0</span></div>
+                        </div>
+                        <div class="latest-section">
+                            <div class="latest-label">latest plant acquired</div>
+                            <div>
+                                <span class="latest-plant" id="profileLatestPlant">—</span>
+                                <span class="latest-rarity" id="profileLatestRarity">—</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
+
+        <!-- toast -->
+        <div class="toast" id="toastMessage">
+            <i class="fas fa-spa"></i> Rarities: green = common, blue = rare, purple = epic, orange = legendary
+        </div>
+
+        <!-- ===== BOTTOM NAV (5 tabs) ===== -->
+        <div class="bottom-nav">
+            <button class="nav-btn active-tab" data-view="homeView"><i class="fas fa-home"></i><span>Home</span></button>
+            <button class="nav-btn" data-view="friendsView"><i class="fas fa-user-friends"></i><span>Friends</span></button>
+            <button class="nav-btn" data-view="storeView"><i class="fas fa-store"></i><span>Store</span></button>
+            <button class="nav-btn" data-view="gachaView"><i class="fas fa-dice"></i><span>Gacha</span></button>
+            <button class="nav-btn" data-view="profileView"><i class="fas fa-user-circle"></i><span>Profile</span></button>
+        </div>
+
+        <div class="footer-meta">
+            <i class="fas fa-globe-americas"></i> every snap supports biodiversity
+        </div>
     </div>
-  </div>
 
-  <!-- toast -->
-  <div class="toast" id="toastMessage">
-    <i class="fas fa-spa"></i> use gacha to grow your garden!
-  </div>
-
-  <!-- ===== BOTTOM NAV (5 tabs) ===== -->
-  <div class="bottom-nav">
-    <button class="nav-btn active-tab" data-view="homeView"><i class="fas fa-home"></i><span>Home</span></button>
-    <button class="nav-btn" data-view="friendsView"><i class="fas fa-user-friends"></i><span>Friends</span></button>
-    <button class="nav-btn" data-view="storeView"><i class="fas fa-store"></i><span>Store</span></button>
-    <button class="nav-btn" data-view="gachaView"><i class="fas fa-dice"></i><span>Gacha</span></button>
-    <button class="nav-btn" data-view="profileView"><i class="fas fa-user-circle"></i><span>Profile</span></button>
-  </div>
-
-  <div class="footer-meta">
-    <i class="fas fa-globe-americas"></i> every snap supports biodiversity
-  </div>
-</div>
-
-<script src="mainscript.js"></script>
+    <script src="mainscript.js"></script>
 </body>
 </html>
