@@ -520,9 +520,22 @@ button {
     font-weight: 800;
 }
 
-.plot.rarity-rare { box-shadow: inset 0 -5px 0 rgba(78,52,38,.18), 0 0 0 2px rgba(169,202,217,.65), 0 5px 10px rgba(59,73,83,.13); }
-.plot.rarity-epic { box-shadow: inset 0 -5px 0 rgba(78,52,38,.18), 0 0 0 2px rgba(199,173,216,.68), 0 5px 10px rgba(59,73,83,.13); }
-.plot.rarity-legendary { box-shadow: inset 0 -5px 0 rgba(78,52,38,.18), 0 0 0 2px rgba(230,181,116,.82), 0 5px 12px rgba(108,84,45,.18); }
+/* rgba(90, 120, 99, 1) */
+
+.plot.rarity-common {
+    box-shadow: inset 0 -5px 0 rgba(78, 52, 38, .18), 0 0 0 3px rgb(196, 204, 184), 0 5px 10px rgba(59, 73, 83, .13);
+}
+.plot.rarity-rare {
+    box-shadow: inset 0 -5px 0 rgba(78, 52, 38, .18), 0 0 0 3px rgba(169, 202, 217, .65), 0 5px 10px rgba(59, 73, 83, .13);
+}
+.plot.rarity-epic {
+    box-shadow: inset 0 -5px 0 rgba(78, 52, 38, .18), 0 0 0 3px rgba(199, 173, 216, .68), 0 5px 10px rgba(59, 73, 83, .13);
+}
+.plot.rarity-legendary {
+    box-shadow: inset 0 -5px 0 rgba(78, 52, 38, .18), 0 0 0 3px rgba(230, 181, 116, .82), 0 5px 12px rgba(108, 84, 45, .18);
+}
+
+
 .plot.kind-decor { background: linear-gradient(155deg, #78988a, #5a7863); }
 
 .garden-footer-row {
@@ -1070,6 +1083,12 @@ button {
     font-weight: 850;
     color: var(--forest);
 }
+
+.latest-rarity.rarity-common { color: var(--forest); }
+.latest-rarity.rarity-rare { color: #5c8799; }
+.latest-rarity.rarity-epic { color: #87639d; }
+.latest-rarity.rarity-legendary { color: #ad7835; }
+.latest-rarity.rarity-decor { color: #557467; }
 
 .logout-btn {
     width: 100%;

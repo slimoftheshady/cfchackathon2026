@@ -1,22 +1,22 @@
 (function () {
-    const PLANT_POOL = [
-        { key: 'daisy', name: 'Daisy', icon: 'fa-leaf', rarity: 'common', kind: 'plant' },
-        { key: 'clover', name: 'Clover', icon: 'fa-leaf', rarity: 'common', kind: 'plant' },
-        { key: 'mint', name: 'Mint', icon: 'fa-leaf', rarity: 'common', kind: 'plant' },
-        { key: 'fern', name: 'Fern', icon: 'fa-leaf', rarity: 'common', kind: 'plant' },
-        { key: 'rose', name: 'Rose', icon: 'fa-seedling', rarity: 'rare', kind: 'plant' },
-        { key: 'tulip', name: 'Tulip', icon: 'fa-seedling', rarity: 'rare', kind: 'plant' },
-        { key: 'lavender', name: 'Lavender', icon: 'fa-seedling', rarity: 'rare', kind: 'plant' },
-        { key: 'orchid', name: 'Orchid', icon: 'fa-seedling', rarity: 'rare', kind: 'plant' },
-        { key: 'monstera', name: 'Monstera', icon: 'fa-cannabis', rarity: 'epic', kind: 'plant' },
-        { key: 'aloe', name: 'Aloe', icon: 'fa-cannabis', rarity: 'epic', kind: 'plant' },
-        { key: 'palm', name: 'Palm', icon: 'fa-cannabis', rarity: 'epic', kind: 'plant' },
-        { key: 'ficus', name: 'Ficus', icon: 'fa-cannabis', rarity: 'epic', kind: 'plant' },
-        { key: 'golden-lotus', name: 'Golden Lotus', icon: 'fa-clover', rarity: 'legendary', kind: 'plant' },
-        { key: 'dragon-tree', name: 'Dragon Tree', icon: 'fa-clover', rarity: 'legendary', kind: 'plant' },
-        { key: 'moonflower', name: 'Moonflower', icon: 'fa-clover', rarity: 'legendary', kind: 'plant' },
-        { key: 'starlight-orchid', name: 'Starlight Orchid', icon: 'fa-clover', rarity: 'legendary', kind: 'plant' }
-    ];
+  const PLANT_POOL = [
+      { key: 'kangaroo-paw', name: 'Kangaroo Paw', icon: 'fa-leaf', rarity: 'common', kind: 'plant' },
+      { key: 'paper-daisy', name: 'Paper Daisy', icon: 'fa-leaf', rarity: 'common', kind: 'plant' },
+      { key: 'pigface', name: 'Pigface', icon: 'fa-leaf', rarity: 'common', kind: 'plant' },
+      { key: 'fringe-lily', name: 'Fringe Lily', icon: 'fa-leaf', rarity: 'common', kind: 'plant' },
+      { key: 'blue-leschenaultia', name: 'Blue Leschenaultia', icon: 'fa-seedling', rarity: 'rare', kind: 'plant' },
+      { key: 'featherflower', name: 'Featherflower', icon: 'fa-seedling', rarity: 'rare', kind: 'plant' },
+      { key: 'cowslip-orchid', name: 'Cowslip Orchid', icon: 'fa-seedling', rarity: 'rare', kind: 'plant' },
+      { key: 'donkey-orchid', name: 'Donkey Orchid', icon: 'fa-seedling', rarity: 'rare', kind: 'plant' },
+      { key: 'qualup-bell', name: 'Qualup Bell', icon: 'fa-cannabis', rarity: 'epic', kind: 'plant' },
+      { key: 'wreath-flower', name: 'Wreath Flower', icon: 'fa-cannabis', rarity: 'epic', kind: 'plant' },
+      { key: 'spider-orchid', name: 'Spider Orchid', icon: 'fa-cannabis', rarity: 'epic', kind: 'plant' },
+      { key: 'pixie-mops', name: 'Pixie Mops', icon: 'fa-cannabis', rarity: 'epic', kind: 'plant' },
+      { key: 'rhizanthella-gardneri', name: 'Rhizanthella Gardneri', icon: 'fa-clover', rarity: 'legendary', kind: 'plant' },
+      { key: 'drakaea', name: 'Drakaea', icon: 'fa-clover', rarity: 'legendary', kind: 'plant' },
+      { key: 'queen-of-sheba', name: 'Queen of Sheba Orchid', icon: 'fa-clover', rarity: 'legendary', kind: 'plant' },
+      { key: 'custard-orchid', name: 'Custard Orchid', icon: 'fa-clover', rarity: 'legendary', kind: 'plant' }
+  ];
 
     const DECOR_POOL = [
         { key: 'gnome', name: 'Gnome', icon: 'fa-hat-wizard', rarity: 'decor', kind: 'decor', cost: 60 },
@@ -71,7 +71,7 @@
     // =========================================================
 
     let points = 240;
-    let score = 0;
+    let score = 245;
 
     // What is currently displayed in the 16 garden plots.
     let gardenSlots = Array(MAX_SLOTS).fill(null);
@@ -1055,7 +1055,7 @@
                 <div class="result-note">
                     ${
                         alreadyUnlocked
-                            ? 'Already in your collection — score still awarded.'
+                            ? 'Already in your collection - score still awarded.'
                             : 'Tap a garden plot on Home to place it.'
                     }
                 </div>
@@ -1069,7 +1069,7 @@
 
         showToast(
             alreadyUnlocked
-                ? `${plant.name} was already unlocked — +${config.points} score.`
+                ? `${plant.name} was already unlocked - +${config.points} score.`
                 : `${plant.name} added to your collection!`,
 
             'fa-gift'
