@@ -583,6 +583,73 @@ def list_friends():
         "outgoing": [dict(row) for row in outgoing],
     })
 
+@app.get("/api/friends/<int:friend_id>/profile")
+def friend_profile(friend_id):
+    uid, error = login_required()
+
+    if error:
+        return error
+
+    with get_db() as db:
+
+        # Only accepted friends are allowed to view each other's gardens.
+        relation = relation_for(
+            db,
+            uid,
+            friend_id
+        )
+
+        if relation.get("status") != "friends":
+            return jsonify({
+                "error": "You can only visit accepted friends."
+            }), 403
+
+        friend = db.execute(
+            """
+            SELECT id, username
+            FROM users
+            WHERE id = ?
+            """,
+            (friend_id,)
+        ).fetchone()
+
+        if not friend:
+            return jsonify({
+                "error": "Friend not found."
+            }), 404
+
+        state = state_for_user(
+            db,
+            friend_id
+        )
+
+    return jsonify({
+        "user": dict(friend),
+
+        "profile": {
+            "score":
+                state["score"],
+
+            "latestPlant":
+                state["latestPlant"],
+
+            "placedCount":
+                sum(
+                    1
+                    for item
+                    in state["gardenSlots"]
+                    if item is not None
+                ),
+
+            "collectionCount":
+                len(
+                    state["collection"]
+                ),
+
+            "gardenSlots":
+                state["gardenSlots"]
+        }
+    })
 
 @app.post("/api/friends/accept")
 def accept_friend():

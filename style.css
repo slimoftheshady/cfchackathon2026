@@ -1344,3 +1344,755 @@ button {
     .collection-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
     .friend-grid { grid-template-columns: 1fr; }
 }
+
+/* =========================================================
+   FRIEND GARDEN VISITS
+   ========================================================= */
+
+.friend-card {
+    cursor: pointer;
+
+    transition:
+        transform .16s ease,
+        box-shadow .16s ease,
+        border-color .16s ease;
+}
+
+
+.friend-card:hover,
+.friend-card:focus-visible {
+
+    transform:
+        translateY(-3px);
+
+    border-color:
+        rgba(90,120,99,.42);
+
+    box-shadow:
+        0 12px 24px
+        rgba(59,73,83,.12);
+
+    outline:
+        none;
+}
+
+
+/* little link at bottom of friend card */
+
+.visit-garden-link {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content:
+        space-between;
+
+    gap: 8px;
+
+    margin-top:
+        11px;
+
+    padding-top:
+        9px;
+
+    border-top:
+        1px solid
+        rgba(90,120,99,.14);
+
+    color:
+        var(--forest);
+
+    font-size:
+        9px;
+
+    font-weight:
+        900;
+}
+
+
+.visit-garden-link i {
+
+    font-size:
+        9px;
+
+    transition:
+        transform .16s ease;
+}
+
+
+.friend-card:hover
+.visit-garden-link i,
+
+.friend-card:focus-visible
+.visit-garden-link i {
+
+    transform:
+        translateX(3px);
+}
+
+
+/* dark overlay */
+
+.friend-visit-backdrop {
+
+    position:
+        fixed;
+
+    inset:
+        0;
+
+    z-index:
+        9100;
+
+    display:
+        flex;
+
+    align-items:
+        flex-end;
+
+    justify-content:
+        center;
+
+    padding:
+        16px;
+
+    background:
+        rgba(35,48,41,.42);
+
+    backdrop-filter:
+        blur(6px);
+}
+
+
+/* main friend profile sheet */
+
+.friend-visit-sheet {
+
+    width:
+        min(100%, 460px);
+
+    max-height:
+        min(88vh, 760px);
+
+    overflow-y:
+        auto;
+
+    padding:
+        10px 18px 18px;
+
+    border:
+        1px solid
+        rgba(90,120,99,.16);
+
+    border-radius:
+        30px 30px 24px 24px;
+
+    background:
+        var(--cream);
+
+    box-shadow:
+        0 24px 70px
+        rgba(35,48,41,.34);
+
+    animation:
+        sheetUp .25s ease both;
+}
+
+
+/* header */
+
+.friend-visit-header {
+
+    display:
+        flex;
+
+    justify-content:
+        space-between;
+
+    gap:
+        14px;
+
+    align-items:
+        flex-start;
+}
+
+
+.friend-visit-header h2 {
+
+    margin-top:
+        3px;
+
+    color:
+        var(--dark);
+
+    font-size:
+        22px;
+
+    letter-spacing:
+        -.025em;
+}
+
+
+.friend-visit-header p {
+
+    margin-top:
+        4px;
+
+    color:
+        rgba(59,73,83,.58);
+
+    font-size:
+        10px;
+
+    line-height:
+        1.45;
+}
+
+
+/* stats */
+
+.friend-visit-stats {
+
+    display:
+        grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap:
+        8px;
+
+    margin-top:
+        15px;
+}
+
+
+.friend-visit-stats > div {
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    align-items:
+        center;
+
+    gap:
+        2px;
+
+    padding:
+        10px 5px;
+
+    border:
+        1px solid
+        rgba(90,120,99,.13);
+
+    border-radius:
+        17px;
+
+    background:
+        rgba(235,244,221,.82);
+}
+
+
+.friend-visit-stats strong {
+
+    color:
+        var(--forest);
+
+    font-size:
+        16px;
+}
+
+
+.friend-visit-stats span {
+
+    color:
+        rgba(59,73,83,.58);
+
+    font-size:
+        8px;
+
+    font-weight:
+        800;
+
+    text-transform:
+        uppercase;
+
+    letter-spacing:
+        .04em;
+}
+
+
+/* latest discovery */
+
+.friend-visit-latest {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        space-between;
+
+    gap:
+        12px;
+
+    margin:
+        11px 0;
+
+    padding:
+        9px 12px;
+
+    border-radius:
+        15px;
+
+    background:
+        white;
+
+    border:
+        1px solid
+        rgba(90,120,99,.13);
+}
+
+
+.friend-visit-latest span {
+
+    color:
+        rgba(59,73,83,.54);
+
+    font-size:
+        9px;
+
+    font-weight:
+        800;
+}
+
+
+.friend-visit-latest strong {
+
+    color:
+        var(--forest);
+
+    font-size:
+        10px;
+}
+
+
+/* cute garden background */
+
+.friend-garden-scene {
+
+    position:
+        relative;
+
+    overflow:
+        hidden;
+
+    padding:
+        54px 11px 12px;
+
+    border:
+        1px solid
+        rgba(90,120,99,.16);
+
+    border-radius:
+        27px;
+
+    background:
+        linear-gradient(
+            180deg,
+            #dff1df 0 28%,
+            #cfe4bd 28% 100%
+        );
+
+    box-shadow:
+        inset 0 -18px 35px
+        rgba(90,120,99,.08);
+}
+
+
+/* sky */
+
+.friend-garden-sky {
+
+    position:
+        absolute;
+
+    inset:
+        0 0 auto;
+
+    height:
+        64px;
+
+    pointer-events:
+        none;
+
+    color:
+        rgba(255,255,255,.82);
+}
+
+
+.friend-cloud {
+
+    position:
+        absolute;
+
+    font-size:
+        22px;
+}
+
+
+.friend-cloud.cloud-one {
+
+    left:
+        16px;
+
+    top:
+        14px;
+}
+
+
+.friend-cloud.cloud-two {
+
+    right:
+        62px;
+
+    top:
+        25px;
+
+    font-size:
+        17px;
+
+    opacity:
+        .8;
+}
+
+
+.friend-sun {
+
+    position:
+        absolute;
+
+    top:
+        12px;
+
+    right:
+        18px;
+
+    color:
+        #f1c968;
+
+    font-size:
+        22px;
+}
+
+
+/* 16 garden plots */
+
+.friend-visit-grid {
+
+    position:
+        relative;
+
+    z-index:
+        2;
+
+    display:
+        grid;
+
+    grid-template-columns:
+        repeat(
+            4,
+            minmax(0, 1fr)
+        );
+
+    gap:
+        7px;
+}
+
+
+.friend-visit-plot {
+
+    position:
+        relative;
+
+    aspect-ratio:
+        1;
+
+    min-width:
+        0;
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    gap:
+        3px;
+
+    padding:
+        5px 3px;
+
+    overflow:
+        hidden;
+
+    border:
+        1px solid
+        rgba(90,120,99,.18);
+
+    border-radius:
+        18px 18px 14px 14px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #b4cf98,
+            #8fb47e
+        );
+
+    box-shadow:
+        inset 0 -5px 0
+        rgba(59,73,83,.08),
+        0 4px 8px
+        rgba(59,73,83,.08);
+
+    color:
+        var(--forest);
+}
+
+
+.friend-visit-plot::after {
+
+    content:
+        '';
+
+    position:
+        absolute;
+
+    left:
+        8%;
+
+    right:
+        8%;
+
+    bottom:
+        5px;
+
+    height:
+        9px;
+
+    border-radius:
+        50%;
+
+    background:
+        rgba(90,120,99,.22);
+}
+
+
+.friend-visit-plot > i {
+
+    position:
+        relative;
+
+    z-index:
+        2;
+
+    color:
+        var(--forest);
+
+    font-size:
+        21px;
+
+    filter:
+        drop-shadow(
+            0 2px 1px
+            rgba(255,255,255,.42)
+        );
+}
+
+
+.friend-visit-plot
+.plant-name {
+
+    position:
+        relative;
+
+    z-index:
+        3;
+
+    max-width:
+        100%;
+
+    overflow:
+        hidden;
+
+    text-overflow:
+        ellipsis;
+
+    white-space:
+        nowrap;
+
+    padding:
+        2px 5px;
+
+    border-radius:
+        999px;
+
+    background:
+        rgba(255,255,255,.58);
+
+    color:
+        var(--dark);
+
+    font-size:
+        7px;
+
+    font-weight:
+        850;
+}
+
+
+/* empty garden plots */
+
+.friend-visit-plot.empty {
+
+    opacity:
+        .55;
+
+    background:
+        rgba(235,244,221,.7);
+
+    border-style:
+        dashed;
+}
+
+
+.friend-visit-plot.empty > i {
+
+    color:
+        rgba(90,120,99,.45);
+
+    font-size:
+        15px;
+}
+
+
+/* rarity colours */
+
+.friend-visit-plot.rarity-rare {
+
+    background:
+        linear-gradient(
+            145deg,
+            #cfe3df,
+            #a7c7c7
+        );
+}
+
+
+.friend-visit-plot.rarity-epic {
+
+    background:
+        linear-gradient(
+            145deg,
+            #ddd2e8,
+            #c4b4d4
+        );
+}
+
+
+.friend-visit-plot.rarity-legendary {
+
+    background:
+        linear-gradient(
+            145deg,
+            #f2dfaa,
+            #dfc47a
+        );
+}
+
+
+.friend-visit-plot.kind-decor {
+
+    background:
+        linear-gradient(
+            145deg,
+            #e7e5d4,
+            #cbd3b9
+        );
+}
+
+
+/* back button */
+
+.friend-visit-close-wide {
+
+    width:
+        100%;
+
+    margin-top:
+        12px;
+
+    padding:
+        12px 14px;
+
+    border-radius:
+        16px;
+
+    background:
+        var(--forest);
+
+    color:
+        white;
+
+    font-size:
+        10px;
+
+    font-weight:
+        900;
+}
+
+
+/* smaller phones */
+
+@media (max-width: 380px) {
+
+    .friend-visit-backdrop {
+
+        padding:
+            8px;
+    }
+
+
+    .friend-visit-sheet {
+
+        padding-inline:
+            12px;
+    }
+
+
+    .friend-visit-grid {
+
+        gap:
+            5px;
+    }
+
+
+    .friend-visit-plot {
+
+        border-radius:
+            14px 14px 11px 11px;
+    }
+}

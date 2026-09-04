@@ -1209,77 +1209,355 @@
     }
 
     function renderFriendCards(
-        friends
-    ) {
-        friendsGrid.innerHTML =
-            '';
+    friends
+) {
+    friendsGrid.innerHTML =
+        '';
 
-        emptyFriends
-            .classList
-            .toggle(
-                'hidden',
-                friends.length > 0
+    emptyFriends
+        .classList
+        .toggle(
+            'hidden',
+            friends.length > 0
+        );
+
+    friends.forEach(
+        friend => {
+
+            const card =
+                document.createElement(
+                    'article'
+                );
+
+            card.className =
+                'friend-card';
+
+            card.tabIndex =
+                0;
+
+            card.setAttribute(
+                'role',
+                'button'
             );
 
-        friends.forEach(
-            friend => {
+            card.setAttribute(
+                'aria-label',
+                `Visit ${friend.username}'s garden`
+            );
 
-                const card =
-                    document.createElement(
-                        'article'
-                    );
+            const config =
+                friend.latest_rarity
 
-                card.className =
-                    'friend-card';
+                    ? (
+                        RARITY_CONFIG[
+                            friend.latest_rarity
+                        ] ||
+                        RARITY_CONFIG.common
+                    )
 
-                const config =
-                    friend.latest_rarity
+                    : null;
 
-                        ? (
-                            RARITY_CONFIG[
-                                friend.latest_rarity
-                            ] ||
-                            RARITY_CONFIG.common
-                        )
+            card.innerHTML = `
 
-                        : null;
+                <div class="friend-avatar">
+                    <i class="fas fa-seedling"></i>
+                </div>
 
-                card.innerHTML = `
-                    <div class="friend-avatar">
-                        <i class="fas fa-seedling"></i>
-                    </div>
+                <div class="friend-name">
+                    @${escapeHtml(friend.username)}
+                </div>
 
-                    <div class="friend-name">
-                        @${escapeHtml(friend.username)}
-                    </div>
+                <div class="friend-latest">
 
-                    <div class="friend-latest">
-                        ${
-                            friend.latest_name
-                                ? `${config?.emoji || ''} ${escapeHtml(friend.latest_name)}`
-                                : 'No discoveries yet'
-                        }
-                    </div>
+                    ${
+                        friend.latest_name
 
-                    <div class="friend-stats">
-                        <span>
-                            <i class="fas fa-trophy"></i>
-                            ${friend.score || 0}
-                        </span>
+                            ? `
+                                ${config?.emoji || ''}
+                                ${escapeHtml(friend.latest_name)}
+                            `
 
-                        <span>
-                            <i class="fas fa-leaf"></i>
-                            ${friend.plant_count || 0}
-                        </span>
-                    </div>
-                `;
+                            : 'No discoveries yet'
+                    }
 
-                friendsGrid.appendChild(
-                    card
+                </div>
+
+                <div class="friend-stats">
+
+                    <span>
+                        <i class="fas fa-trophy"></i>
+                        ${friend.score || 0}
+                    </span>
+
+                    <span>
+                        <i class="fas fa-leaf"></i>
+                        ${friend.plant_count || 0}
+                    </span>
+
+                </div>
+
+
+                <div class="visit-garden-link">
+
+                    <span>
+                        Visit garden
+                    </span>
+
+                    <i class="fas fa-arrow-right"></i>
+
+                </div>
+            `;
+
+
+            const visit = () => {
+
+                openFriendGarden(
+                    friend.id
                 );
-            }
+
+            };
+
+
+            card.addEventListener(
+                'click',
+                visit
+            );
+
+
+            // Also makes it keyboard accessible.
+            card.addEventListener(
+                'keydown',
+                event => {
+
+                    if (
+                        event.key === 'Enter' ||
+                        event.key === ' '
+                    ) {
+                        event.preventDefault();
+
+                        visit();
+                    }
+
+                }
+            );
+
+
+            friendsGrid.appendChild(
+                card
+            );
+
+        }
+    );
+}
+
+async function openFriendGarden(
+    friendId
+) {
+    try {
+
+        const data =
+            await api(
+                `/api/friends/${Number(friendId)}/profile`
+            );
+
+        renderFriendGarden(
+            data
         );
+
+        friendVisitBackdrop
+            .classList
+            .remove(
+                'hidden'
+            );
+
+        document.body
+            .classList
+            .add(
+                'modal-open'
+            );
+
+    } catch (error) {
+
+        showToast(
+            error.message,
+            'fa-triangle-exclamation'
+        );
+
     }
+}
+
+
+function closeFriendGarden() {
+
+    friendVisitBackdrop
+        .classList
+        .add(
+            'hidden'
+        );
+
+    // Don't remove modal-open if the garden picker
+    // happens to still be open.
+    if (
+        gardenPickerBackdrop
+            .classList
+            .contains(
+                'hidden'
+            )
+    ) {
+
+        document.body
+            .classList
+            .remove(
+                'modal-open'
+            );
+
+    }
+}
+
+
+function renderFriendGarden(
+    data
+) {
+
+    const friend =
+        data.user;
+
+    const profile =
+        data.profile || {};
+
+    const slots =
+        Array.isArray(
+            profile.gardenSlots
+        )
+
+            ? profile.gardenSlots
+
+            : Array(
+                MAX_SLOTS
+            ).fill(
+                null
+            );
+
+
+    // FRIEND NAME
+
+    friendVisitName.textContent =
+        `@${friend.username}'s garden`;
+
+
+    // STATS
+
+    friendVisitPlaced.textContent =
+        profile.placedCount ||
+        0;
+
+    friendVisitUnlocked.textContent =
+        profile.collectionCount ||
+        0;
+
+    friendVisitScore.textContent =
+        profile.score ||
+        0;
+
+
+    // LATEST PLANT
+
+    if (
+        profile.latestPlant
+    ) {
+
+        const config =
+            RARITY_CONFIG[
+                profile.latestPlant.rarity
+            ] ||
+            RARITY_CONFIG.common;
+
+        friendVisitLatest.textContent =
+            `${config.emoji} ${profile.latestPlant.name}`;
+
+    } else {
+
+        friendVisitLatest.textContent =
+            '—';
+
+    }
+
+
+    // RENDER THE 16 GARDEN PLOTS
+
+    friendVisitGrid.innerHTML =
+        '';
+
+
+    for (
+        let index = 0;
+        index < MAX_SLOTS;
+        index += 1
+    ) {
+
+        const item =
+            slots[index] ||
+            null;
+
+
+        const plot =
+            document.createElement(
+                'div'
+            );
+
+
+        plot.className =
+            `friend-visit-plot ${
+                item
+
+                    ? `
+                        filled
+                        rarity-${item.rarity}
+                        kind-${item.kind}
+                    `
+
+                    : 'empty'
+            }`;
+
+
+        if (
+            item
+        ) {
+
+            plot.innerHTML = `
+
+                <span class="plot-sparkle"></span>
+
+                <i class="fas ${escapeClass(item.icon)}"></i>
+
+                <span class="plant-name">
+                    ${escapeHtml(item.name)}
+                </span>
+
+            `;
+
+        } else {
+
+            plot.innerHTML = `
+
+                <i class="fas fa-seedling"></i>
+
+                <span class="plant-name">
+                    empty
+                </span>
+
+            `;
+
+        }
+
+
+        friendVisitGrid
+            .appendChild(
+                plot
+            );
+
+    }
+}
 
     function renderFriendRequests(
         requests
@@ -1782,6 +2060,38 @@
             }
         );
 
+        closeFriendVisitButton
+    .addEventListener(
+        'click',
+        closeFriendGarden
+    );
+
+
+friendVisitDoneButton
+    .addEventListener(
+        'click',
+        closeFriendGarden
+    );
+
+
+friendVisitBackdrop
+    .addEventListener(
+        'click',
+        event => {
+
+            // Clicking the dark background
+            // closes the friend's garden.
+
+            if (
+                event.target ===
+                friendVisitBackdrop
+            ) {
+                closeFriendGarden();
+            }
+
+        }
+    );
+
         // Collection
         openCollectionButton.addEventListener(
             'click',
@@ -1815,22 +2125,47 @@
 
         // Escape also closes it.
         document.addEventListener(
-            'keydown',
-            event => {
+    'keydown',
+    event => {
 
-                if (
-                    event.key ===
-                        'Escape' &&
-                    !gardenPickerBackdrop
-                        .classList
-                        .contains(
-                            'hidden'
-                        )
-                ) {
-                    closePicker();
-                }
-            }
-        );
+        if (
+            event.key !==
+            'Escape'
+        ) {
+            return;
+        }
+
+
+        // Close friend garden first.
+        if (
+            !friendVisitBackdrop
+                .classList
+                .contains(
+                    'hidden'
+                )
+        ) {
+
+            closeFriendGarden();
+
+            return;
+        }
+
+
+        // Otherwise close your garden picker.
+        if (
+            !gardenPickerBackdrop
+                .classList
+                .contains(
+                    'hidden'
+                )
+        ) {
+
+            closePicker();
+
+        }
+
+    }
+);
 
         // Collection filters
         document

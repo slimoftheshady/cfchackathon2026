@@ -208,6 +208,155 @@
         </nav>
     </main>
 
+    <!-- ===== FRIEND GARDEN VISIT ===== -->
+<div
+    class="friend-visit-backdrop hidden"
+    id="friendVisitBackdrop"
+>
+
+    <section
+        class="friend-visit-sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="friendVisitName"
+    >
+
+        <div class="picker-handle"></div>
+
+        <div class="friend-visit-header">
+
+            <div>
+
+                <div class="eyebrow">
+                    GARDEN VISIT
+                </div>
+
+                <h2 id="friendVisitName">
+                    @friend's garden
+                </h2>
+
+                <p>
+                    Take a peek around —
+                    this garden is view only.
+                </p>
+
+            </div>
+
+            <button
+                class="icon-btn"
+                id="closeFriendVisitButton"
+                type="button"
+                aria-label="Close friend garden"
+            >
+                <i class="fas fa-xmark"></i>
+            </button>
+
+        </div>
+
+
+        <!-- FRIEND STATS -->
+
+        <div class="friend-visit-stats">
+
+            <div>
+                <strong id="friendVisitPlaced">
+                    0
+                </strong>
+
+                <span>
+                    placed
+                </span>
+            </div>
+
+
+            <div>
+                <strong id="friendVisitUnlocked">
+                    0
+                </strong>
+
+                <span>
+                    unlocked
+                </span>
+            </div>
+
+
+            <div>
+                <strong id="friendVisitScore">
+                    0
+                </strong>
+
+                <span>
+                    score
+                </span>
+            </div>
+
+        </div>
+
+
+        <!-- LATEST PLANT -->
+
+        <div class="friend-visit-latest">
+
+            <span>
+                Latest discovery
+            </span>
+
+            <strong id="friendVisitLatest">
+                —
+            </strong>
+
+        </div>
+
+
+        <!-- FRIEND'S GARDEN -->
+
+        <div class="friend-garden-scene">
+
+            <div
+                class="friend-garden-sky"
+                aria-hidden="true"
+            >
+
+                <span
+                    class="friend-cloud cloud-one"
+                >
+                    <i class="fas fa-cloud"></i>
+                </span>
+
+                <span
+                    class="friend-cloud cloud-two"
+                >
+                    <i class="fas fa-cloud"></i>
+                </span>
+
+                <span class="friend-sun">
+                    <i class="fas fa-sun"></i>
+                </span>
+
+            </div>
+
+
+            <div
+                class="friend-visit-grid"
+                id="friendVisitGrid"
+            ></div>
+
+        </div>
+
+
+        <button
+            class="friend-visit-close-wide"
+            id="friendVisitDoneButton"
+            type="button"
+        >
+            <i class="fas fa-arrow-left"></i>
+            Back to my buddies
+        </button>
+
+    </section>
+
+</div>
+
     <!-- Garden picker -->
     <div class="picker-backdrop hidden" id="gardenPickerBackdrop">
         <section class="garden-picker" role="dialog" aria-modal="true" aria-labelledby="pickerTitle">
