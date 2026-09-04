@@ -1,153 +1,162 @@
 (function () {
-    // ---- PLANT POOL ----
     const PLANT_POOL = [
-        { name: 'Daisy', icon: 'fa-leaf', rarity: 'common' },
-        { name: 'Clover', icon: 'fa-leaf', rarity: 'common' },
-        { name: 'Mint', icon: 'fa-leaf', rarity: 'common' },
-        { name: 'Fern', icon: 'fa-leaf', rarity: 'common' },
+        { key: 'daisy', name: 'Daisy', icon: 'fa-leaf', rarity: 'common', kind: 'plant' },
+        { key: 'clover', name: 'Clover', icon: 'fa-leaf', rarity: 'common', kind: 'plant' },
+        { key: 'mint', name: 'Mint', icon: 'fa-leaf', rarity: 'common', kind: 'plant' },
+        { key: 'fern', name: 'Fern', icon: 'fa-leaf', rarity: 'common', kind: 'plant' },
+        { key: 'rose', name: 'Rose', icon: 'fa-seedling', rarity: 'rare', kind: 'plant' },
+        { key: 'tulip', name: 'Tulip', icon: 'fa-seedling', rarity: 'rare', kind: 'plant' },
+        { key: 'lavender', name: 'Lavender', icon: 'fa-seedling', rarity: 'rare', kind: 'plant' },
+        { key: 'orchid', name: 'Orchid', icon: 'fa-seedling', rarity: 'rare', kind: 'plant' },
+        { key: 'monstera', name: 'Monstera', icon: 'fa-cannabis', rarity: 'epic', kind: 'plant' },
+        { key: 'aloe', name: 'Aloe', icon: 'fa-cannabis', rarity: 'epic', kind: 'plant' },
+        { key: 'palm', name: 'Palm', icon: 'fa-cannabis', rarity: 'epic', kind: 'plant' },
+        { key: 'ficus', name: 'Ficus', icon: 'fa-cannabis', rarity: 'epic', kind: 'plant' },
+        { key: 'golden-lotus', name: 'Golden Lotus', icon: 'fa-clover', rarity: 'legendary', kind: 'plant' },
+        { key: 'dragon-tree', name: 'Dragon Tree', icon: 'fa-clover', rarity: 'legendary', kind: 'plant' },
+        { key: 'moonflower', name: 'Moonflower', icon: 'fa-clover', rarity: 'legendary', kind: 'plant' },
+        { key: 'starlight-orchid', name: 'Starlight Orchid', icon: 'fa-clover', rarity: 'legendary', kind: 'plant' }
+    ];
 
-        { name: 'Rose', icon: 'fa-seedling', rarity: 'rare' },
-        { name: 'Tulip', icon: 'fa-seedling', rarity: 'rare' },
-        { name: 'Lavender', icon: 'fa-seedling', rarity: 'rare' },
-        { name: 'Orchid', icon: 'fa-seedling', rarity: 'rare' },
-
-        { name: 'Monstera', icon: 'fa-cannabis', rarity: 'epic' },
-        { name: 'Aloe', icon: 'fa-cannabis', rarity: 'epic' },
-        { name: 'Palm', icon: 'fa-cannabis', rarity: 'epic' },
-        { name: 'Ficus', icon: 'fa-cannabis', rarity: 'epic' },
-
-        { name: 'Golden Lotus', icon: 'fa-clover', rarity: 'legendary' },
-        { name: 'Dragon Tree', icon: 'fa-clover', rarity: 'legendary' },
-        { name: 'Moonflower', icon: 'fa-clover', rarity: 'legendary' },
-        { name: 'Starlight Orchid', icon: 'fa-clover', rarity: 'legendary' }
+    const DECOR_POOL = [
+        { key: 'gnome', name: 'Gnome', icon: 'fa-hat-wizard', rarity: 'decor', kind: 'decor', cost: 60 },
+        { key: 'bench', name: 'Bench', icon: 'fa-chair', rarity: 'decor', kind: 'decor', cost: 100 },
+        { key: 'solar-lamp', name: 'Solar Lamp', icon: 'fa-lightbulb', rarity: 'decor', kind: 'decor', cost: 80 },
+        { key: 'fountain', name: 'Fountain', icon: 'fa-water', rarity: 'decor', kind: 'decor', cost: 150 },
+        { key: 'birdhouse', name: 'Birdhouse', icon: 'fa-dove', rarity: 'decor', kind: 'decor', cost: 70 },
+        { key: 'compost', name: 'Compost', icon: 'fa-recycle', rarity: 'decor', kind: 'decor', cost: 40 }
     ];
 
     const RARITY_CONFIG = {
         common: {
             points: 25,
             label: 'Common',
-            class: 'rarity-common',
-            emoji: '🟢',
+            emoji: '●',
             weight: 0.80
         },
 
         rare: {
             points: 50,
             label: 'Rare',
-            class: 'rarity-rare',
-            emoji: '🔵',
+            emoji: '◆',
             weight: 0.10
         },
 
         epic: {
             points: 70,
             label: 'Epic',
-            class: 'rarity-epic',
-            emoji: '🟣',
+            emoji: '✦',
             weight: 0.08
         },
 
         legendary: {
             points: 100,
             label: 'Legendary',
-            class: 'rarity-legendary',
-            emoji: '🟠',
+            emoji: '★',
             weight: 0.02
+        },
+
+        decor: {
+            points: 0,
+            label: 'Decor',
+            emoji: '♥',
+            weight: 0
         }
     };
 
-    const MAX_PLANTS = 16;
+    const MAX_SLOTS = 16;
 
-    // ---- GAME STATE ----
+    // =========================================================
+    // GAME STATE
+    // =========================================================
+
     let points = 240;
     let score = 0;
-    let plants = [];
+
+    // What is currently displayed in the 16 garden plots.
+    let gardenSlots = Array(MAX_SLOTS).fill(null);
+
+    // Everything the player has permanently unlocked.
+    let collection = [];
+
     let latestPlant = null;
 
-    // ---- LOGIN STATE ----
+    // =========================================================
+    // LOGIN / UI STATE
+    // =========================================================
+
     let currentUser = null;
     let authMode = 'login';
 
-    // Used so we do not save to the server on every tiny update.
+    // Currently selected garden plot.
+    let selectedSlot = null;
+
+    // all / plant / decor
+    let pickerFilter = 'all';
+
     let saveTimer = null;
 
     // =========================================================
     // DOM REFERENCES
     // =========================================================
 
-    const app = document.getElementById('app');
+    const $ = id => document.getElementById(id);
+
+    const app = $('app');
 
     // Login
-    const authShell = document.getElementById('authShell');
-    const authForm = document.getElementById('authForm');
-    const authUsername = document.getElementById('authUsername');
-    const authPassword = document.getElementById('authPassword');
-    const authSubmit = document.getElementById('authSubmit');
-    const authError = document.getElementById('authError');
-    const loginTab = document.getElementById('loginTab');
-    const registerTab = document.getElementById('registerTab');
+    const authShell = $('authShell');
+    const authForm = $('authForm');
+    const authUsername = $('authUsername');
+    const authPassword = $('authPassword');
+    const authSubmit = $('authSubmit');
+    const authError = $('authError');
+    const loginTab = $('loginTab');
+    const registerTab = $('registerTab');
 
-    // Garden
-    const plotGrid = document.getElementById('plotGrid');
-    const pointSpan = document.getElementById('pointDisplay');
-    const plantCounter = document.getElementById('plantCounter');
-    const toast = document.getElementById('toastMessage');
-    const snapBtn = document.getElementById('snapButton');
+    // Home
+    const homeUsername = $('homeUsername');
+    const plotGrid = $('plotGrid');
+    const pointDisplay = $('pointDisplay');
+    const plantCounter = $('plantCounter');
+    const snapButton = $('snapButton');
+    const toast = $('toastMessage');
 
     // Gacha
-    const gachaBtn = document.getElementById('gachaButton');
-    const gachaResult = document.getElementById('gachaResult');
-
-    // Friends
-    const friendsGrid = document.getElementById('friendsGrid');
-    const emptyFriends = document.getElementById('emptyFriends');
-
-    const friendSearchInput =
-        document.getElementById('friendSearchInput');
-
-    const friendSearchButton =
-        document.getElementById('friendSearchButton');
-
-    const friendSearchResults =
-        document.getElementById('friendSearchResults');
-
-    const friendRequestsSection =
-        document.getElementById('friendRequestsSection');
-
-    const friendRequests =
-        document.getElementById('friendRequests');
+    const gachaButton = $('gachaButton');
+    const gachaResult = $('gachaResult');
 
     // Profile
-    const profileName = document.getElementById('profileName');
-    const profilePlantCount =
-        document.getElementById('profilePlantCount');
+    const profileName = $('profileName');
+    const profilePlantCount = $('profilePlantCount');
+    const profileCollectionCount = $('profileCollectionCount');
+    const profileScore = $('profileScore');
+    const profileLatestPlant = $('profileLatestPlant');
+    const profileLatestRarity = $('profileLatestRarity');
+    const logoutButton = $('logoutButton');
 
-    const profilePoints =
-        document.getElementById('profilePoints');
+    // Friends
+    const friendsGrid = $('friendsGrid');
+    const emptyFriends = $('emptyFriends');
+    const friendSearchInput = $('friendSearchInput');
+    const friendSearchButton = $('friendSearchButton');
+    const friendSearchResults = $('friendSearchResults');
+    const friendRequestsSection = $('friendRequestsSection');
+    const friendRequests = $('friendRequests');
+    const friendNotification = $('friendNotification');
 
-    const profileScore =
-        document.getElementById('profileScore');
+    // Garden collection picker
+    const openCollectionButton = $('openCollectionButton');
+    const gardenPickerBackdrop = $('gardenPickerBackdrop');
+    const closePickerButton = $('closePickerButton');
+    const pickerTitle = $('pickerTitle');
+    const pickerSlotNumber = $('pickerSlotNumber');
+    const collectionGrid = $('collectionGrid');
+    const clearPlotButton = $('clearPlotButton');
 
-    const profileLatestPlant =
-        document.getElementById('profileLatestPlant');
-
-    const profileLatestRarity =
-        document.getElementById('profileLatestRarity');
-
-    const logoutButton =
-        document.getElementById('logoutButton');
-
-    // Views
-    const views = {
-        home: document.getElementById('homeView'),
-        friends: document.getElementById('friendsView'),
-        store: document.getElementById('storeView'),
-        gacha: document.getElementById('gachaView'),
-        profile: document.getElementById('profileView')
-    };
-
-    const navBtns =
-        document.querySelectorAll('.nav-btn');
+    // Navigation
+    const navBtns = document.querySelectorAll('.nav-btn');
+    const views = document.querySelectorAll('.view-page');
 
     // =========================================================
     // API HELPER
@@ -169,13 +178,14 @@
 
         try {
             body = await response.json();
-        } catch (error) {
-            // Ignore JSON parsing errors.
+        } catch (_) {
+            // Ignore JSON parse failures.
         }
 
         if (!response.ok) {
             const error = new Error(
-                body.error || 'Something went wrong.'
+                body.error ||
+                'Something went wrong.'
             );
 
             error.status = response.status;
@@ -222,37 +232,52 @@
     function showAuth() {
         currentUser = null;
 
-        authShell.classList.remove('hidden');
-        app.classList.add('app-locked');
+        authShell.classList.remove(
+            'hidden'
+        );
+
+        app.classList.add(
+            'app-locked'
+        );
 
         authUsername.focus();
     }
 
     function showGame() {
-        authShell.classList.add('hidden');
-        app.classList.remove('app-locked');
+        authShell.classList.add(
+            'hidden'
+        );
+
+        app.classList.remove(
+            'app-locked'
+        );
     }
 
     async function bootstrap() {
         try {
-            const data = await api('/api/me');
+            const data =
+                await api('/api/me');
 
-            currentUser = data.user;
+            currentUser =
+                data.user;
 
-            loadState(data.state);
+            loadState(
+                data.state
+            );
 
             showGame();
 
             await loadFriends();
+
         } catch (error) {
-            if (error.status === 401) {
-                showAuth();
-            } else {
+            if (
+                error.status !== 401
+            ) {
                 authError.textContent =
                     'Could not connect to the game server.';
-
-                showAuth();
             }
+
+            showAuth();
         }
     }
 
@@ -268,43 +293,59 @@
                     ? '/api/register'
                     : '/api/login';
 
-            await api(endpoint, {
-                method: 'POST',
+            await api(
+                endpoint,
+                {
+                    method: 'POST',
 
-                body: JSON.stringify({
-                    username:
-                        authUsername.value.trim(),
+                    body: JSON.stringify({
+                        username:
+                            authUsername.value.trim(),
 
-                    password:
-                        authPassword.value
-                })
-            });
+                        password:
+                            authPassword.value
+                    })
+                }
+            );
 
-            authPassword.value = '';
+            authPassword.value =
+                '';
 
             await bootstrap();
+
         } catch (error) {
             authError.textContent =
                 error.message;
+
         } finally {
-            authSubmit.disabled = false;
+            authSubmit.disabled =
+                false;
         }
     }
 
     async function logout() {
         try {
-            await api('/api/logout', {
-                method: 'POST'
-            });
-        } catch (error) {
-            // We still log the user out locally.
+            await api(
+                '/api/logout',
+                {
+                    method: 'POST'
+                }
+            );
+        } catch (_) {
+            // Continue logout locally.
         }
 
-        currentUser = null;
-        plants = [];
-        latestPlant = null;
+        closePicker();
 
-        friendSearchResults.innerHTML = '';
+        collection = [];
+
+        gardenSlots =
+            Array(MAX_SLOTS).fill(
+                null
+            );
+
+        friendSearchResults.innerHTML =
+            '';
 
         showAuth();
     }
@@ -315,32 +356,59 @@
 
     function loadState(state) {
         points =
-            Number.isFinite(state.points)
+            Number.isFinite(
+                state.points
+            )
                 ? state.points
                 : 240;
 
         score =
-            Number.isFinite(state.score)
+            Number.isFinite(
+                state.score
+            )
                 ? state.score
                 : 0;
 
-        plants =
-            Array.isArray(state.plants)
-                ? state.plants.map(
-                    plant => ({ ...plant })
+        latestPlant =
+            state.latestPlant ||
+            null;
+
+        collection =
+            Array.isArray(
+                state.collection
+            )
+                ? state.collection.map(
+                    item => ({
+                        ...item
+                    })
                 )
                 : [];
 
-        latestPlant =
-            state.latestPlant || null;
+        gardenSlots =
+            Array.isArray(
+                state.gardenSlots
+            ) &&
+            state.gardenSlots.length ===
+                MAX_SLOTS
 
-        renderPlots();
-        updatePoints();
-        updateProfile();
+                ? state.gardenSlots.map(
+                    item =>
+                        item
+                            ? { ...item }
+                            : null
+                )
+
+                : Array(
+                    MAX_SLOTS
+                ).fill(null);
+
+        renderEverything();
     }
 
     function scheduleSave() {
-        clearTimeout(saveTimer);
+        clearTimeout(
+            saveTimer
+        );
 
         saveTimer =
             setTimeout(
@@ -355,213 +423,186 @@
         }
 
         try {
-            await api('/api/state', {
-                method: 'POST',
+            await api(
+                '/api/state',
+                {
+                    method: 'POST',
 
-                body: JSON.stringify({
-                    points: points,
-                    score: score,
-                    plants: plants,
-                    latestPlant: latestPlant
-                })
-            });
+                    body: JSON.stringify({
+                        points,
+                        score,
+                        latestPlant,
+                        gardenSlots,
+                        collection
+                    })
+                }
+            );
+
         } catch (error) {
-            if (error.status === 401) {
+            if (
+                error.status === 401
+            ) {
                 showAuth();
+
             } else {
                 showToast(
                     'Could not save your garden.',
-                    'fa-exclamation-circle'
+                    'fa-triangle-exclamation'
                 );
             }
         }
     }
 
     // =========================================================
-    // RANDOM PLANT FUNCTIONS
+    // MAIN RENDER
     // =========================================================
 
-    function getRandomRarity() {
-        const rand = Math.random();
+    function renderEverything() {
+        renderGarden();
 
-        let cumulative = 0;
+        updateStats();
 
-        for (
-            const [rarity, config]
-            of Object.entries(RARITY_CONFIG)
+        renderStore();
+
+        if (
+            !gardenPickerBackdrop
+                .classList
+                .contains('hidden')
         ) {
-            cumulative += config.weight;
-
-            if (rand <= cumulative) {
-                return rarity;
-            }
+            renderCollectionPicker();
         }
-
-        return 'common';
-    }
-
-    function getRandomPlantByRarity(rarity) {
-        const pool =
-            PLANT_POOL.filter(
-                plant =>
-                    plant.rarity === rarity
-            );
-
-        return (
-            pool[
-                Math.floor(
-                    Math.random() *
-                    pool.length
-                )
-            ] ||
-            PLANT_POOL[0]
-        );
     }
 
     // =========================================================
     // GARDEN
     // =========================================================
 
-    function renderPlots() {
+    function renderGarden() {
         plotGrid.innerHTML = '';
 
-        for (
-            let i = 0;
-            i < MAX_PLANTS;
-            i++
-        ) {
-            const plot =
-                document.createElement('div');
+        gardenSlots.forEach(
+            (item, index) => {
 
-            plot.className = 'plot';
+                const plot =
+                    document.createElement(
+                        'button'
+                    );
 
-            if (i < plants.length) {
-                const plant =
-                    plants[i];
+                plot.type =
+                    'button';
 
-                const rarityInfo =
-                    RARITY_CONFIG[
-                        plant.rarity
-                    ] ||
-                    RARITY_CONFIG.common;
+                plot.className =
+                    `plot ${
+                        item
+                            ? `filled rarity-${item.rarity} kind-${item.kind}`
+                            : 'empty-plot'
+                    }`;
 
-                plot.classList.add(
-                    rarityInfo.class
+                plot.dataset.slot =
+                    index;
+
+                plot.setAttribute(
+                    'aria-label',
+
+                    item
+                        ? `Plot ${index + 1}: ${item.name}`
+                        : `Plot ${index + 1}: empty`
                 );
 
-                plot.innerHTML = `
-                    <i class="fas ${escapeClass(plant.icon)}"></i>
+                if (item) {
+                    plot.innerHTML = `
+                        <span class="plot-sparkle"></span>
 
-                    <span class="plant-name">
-                        ${escapeHtml(plant.name)}
-                    </span>
+                        <i class="fas ${escapeClass(item.icon)}"></i>
 
-                    <span class="rarity-badge">
-                        ${rarityInfo.emoji}
-                    </span>
+                        <span class="plant-name">
+                            ${escapeHtml(item.name)}
+                        </span>
 
-                    <button
-                        class="delete-btn"
-                        data-index="${i}"
-                        title="delete plant"
-                    >
-                        ✕
-                    </button>
-                `;
-            } else {
-                plot.classList.add(
-                    'empty-plot'
-                );
+                        <span class="plot-edit">
+                            <i class="fas fa-pen"></i>
+                        </span>
+                    `;
 
-                plot.innerHTML = `
-                    <i class="fas fa-plus-circle"></i>
+                } else {
+                    plot.innerHTML = `
+                        <i class="fas fa-plus"></i>
 
-                    <span style="font-size:9px;">
-                        empty
-                    </span>
-                `;
-            }
+                        <span>
+                            plant
+                        </span>
+                    `;
+                }
 
-            plotGrid.appendChild(plot);
-        }
-
-        document
-            .querySelectorAll('.delete-btn')
-            .forEach(button => {
-
-                button.addEventListener(
+                plot.addEventListener(
                     'click',
-                    function (event) {
-                        event.stopPropagation();
-
-                        deletePlant(
-                            Number.parseInt(
-                                this.dataset.index,
-                                10
-                            )
-                        );
-                    }
+                    () =>
+                        openPicker(index)
                 );
-            });
 
-        plantCounter.innerText =
-            `${plants.length} / ${MAX_PLANTS}`;
+                plotGrid.appendChild(
+                    plot
+                );
+            }
+        );
 
-        updateProfile();
+        const occupied =
+            gardenSlots
+                .filter(Boolean)
+                .length;
+
+        plantCounter.textContent =
+            `${occupied} / ${MAX_SLOTS} placed`;
     }
 
-    function updatePoints() {
-        pointSpan.innerText = points;
+    // =========================================================
+    // STATS / PROFILE
+    // =========================================================
 
-        if (profilePoints) {
-            profilePoints.innerText =
-                points;
-        }
-    }
+    function updateStats() {
+        pointDisplay.textContent =
+            points;
 
-    function updateProfile() {
-        if (profileName) {
-            profileName.innerText =
-                currentUser
-                    ? currentUser.username
-                    : 'Player';
-        }
+        if (currentUser) {
+            profileName.textContent =
+                currentUser.username;
 
-        if (profilePlantCount) {
-            profilePlantCount.innerText =
-                plants.length;
+            homeUsername.textContent =
+                `${currentUser.username}'s`;
         }
 
-        if (profilePoints) {
-            profilePoints.innerText =
-                points;
-        }
+        profilePlantCount.textContent =
+            gardenSlots
+                .filter(Boolean)
+                .length;
 
-        if (profileScore) {
-            profileScore.innerText =
-                score;
-        }
+        profileCollectionCount.textContent =
+            collection.length;
+
+        profileScore.textContent =
+            score;
 
         if (latestPlant) {
-            profileLatestPlant.innerText =
-                latestPlant.name;
-
-            const rarityInfo =
+            const config =
                 RARITY_CONFIG[
                     latestPlant.rarity
                 ] ||
                 RARITY_CONFIG.common;
 
-            profileLatestRarity.innerText =
-                `${rarityInfo.emoji} ${rarityInfo.label}`;
+            profileLatestPlant.textContent =
+                latestPlant.name;
+
+            profileLatestRarity.textContent =
+                `${config.emoji} ${config.label}`;
 
             profileLatestRarity.className =
-                `latest-rarity ${rarityInfo.class}`;
+                `latest-rarity rarity-${latestPlant.rarity}`;
+
         } else {
-            profileLatestPlant.innerText =
+            profileLatestPlant.textContent =
                 '—';
 
-            profileLatestRarity.innerText =
+            profileLatestRarity.textContent =
                 '—';
 
             profileLatestRarity.className =
@@ -569,107 +610,269 @@
         }
     }
 
+    // =========================================================
+    // TOAST
+    // =========================================================
+
     function showToast(
         message,
-        icon = 'fa-spa'
+        icon = 'fa-leaf'
     ) {
+        toast.innerHTML = `
+            <i class="fas ${icon}"></i>
+            <span>
+                ${escapeHtml(message)}
+            </span>
+        `;
+
         toast.classList.remove(
             'hidden'
         );
-
-        toast.innerHTML = `
-            <i class="fas ${icon}"></i>
-            ${escapeHtml(message)}
-        `;
 
         clearTimeout(
             toast._timeout
         );
 
         toast._timeout =
-            setTimeout(() => {
-
-                toast.innerHTML = `
-                    <i class="fas fa-spa"></i>
-                    Rarities: green = common,
-                    blue = rare,
-                    purple = epic,
-                    orange = legendary
-                `;
-
-            }, 3500);
+            setTimeout(
+                () =>
+                    toast.classList.add(
+                        'hidden'
+                    ),
+                2800
+            );
     }
 
-    function addPlantToGarden(plant) {
-        if (
-            plants.length >=
-            MAX_PLANTS
-        ) {
-            showToast(
-                'Garden is full! Remove a plant first 🌿',
-                'fa-exclamation-circle'
-            );
+    // =========================================================
+    // COLLECTION / GARDEN PICKER
+    // =========================================================
 
-            return false;
+    function openPicker(
+        slotIndex = null
+    ) {
+        selectedSlot =
+            slotIndex;
+
+        pickerFilter =
+            'all';
+
+        gardenPickerBackdrop
+            .classList
+            .remove('hidden');
+
+        document.body
+            .classList
+            .add('modal-open');
+
+        document
+            .querySelectorAll(
+                '.picker-tab'
+            )
+            .forEach(tab => {
+
+                tab.classList.toggle(
+                    'active',
+                    tab.dataset.filter ===
+                        'all'
+                );
+            });
+
+        if (
+            selectedSlot === null
+        ) {
+            pickerTitle.innerHTML =
+                'Your collection';
+
+            clearPlotButton
+                .classList
+                .add('hidden');
+
+        } else {
+            pickerTitle.innerHTML =
+                `Choose for plot <span id="pickerSlotNumber">${selectedSlot + 1}</span>`;
+
+            clearPlotButton
+                .classList
+                .remove('hidden');
         }
 
-        plants.push({
-            ...plant
-        });
-
-        latestPlant = {
-            name: plant.name,
-            rarity: plant.rarity
-        };
-
-        renderPlots();
-        updateProfile();
-
-        scheduleSave();
-
-        return true;
+        renderCollectionPicker();
     }
 
-    function deletePlant(index) {
+    function closePicker() {
+        gardenPickerBackdrop
+            .classList
+            .add('hidden');
+
+        document.body
+            .classList
+            .remove('modal-open');
+
+        selectedSlot =
+            null;
+    }
+
+    function renderCollectionPicker() {
+        const unlockedKeys =
+            new Set(
+                collection.map(
+                    item =>
+                        item.key
+                )
+            );
+
+        const allItems = [
+            ...PLANT_POOL,
+            ...DECOR_POOL
+        ].filter(
+            item =>
+                pickerFilter === 'all' ||
+                item.kind === pickerFilter
+        );
+
+        collectionGrid.innerHTML =
+            '';
+
+        allItems.forEach(
+            item => {
+
+                const unlocked =
+                    unlockedKeys.has(
+                        item.key
+                    );
+
+                const selected =
+                    selectedSlot !== null &&
+                    gardenSlots[
+                        selectedSlot
+                    ]?.key === item.key;
+
+                const card =
+                    document.createElement(
+                        'button'
+                    );
+
+                card.type =
+                    'button';
+
+                card.className =
+                    `collection-item rarity-${item.rarity} ${
+                        unlocked
+                            ? 'unlocked'
+                            : 'locked'
+                    } ${
+                        selected
+                            ? 'selected'
+                            : ''
+                    }`;
+
+                card.disabled =
+                    !unlocked;
+
+                card.innerHTML = `
+                    <span class="collection-icon">
+                        <i class="fas ${
+                            unlocked
+                                ? escapeClass(item.icon)
+                                : 'fa-lock'
+                        }"></i>
+                    </span>
+
+                    <span class="collection-name">
+                        ${escapeHtml(item.name)}
+                    </span>
+
+                    <span class="collection-meta">
+                        ${
+                            unlocked
+                                ? (
+                                    item.kind === 'decor'
+                                        ? 'Owned'
+                                        : RARITY_CONFIG[item.rarity].label
+                                )
+                                : 'Locked'
+                        }
+                    </span>
+                `;
+
+                if (unlocked) {
+                    card.addEventListener(
+                        'click',
+                        () => {
+
+                            // Collection opened independently.
+                            if (
+                                selectedSlot ===
+                                null
+                            ) {
+                                closePicker();
+
+                                showToast(
+                                    `Tap a garden plot to place ${item.name}.`,
+                                    'fa-hand-pointer'
+                                );
+
+                                return;
+                            }
+
+                            const ownedItem =
+                                collection.find(
+                                    owned =>
+                                        owned.key ===
+                                        item.key
+                                );
+
+                            const slotNumber =
+                                selectedSlot +
+                                1;
+
+                            gardenSlots[
+                                selectedSlot
+                            ] = {
+                                ...ownedItem
+                            };
+
+                            renderEverything();
+
+                            scheduleSave();
+
+                            closePicker();
+
+                            showToast(
+                                `${item.name} placed in plot ${slotNumber}.`,
+                                'fa-seedling'
+                            );
+                        }
+                    );
+                }
+
+                collectionGrid.appendChild(
+                    card
+                );
+            }
+        );
+    }
+
+    function clearSelectedPlot() {
         if (
-            index < 0 ||
-            index >= plants.length
+            selectedSlot === null
         ) {
             return;
         }
 
-        const removed =
-            plants[index];
+        gardenSlots[
+            selectedSlot
+        ] = null;
 
-        plants.splice(
-            index,
-            1
-        );
-
-        renderPlots();
+        renderEverything();
 
         scheduleSave();
 
-        showToast(
-            `Removed ${removed.name} from your garden`,
-            'fa-trash'
-        );
-    }
-
-    // =========================================================
-    // SNAP
-    // =========================================================
-
-    function snapPlant() {
-        points += 10;
-
-        updatePoints();
-
-        scheduleSave();
+        closePicker();
 
         showToast(
-            '+10 points for snapping!',
-            'fa-camera'
+            'Plot cleared. Pick something new whenever you like.',
+            'fa-eraser'
         );
     }
 
@@ -677,23 +880,43 @@
     // GACHA
     // =========================================================
 
-    function pullGacha() {
-        if (points < 60) {
-            showToast(
-                'Not enough points! You need 60 ★',
-                'fa-exclamation-circle'
-            );
+    function getRandomRarity() {
+        const rand =
+            Math.random();
 
-            return;
+        let cumulative = 0;
+
+        for (
+            const rarity of [
+                'common',
+                'rare',
+                'epic',
+                'legendary'
+            ]
+        ) {
+            cumulative +=
+                RARITY_CONFIG[
+                    rarity
+                ].weight;
+
+            if (
+                rand <=
+                cumulative
+            ) {
+                return rarity;
+            }
         }
 
+        return 'common';
+    }
+
+    function pullGacha() {
         if (
-            plants.length >=
-            MAX_PLANTS
+            points < 60
         ) {
             showToast(
-                'Garden is full! Remove a plant first 🌿',
-                'fa-exclamation-circle'
+                'You need 60 points to open a seed packet.',
+                'fa-star'
             );
 
             return;
@@ -704,62 +927,220 @@
         const rarity =
             getRandomRarity();
 
-        const plant =
-            getRandomPlantByRarity(
-                rarity
+        const pool =
+            PLANT_POOL.filter(
+                item =>
+                    item.rarity ===
+                    rarity
             );
 
-        const rarityInfo =
+        const plant =
+            pool[
+                Math.floor(
+                    Math.random() *
+                    pool.length
+                )
+            ];
+
+        const config =
             RARITY_CONFIG[
                 rarity
             ];
 
-        plants.push({
-            ...plant
-        });
+        const alreadyUnlocked =
+            collection.some(
+                item =>
+                    item.key ===
+                    plant.key
+            );
+
+        // Only add it to the permanent collection once.
+        if (!alreadyUnlocked) {
+            collection.push({
+                ...plant
+            });
+        }
+
+        // Duplicate pulls still give score.
+        score +=
+            config.points;
 
         latestPlant = {
-            name: plant.name,
-            rarity: plant.rarity
+            name:
+                plant.name,
+
+            rarity:
+                plant.rarity
         };
 
-        score +=
-            rarityInfo.points;
-
-        updatePoints();
-        renderPlots();
-        updateProfile();
-
-        scheduleSave();
-
         gachaResult.innerHTML = `
-            <div class="result-plant">
-                <i class="fas ${escapeClass(plant.icon)}"></i>
-            </div>
+            <div class="result-card rarity-${rarity}">
 
-            <div class="result-name">
-                ${escapeHtml(plant.name)}
-            </div>
+                <div class="result-burst">
+                    ${config.emoji}
+                </div>
 
-            <div class="result-rarity ${rarityInfo.class}">
-                ${rarityInfo.emoji}
-                ${rarityInfo.label}
-            </div>
+                <div class="result-icon">
+                    <i class="fas ${escapeClass(plant.icon)}"></i>
+                </div>
 
-            <div
-                style="
-                    margin-top:6px;
-                    font-weight:600;
-                    color:#1d3d1d;
-                "
-            >
-                <i class="fas fa-trophy"></i>
-                +${rarityInfo.points} score!
+                <div class="result-kicker">
+                    ${
+                        alreadyUnlocked
+                            ? 'You found another'
+                            : 'New plant unlocked!'
+                    }
+                </div>
+
+                <div class="result-name">
+                    ${escapeHtml(plant.name)}
+                </div>
+
+                <div class="result-rarity">
+                    ${config.label}
+                </div>
+
+                <div class="result-score">
+                    +${config.points} score
+                </div>
+
+                <div class="result-note">
+                    ${
+                        alreadyUnlocked
+                            ? 'Already in your collection — score still awarded.'
+                            : 'Tap a garden plot on Home to place it.'
+                    }
+                </div>
+
             </div>
         `;
 
+        renderEverything();
+
+        scheduleSave();
+
         showToast(
-            'Rarity Chances: common = 80%, rare = 10%, epic = 8%, legendary = 2%'
+            alreadyUnlocked
+                ? `${plant.name} was already unlocked — +${config.points} score.`
+                : `${plant.name} added to your collection!`,
+
+            'fa-gift'
+        );
+    }
+
+    // =========================================================
+    // SNAP
+    // =========================================================
+
+    function snapPlant() {
+        points += 10;
+
+        updateStats();
+
+        scheduleSave();
+
+        showToast(
+            '+10 points for your biodiversity snap!',
+            'fa-camera'
+        );
+    }
+
+    // =========================================================
+    // STORE
+    // =========================================================
+
+    function renderStore() {
+        document
+            .querySelectorAll(
+                '.store-item'
+            )
+            .forEach(
+                button => {
+
+                    const owned =
+                        collection.some(
+                            item =>
+                                item.key ===
+                                button.dataset.key
+                        );
+
+                    button.classList.toggle(
+                        'owned',
+                        owned
+                    );
+
+                    const cost =
+                        button.querySelector(
+                            '.cost'
+                        );
+
+                    cost.textContent =
+                        owned
+                            ? 'Owned ✓'
+                            : `${button.dataset.cost} ★`;
+                }
+            );
+    }
+
+    function buyDecor(button) {
+        const key =
+            button.dataset.key;
+
+        if (
+            collection.some(
+                item =>
+                    item.key === key
+            )
+        ) {
+            showToast(
+                'You already own this decoration.',
+                'fa-heart'
+            );
+
+            return;
+        }
+
+        const cost =
+            Number(
+                button.dataset.cost
+            );
+
+        if (
+            points < cost
+        ) {
+            showToast(
+                `You need ${cost} points for this decoration.`,
+                'fa-star'
+            );
+
+            return;
+        }
+
+        points -= cost;
+
+        collection.push({
+            key,
+
+            name:
+                button.dataset.name,
+
+            icon:
+                button.dataset.icon,
+
+            rarity:
+                'decor',
+
+            kind:
+                'decor'
+        });
+
+        renderEverything();
+
+        scheduleSave();
+
+        showToast(
+            `${button.dataset.name} unlocked! Place it from any garden plot.`,
+            'fa-heart'
         );
     }
 
@@ -779,12 +1160,22 @@
                 );
 
             renderFriendCards(
-                data.friends || []
+                data.friends ||
+                []
             );
 
             renderFriendRequests(
-                data.incoming || []
+                data.incoming ||
+                []
             );
+
+            updateFriendNotification(
+                (
+                    data.incoming ||
+                    []
+                ).length
+            );
+
         } catch (error) {
             if (
                 error.status ===
@@ -795,63 +1186,91 @@
         }
     }
 
+    function updateFriendNotification(
+        count
+    ) {
+        if (
+            !friendNotification
+        ) {
+            return;
+        }
+
+        friendNotification.textContent =
+            count > 9
+                ? '9+'
+                : count;
+
+        friendNotification
+            .classList
+            .toggle(
+                'hidden',
+                count === 0
+            );
+    }
+
     function renderFriendCards(
         friends
     ) {
-        friendsGrid.innerHTML = '';
+        friendsGrid.innerHTML =
+            '';
 
-        emptyFriends.classList.toggle(
-            'hidden',
-            friends.length > 0
-        );
+        emptyFriends
+            .classList
+            .toggle(
+                'hidden',
+                friends.length > 0
+            );
 
         friends.forEach(
             friend => {
 
-                const rarityInfo =
+                const card =
+                    document.createElement(
+                        'article'
+                    );
+
+                card.className =
+                    'friend-card';
+
+                const config =
                     friend.latest_rarity
+
                         ? (
                             RARITY_CONFIG[
                                 friend.latest_rarity
                             ] ||
                             RARITY_CONFIG.common
                         )
+
                         : null;
 
-                const card =
-                    document.createElement(
-                        'div'
-                    );
-
-                card.className =
-                    'friend-card';
-
                 card.innerHTML = `
-                    <i class="fas fa-user-friends"></i>
-
-                    <div class="fname">
-                        ${escapeHtml(friend.username)}
+                    <div class="friend-avatar">
+                        <i class="fas fa-seedling"></i>
                     </div>
 
-                    <div class="latest-plant">
+                    <div class="friend-name">
+                        @${escapeHtml(friend.username)}
+                    </div>
+
+                    <div class="friend-latest">
                         ${
                             friend.latest_name
-                                ? `
-                                    🌱
-                                    ${escapeHtml(friend.latest_name)}
-                                    ${
-                                        rarityInfo
-                                            ? rarityInfo.emoji
-                                            : ''
-                                    }
-                                `
-                                : '🌱 No plants yet'
+                                ? `${config?.emoji || ''} ${escapeHtml(friend.latest_name)}`
+                                : 'No discoveries yet'
                         }
                     </div>
 
-                    <div class="score-display">
-                        <i class="fas fa-trophy"></i>
-                        ${friend.score || 0}
+                    <div class="friend-stats">
+                        <span>
+                            <i class="fas fa-trophy"></i>
+                            ${friend.score || 0}
+                        </span>
+
+                        <span>
+                            <i class="fas fa-leaf"></i>
+                            ${friend.plant_count || 0}
+                        </span>
                     </div>
                 `;
 
@@ -865,7 +1284,8 @@
     function renderFriendRequests(
         requests
     ) {
-        friendRequests.innerHTML = '';
+        friendRequests.innerHTML =
+            '';
 
         friendRequestsSection
             .classList
@@ -875,7 +1295,7 @@
             );
 
         requests.forEach(
-            request => {
+            req => {
 
                 const row =
                     document.createElement(
@@ -886,20 +1306,26 @@
                     'request-row';
 
                 row.innerHTML = `
+                    <div class="request-avatar">
+                        <i class="fas fa-seedling"></i>
+                    </div>
+
                     <div class="request-name">
-                        ${escapeHtml(request.username)}
+                        @${escapeHtml(req.username)}
                     </div>
 
                     <button
                         class="friend-action accept-request"
-                        data-id="${request.request_id}"
+                        data-id="${req.request_id}"
+                        type="button"
                     >
                         Accept
                     </button>
 
                     <button
                         class="friend-action secondary reject-request"
-                        data-id="${request.request_id}"
+                        data-id="${req.request_id}"
+                        type="button"
                     >
                         Ignore
                     </button>
@@ -915,35 +1341,33 @@
             .querySelectorAll(
                 '.accept-request'
             )
-            .forEach(button => {
-
-                button.addEventListener(
-                    'click',
-                    () => {
-                        answerFriendRequest(
-                            button.dataset.id,
-                            true
-                        );
-                    }
-                );
-            });
+            .forEach(
+                btn =>
+                    btn.addEventListener(
+                        'click',
+                        () =>
+                            answerFriendRequest(
+                                btn.dataset.id,
+                                true
+                            )
+                    )
+            );
 
         document
             .querySelectorAll(
                 '.reject-request'
             )
-            .forEach(button => {
-
-                button.addEventListener(
-                    'click',
-                    () => {
-                        answerFriendRequest(
-                            button.dataset.id,
-                            false
-                        );
-                    }
-                );
-            });
+            .forEach(
+                btn =>
+                    btn.addEventListener(
+                        'click',
+                        () =>
+                            answerFriendRequest(
+                                btn.dataset.id,
+                                false
+                            )
+                    )
+            );
     }
 
     async function searchFriends() {
@@ -968,11 +1392,15 @@
                 );
 
             renderSearchResults(
-                data.users || []
+                data.users ||
+                []
             );
+
         } catch (error) {
-            friendSearchResults.textContent =
-                error.message;
+            showToast(
+                error.message,
+                'fa-triangle-exclamation'
+            );
         }
     }
 
@@ -983,12 +1411,12 @@
             '';
 
         if (
-            users.length === 0
+            !users.length
         ) {
             friendSearchResults.innerHTML =
                 `
-                    <div class="empty-friends">
-                        No matching players.
+                    <div class="empty-inline">
+                        No matching gardeners.
                     </div>
                 `;
 
@@ -1000,7 +1428,8 @@
 
                 const relation =
                     user.relation || {
-                        status: 'none'
+                        status:
+                            'none'
                     };
 
                 const row =
@@ -1011,7 +1440,7 @@
                 row.className =
                     'user-result';
 
-                let action = '';
+                let action;
 
                 if (
                     relation.status ===
@@ -1021,22 +1450,26 @@
                         <button
                             class="friend-action add-friend"
                             data-id="${user.id}"
+                            type="button"
                         >
                             Add
                         </button>
                     `;
+
                 } else if (
                     relation.status ===
-                    'friends'
+                    'incoming'
                 ) {
                     action = `
                         <button
-                            class="friend-action"
-                            disabled
+                            class="friend-action accept-search"
+                            data-request-id="${relation.request_id}"
+                            type="button"
                         >
-                            Friends
+                            Accept
                         </button>
                     `;
+
                 } else if (
                     relation.status ===
                     'outgoing'
@@ -1045,25 +1478,31 @@
                         <button
                             class="friend-action"
                             disabled
+                            type="button"
                         >
                             Sent
                         </button>
                     `;
+
                 } else {
                     action = `
                         <button
-                            class="friend-action accept-search"
-                            data-request-id="${relation.request_id}"
+                            class="friend-action"
+                            disabled
+                            type="button"
                         >
-                            Accept
+                            Friends ✓
                         </button>
                     `;
                 }
 
                 row.innerHTML = `
-                    <div class="user-result-name">
+                    <div class="request-avatar">
                         <i class="fas fa-seedling"></i>
-                        ${escapeHtml(user.username)}
+                    </div>
+
+                    <div class="user-result-name">
+                        @${escapeHtml(user.username)}
                     </div>
 
                     ${action}
@@ -1079,34 +1518,32 @@
             .querySelectorAll(
                 '.add-friend'
             )
-            .forEach(button => {
-
-                button.addEventListener(
-                    'click',
-                    () => {
-                        sendFriendRequest(
-                            button.dataset.id
-                        );
-                    }
-                );
-            });
+            .forEach(
+                btn =>
+                    btn.addEventListener(
+                        'click',
+                        () =>
+                            sendFriendRequest(
+                                btn.dataset.id
+                            )
+                    )
+            );
 
         document
             .querySelectorAll(
                 '.accept-search'
             )
-            .forEach(button => {
-
-                button.addEventListener(
-                    'click',
-                    () => {
-                        answerFriendRequest(
-                            button.dataset.requestId,
-                            true
-                        );
-                    }
-                );
-            });
+            .forEach(
+                btn =>
+                    btn.addEventListener(
+                        'click',
+                        () =>
+                            answerFriendRequest(
+                                btn.dataset.requestId,
+                                true
+                            )
+                    )
+            );
     }
 
     async function sendFriendRequest(
@@ -1116,21 +1553,32 @@
             await api(
                 '/api/friends/request',
                 {
-                    method: 'POST',
+                    method:
+                        'POST',
 
-                    body: JSON.stringify({
-                        user_id:
-                            Number(userId)
-                    })
+                    body:
+                        JSON.stringify({
+                            user_id:
+                                Number(
+                                    userId
+                                )
+                        })
                 }
             );
 
             await searchFriends();
+
             await loadFriends();
+
+            showToast(
+                'Friend request sent!',
+                'fa-user-plus'
+            );
+
         } catch (error) {
             showToast(
                 error.message,
-                'fa-exclamation-circle'
+                'fa-triangle-exclamation'
             );
         }
     }
@@ -1146,12 +1594,16 @@
                     : '/api/friends/reject',
 
                 {
-                    method: 'POST',
+                    method:
+                        'POST',
 
-                    body: JSON.stringify({
-                        request_id:
-                            Number(requestId)
-                    })
+                    body:
+                        JSON.stringify({
+                            request_id:
+                                Number(
+                                    requestId
+                                )
+                        })
                 }
             );
 
@@ -1165,10 +1617,21 @@
             ) {
                 await searchFriends();
             }
+
+            showToast(
+                accept
+                    ? 'You have a new garden buddy!'
+                    : 'Request ignored.',
+
+                accept
+                    ? 'fa-user-group'
+                    : 'fa-check'
+            );
+
         } catch (error) {
             showToast(
                 error.message,
-                'fa-exclamation-circle'
+                'fa-triangle-exclamation'
             );
         }
     }
@@ -1177,50 +1640,26 @@
     // NAVIGATION
     // =========================================================
 
-    function navigateTo(viewId) {
-        Object
-            .values(views)
-            .forEach(view => {
-
-                view.classList.remove(
-                    'active'
-                );
-            });
-
-        const target =
-            document.getElementById(
-                viewId
-            );
-
-        if (target) {
-            target.classList.add(
-                'active'
-            );
-        }
-
-        navBtns.forEach(
-            button => {
-
-                button.classList.toggle(
-                    'active-tab',
-                    button.dataset.view ===
+    function navigateTo(
+        viewId
+    ) {
+        views.forEach(
+            view =>
+                view.classList.toggle(
+                    'active',
+                    view.id ===
                         viewId
-                );
-            }
+                )
         );
 
-        if (
-            viewId ===
-            'homeView'
-        ) {
-            toast.classList.remove(
-                'hidden'
-            );
-        } else {
-            toast.classList.add(
-                'hidden'
-            );
-        }
+        navBtns.forEach(
+            btn =>
+                btn.classList.toggle(
+                    'active-tab',
+                    btn.dataset.view ===
+                        viewId
+                )
+        );
 
         if (
             viewId ===
@@ -1228,25 +1667,36 @@
         ) {
             loadFriends();
         }
+
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
     }
 
     // =========================================================
     // SECURITY HELPERS
     // =========================================================
 
-    function escapeHtml(value) {
+    function escapeHtml(
+        value
+    ) {
         const div =
             document.createElement(
                 'div'
             );
 
         div.textContent =
-            String(value ?? '');
+            String(
+                value ?? ''
+            );
 
         return div.innerHTML;
     }
 
-    function escapeClass(value) {
+    function escapeClass(
+        value
+    ) {
         return String(
             value ?? ''
         ).replace(
@@ -1256,11 +1706,11 @@
     }
 
     // =========================================================
-    // EVENT LISTENERS
+    // EVENTS
     // =========================================================
 
     function bindEvents() {
-        // Login / registration
+        // Login
         authForm.addEventListener(
             'submit',
             submitAuth
@@ -1268,20 +1718,18 @@
 
         loginTab.addEventListener(
             'click',
-            () => {
+            () =>
                 setAuthMode(
                     'login'
-                );
-            }
+                )
         );
 
         registerTab.addEventListener(
             'click',
-            () => {
+            () =>
                 setAuthMode(
                     'register'
-                );
-            }
+                )
         );
 
         logoutButton.addEventListener(
@@ -1289,57 +1737,132 @@
             logout
         );
 
-        // Main game
-        snapBtn.addEventListener(
+        // Home
+        snapButton.addEventListener(
             'click',
             snapPlant
         );
 
-        gachaBtn.addEventListener(
+        // Gacha
+        gachaButton.addEventListener(
             'click',
             pullGacha
         );
 
         // Navigation
         navBtns.forEach(
-            button => {
-
-                button.addEventListener(
+            btn =>
+                btn.addEventListener(
                     'click',
-                    function () {
-
-                        if (
-                            this.dataset.view
-                        ) {
-                            navigateTo(
-                                this.dataset.view
-                            );
-                        }
-                    }
-                );
-            }
+                    () =>
+                        navigateTo(
+                            btn.dataset.view
+                        )
+                )
         );
 
         // Friend search
-        friendSearchButton
-            .addEventListener(
-                'click',
-                searchFriends
-            );
+        friendSearchButton.addEventListener(
+            'click',
+            searchFriends
+        );
 
-        friendSearchInput
-            .addEventListener(
-                'keydown',
-                event => {
+        friendSearchInput.addEventListener(
+            'keydown',
+            event => {
 
-                    if (
-                        event.key ===
-                        'Enter'
-                    ) {
-                        event.preventDefault();
+                if (
+                    event.key ===
+                    'Enter'
+                ) {
+                    event.preventDefault();
 
-                        searchFriends();
-                    }
+                    searchFriends();
+                }
+            }
+        );
+
+        // Collection
+        openCollectionButton.addEventListener(
+            'click',
+            () =>
+                openPicker(null)
+        );
+
+        closePickerButton.addEventListener(
+            'click',
+            closePicker
+        );
+
+        clearPlotButton.addEventListener(
+            'click',
+            clearSelectedPlot
+        );
+
+        // Clicking outside the collection card closes it.
+        gardenPickerBackdrop.addEventListener(
+            'click',
+            event => {
+
+                if (
+                    event.target ===
+                    gardenPickerBackdrop
+                ) {
+                    closePicker();
+                }
+            }
+        );
+
+        // Escape also closes it.
+        document.addEventListener(
+            'keydown',
+            event => {
+
+                if (
+                    event.key ===
+                        'Escape' &&
+                    !gardenPickerBackdrop
+                        .classList
+                        .contains(
+                            'hidden'
+                        )
+                ) {
+                    closePicker();
+                }
+            }
+        );
+
+        // Collection filters
+        document
+            .querySelectorAll(
+                '.picker-tab'
+            )
+            .forEach(
+                tab => {
+
+                    tab.addEventListener(
+                        'click',
+                        () => {
+
+                            pickerFilter =
+                                tab.dataset.filter;
+
+                            document
+                                .querySelectorAll(
+                                    '.picker-tab'
+                                )
+                                .forEach(
+                                    other =>
+                                        other.classList.toggle(
+                                            'active',
+                                            other ===
+                                                tab
+                                        )
+                                );
+
+                            renderCollectionPicker();
+                        }
+                    );
                 }
             );
 
@@ -1348,92 +1871,43 @@
             .querySelectorAll(
                 '.store-item'
             )
-            .forEach(item => {
-
-                item.addEventListener(
-                    'click',
-                    function () {
-
-                        const cost =
-                            Number.parseInt(
-                                this.dataset.cost,
-                                10
-                            );
-
-                        const itemName =
-                            this.dataset.item;
-
-                        if (
-                            points < cost
-                        ) {
-                            showToast(
-                                `Not enough points! You need ${cost} ★`,
-                                'fa-exclamation-circle'
-                            );
-
-                            return;
-                        }
-
-                        if (
-                            plants.length >=
-                            MAX_PLANTS
-                        ) {
-                            showToast(
-                                `Garden full! can't place ${itemName}`,
-                                'fa-exclamation-circle'
-                            );
-
-                            return;
-                        }
-
-                        points -= cost;
-
-                        const decoMap = {
-                            gnome: 'fa-frog',
-                            bench: 'fa-tree',
-                            lamp: 'fa-sun',
-                            fountain: 'fa-water',
-                            birdhouse: 'fa-dove',
-                            compost: 'fa-recycle'
-                        };
-
-                        plants.push({
-                            name:
-                                itemName
-                                    .charAt(0)
-                                    .toUpperCase() +
-                                itemName.slice(1),
-
-                            icon:
-                                decoMap[itemName] ||
-                                'fa-gem',
-
-                            rarity:
-                                'common'
-                        });
-
-                        updatePoints();
-                        renderPlots();
-
-                        scheduleSave();
-
-                        showToast(
-                            `✨ ${itemName} placed in your garden!`,
-                            'fa-gem'
-                        );
-                    }
-                );
-            });
+            .forEach(
+                button =>
+                    button.addEventListener(
+                        'click',
+                        () =>
+                            buyDecor(
+                                button
+                            )
+                    )
+            );
     }
 
     // =========================================================
     // START APP
     // =========================================================
 
-    setAuthMode('login');
+    setAuthMode(
+        'login'
+    );
 
     bindEvents();
 
     bootstrap();
+
+    // Check every 5 seconds for new friend requests so the
+    // notification badge updates even while the player is online.
+    setInterval(
+        () => {
+
+            if (
+                currentUser
+            ) {
+                loadFriends();
+            }
+
+        },
+        5000
+    );
 
 })();
