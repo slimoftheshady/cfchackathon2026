@@ -275,6 +275,11 @@ def script():
     return send_from_directory(BASE_DIR, "mainscript.js")
 
 
+@app.get("/icons/<path:filename>")
+def icons(filename):
+    return send_from_directory(BASE_DIR / "icons", filename)
+
+
 @app.post("/api/register")
 def register():
     data = request.get_json(silent=True) or {}

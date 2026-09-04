@@ -19,12 +19,11 @@
   ];
 
     const DECOR_POOL = [
-        { key: 'gnome', name: 'Gnome', icon: 'fa-hat-wizard', rarity: 'decor', kind: 'decor', cost: 60 },
-        { key: 'bench', name: 'Bench', icon: 'fa-chair', rarity: 'decor', kind: 'decor', cost: 100 },
-        { key: 'solar-lamp', name: 'Solar Lamp', icon: 'fa-lightbulb', rarity: 'decor', kind: 'decor', cost: 80 },
-        { key: 'fountain', name: 'Fountain', icon: 'fa-water', rarity: 'decor', kind: 'decor', cost: 150 },
-        { key: 'birdhouse', name: 'Birdhouse', icon: 'fa-dove', rarity: 'decor', kind: 'decor', cost: 70 },
-        { key: 'compost', name: 'Compost', icon: 'fa-recycle', rarity: 'decor', kind: 'decor', cost: 40 }
+        { key: 'echidna', name: 'Echidna', icon: 'icons/echidna.svg', rarity: 'decor', kind: 'decor', cost: 80 },
+        { key: 'wombat', name: 'Wombat', icon: 'icons/wombat.svg', rarity: 'decor', kind: 'decor', cost: 120 },
+        { key: 'emu', name: 'Emu', icon: 'icons/emu.svg', rarity: 'decor', kind: 'decor', cost: 100 },
+        { key: 'kangaroo', name: 'Kangaroo', icon: 'icons/kangaroo.svg', rarity: 'decor', kind: 'decor', cost: 150 },
+        { key: 'cockatoo', name: 'Cockatoo', icon: 'icons/cockatoo.svg', rarity: 'decor', kind: 'decor', cost: 60 }
     ];
 
     const RARITY_CONFIG = {
@@ -561,7 +560,7 @@
                     plot.innerHTML = `
                         <span class="plot-sparkle"></span>
 
-                        <i class="fas ${escapeClass(item.icon)}"></i>
+                        ${renderIcon(item.icon)}
 
                         <span class="plant-name">
                             ${escapeHtml(item.name)}
@@ -819,11 +818,11 @@
 
                 card.innerHTML = `
                     <span class="collection-icon">
-                        <i class="fas ${
+                        ${
                             unlocked
-                                ? escapeClass(item.icon)
-                                : 'fa-lock'
-                        }"></i>
+                                ? renderIcon(item.icon)
+                                : '<i class="fas fa-lock"></i>'
+                        }
                     </span>
 
                     <span class="collection-name">
@@ -1029,7 +1028,7 @@
                 </div>
 
                 <div class="result-icon">
-                    <i class="fas ${escapeClass(plant.icon)}"></i>
+                    ${renderIcon(plant.icon)}
                 </div>
 
                 <div class="result-kicker">
@@ -1055,7 +1054,7 @@
                 <div class="result-note">
                     ${
                         alreadyUnlocked
-                            ? 'Already in your collection - score still awarded.'
+                            ? 'Already in your collection — score still awarded.'
                             : 'Tap a garden plot on Home to place it.'
                     }
                 </div>
@@ -1069,7 +1068,7 @@
 
         showToast(
             alreadyUnlocked
-                ? `${plant.name} was already unlocked - +${config.points} score.`
+                ? `${plant.name} was already unlocked — +${config.points} score.`
                 : `${plant.name} added to your collection!`,
 
             'fa-gift'
@@ -2000,7 +1999,7 @@ function renderFriendGarden(
 
                 <span class="plot-sparkle"></span>
 
-                <i class="fas ${escapeClass(item.icon)}"></i>
+                ${renderIcon(item.icon)}
 
                 <span class="plant-name">
                     ${escapeHtml(item.name)}
@@ -2453,6 +2452,19 @@ function renderFriendGarden(
             /[^A-Za-z0-9_-]/g,
             ''
         );
+    }
+
+    function renderIcon(
+        icon
+    ) {
+        if (
+            typeof icon === 'string' &&
+            icon.toLowerCase().endsWith('.svg')
+        ) {
+            return `<img src="${escapeHtml(icon)}" class="icon-img" alt="">`;
+        }
+
+        return `<i class="fas ${escapeClass(icon)}"></i>`;
     }
 
     // =========================================================
