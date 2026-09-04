@@ -97,6 +97,17 @@
     let saveTimer = null;
 
     // =========================================================
+    // CAMERA STATE
+    // =========================================================
+
+    let cameraStream = null;
+
+    let cameraFacingMode =
+        'environment';
+
+    let capturedImageData = null;
+
+    // =========================================================
     // DOM REFERENCES
     // =========================================================
 
@@ -157,6 +168,43 @@
     // Navigation
     const navBtns = document.querySelectorAll('.nav-btn');
     const views = document.querySelectorAll('.view-page');
+
+    // Camera
+    const cameraBackdrop =
+        $('cameraBackdrop');
+
+    const cameraVideo =
+        $('cameraVideo');
+
+    const cameraCanvas =
+        $('cameraCanvas');
+
+    const capturedPhoto =
+        $('capturedPhoto');
+
+    const cameraStatus =
+        $('cameraStatus');
+
+    const closeCameraButton =
+        $('closeCameraButton');
+
+    const switchCameraButton =
+        $('switchCameraButton');
+
+    const capturePhotoButton =
+        $('capturePhotoButton');
+
+    const retakePhotoButton =
+        $('retakePhotoButton');
+
+    const usePhotoButton =
+        $('usePhotoButton');
+
+    const liveCameraControls =
+        $('liveCameraControls');
+
+    const photoConfirmControls =
+        $('photoConfirmControls');
 
     // =========================================================
     // API HELPER
@@ -1033,17 +1081,441 @@
     // =========================================================
 
     function snapPlant() {
-        points += 10;
-
-        updateStats();
-
-        scheduleSave();
-
-        showToast(
-            '+10 points for your biodiversity snap!',
-            'fa-camera'
-        );
+        openCamera();
     }
+
+    // =========================================================
+// CAMERA
+// =========================================================
+
+async function openCamera() {
+
+    cameraBackdrop
+        .classList
+        .remove('hidden');
+
+    document.body
+        .classList
+        .add('modal-open');
+
+    resetCameraView();
+
+    await startCamera();
+}
+
+
+async function startCamera() {
+
+    cameraStatus
+        .classList
+        .add('hidden');
+
+    /*
+        Camera access only works if the browser
+        supports getUserMedia.
+    */
+
+    if (
+        !navigator.mediaDevices ||
+        !navigator.mediaDevices.getUserMedia
+    ) {
+
+        showCameraError(
+            'Camera access is not supported in this browser.'
+        );
+
+        return;
+    }
+
+
+    /*
+        Stop any camera that might already
+        be running before starting another.
+    */
+
+    stopCamera();
+
+
+    try {
+
+        cameraStream =
+            await navigator.mediaDevices
+                .getUserMedia({
+
+                    video: {
+
+                        /*
+                            environment = rear camera
+                            user = selfie camera
+                        */
+
+                        facingMode: {
+                            ideal:
+                                cameraFacingMode
+                        },
+
+                        width: {
+                            ideal: 1280
+                        },
+
+                        height: {
+                            ideal: 720
+                        }
+
+                    },
+
+                    // We do not need the microphone.
+                    audio: false
+                });
+
+
+        cameraVideo.srcObject =
+            cameraStream;
+
+
+        await cameraVideo.play();
+
+
+    } catch (error) {
+
+        console.error(
+            'Camera error:',
+            error
+        );
+
+
+        if (
+            error.name ===
+            'NotAllowedError'
+        ) {
+
+            showCameraError(
+                'Camera permission was denied. Please allow camera access in your browser settings.'
+            );
+
+        } else if (
+            error.name ===
+            'NotFoundError'
+        ) {
+
+            showCameraError(
+                'No camera was found on this device.'
+            );
+
+        } else {
+
+            showCameraError(
+                'GardenQuest could not open the camera.'
+            );
+
+        }
+    }
+}
+
+
+function stopCamera() {
+
+    if (!cameraStream) {
+        return;
+    }
+
+
+    cameraStream
+        .getTracks()
+        .forEach(
+            track =>
+                track.stop()
+        );
+
+
+    cameraStream =
+        null;
+
+
+    cameraVideo.srcObject =
+        null;
+}
+
+
+function capturePhoto() {
+
+    /*
+        We need an active video frame before
+        attempting to capture anything.
+    */
+
+    if (
+        !cameraVideo.videoWidth ||
+        !cameraVideo.videoHeight
+    ) {
+
+        showCameraError(
+            'The camera is still starting. Try again in a moment.'
+        );
+
+        return;
+    }
+
+
+    const width =
+        cameraVideo.videoWidth;
+
+    const height =
+        cameraVideo.videoHeight;
+
+
+    cameraCanvas.width =
+        width;
+
+    cameraCanvas.height =
+        height;
+
+
+    const context =
+        cameraCanvas.getContext(
+            '2d'
+        );
+
+
+    /*
+        Copy the current video frame
+        into the hidden canvas.
+    */
+
+    context.drawImage(
+        cameraVideo,
+        0,
+        0,
+        width,
+        height
+    );
+
+
+    /*
+        Convert it into a JPEG image.
+
+        This remains in the browser.
+        It is NOT uploaded anywhere.
+    */
+
+    capturedImageData =
+        cameraCanvas.toDataURL(
+            'image/jpeg',
+            0.9
+        );
+
+
+    capturedPhoto.src =
+        capturedImageData;
+
+
+    capturedPhoto
+        .classList
+        .remove('hidden');
+
+
+    cameraVideo
+        .classList
+        .add('hidden');
+
+
+    liveCameraControls
+        .classList
+        .add('hidden');
+
+
+    photoConfirmControls
+        .classList
+        .remove('hidden');
+
+
+    /*
+        Turn the physical camera off after
+        capturing the frame.
+    */
+
+    stopCamera();
+}
+
+
+async function retakePhoto() {
+
+    capturedImageData =
+        null;
+
+
+    capturedPhoto.src =
+        '';
+
+
+    capturedPhoto
+        .classList
+        .add('hidden');
+
+
+    cameraVideo
+        .classList
+        .remove('hidden');
+
+
+    photoConfirmControls
+        .classList
+        .add('hidden');
+
+
+    liveCameraControls
+        .classList
+        .remove('hidden');
+
+
+    await startCamera();
+}
+
+
+async function switchCamera() {
+
+    /*
+        Toggle between phone back/front camera.
+    */
+
+    cameraFacingMode =
+        cameraFacingMode ===
+        'environment'
+
+            ? 'user'
+
+            : 'environment';
+
+
+    await startCamera();
+}
+
+
+function useCapturedPhoto() {
+
+    if (!capturedImageData) {
+        return;
+    }
+
+
+    /*
+        This is where the game reward happens.
+    */
+
+    points += 10;
+
+
+    updateStats();
+
+    scheduleSave();
+
+
+    closeCamera();
+
+
+    showToast(
+        '+10 points for your biodiversity snap!',
+        'fa-camera'
+    );
+
+
+    /*
+        For now we discard the image after
+        rewarding the player.
+
+        Later, this is the value we can
+        upload to the backend for species
+        recognition.
+    */
+
+    capturedImageData =
+        null;
+}
+
+
+function closeCamera() {
+
+    stopCamera();
+
+
+    cameraBackdrop
+        .classList
+        .add('hidden');
+
+
+    /*
+        Only remove modal-open if another
+        modal is not already open.
+    */
+
+    if (
+        gardenPickerBackdrop
+            .classList
+            .contains('hidden') &&
+
+        friendVisitBackdrop
+            .classList
+            .contains('hidden')
+    ) {
+
+        document.body
+            .classList
+            .remove('modal-open');
+    }
+
+
+    resetCameraView();
+}
+
+
+function resetCameraView() {
+
+    capturedImageData =
+        null;
+
+
+    capturedPhoto.src =
+        '';
+
+
+    capturedPhoto
+        .classList
+        .add('hidden');
+
+
+    cameraVideo
+        .classList
+        .remove('hidden');
+
+
+    liveCameraControls
+        .classList
+        .remove('hidden');
+
+
+    photoConfirmControls
+        .classList
+        .add('hidden');
+
+
+    cameraStatus
+        .classList
+        .add('hidden');
+}
+
+
+function showCameraError(
+    message
+) {
+
+    cameraStatus.textContent =
+        message;
+
+
+    cameraStatus
+        .classList
+        .remove('hidden');
+}
 
     // =========================================================
     // STORE
@@ -2021,6 +2493,54 @@ function renderFriendGarden(
             snapPlant
         );
 
+        // Camera
+        closeCameraButton
+            .addEventListener(
+                'click',
+                closeCamera
+            );
+
+        capturePhotoButton
+            .addEventListener(
+                'click',
+                capturePhoto
+            );
+
+        retakePhotoButton
+            .addEventListener(
+                'click',
+                retakePhoto
+            );
+
+        usePhotoButton
+            .addEventListener(
+                'click',
+                useCapturedPhoto
+            );
+
+        switchCameraButton
+            .addEventListener(
+                'click',
+                switchCamera
+            );
+
+        cameraBackdrop
+            .addEventListener(
+                'click',
+                event => {
+
+                    if (
+                        event.target ===
+                        cameraBackdrop
+                    ) {
+
+                        closeCamera();
+
+                    }
+
+                }
+            );
+
         // Gacha
         gachaButton.addEventListener(
             'click',
@@ -2132,6 +2652,18 @@ friendVisitBackdrop
             event.key !==
             'Escape'
         ) {
+            return;
+        }
+
+
+        if (
+            !cameraBackdrop
+                .classList
+                .contains('hidden')
+        ) {
+
+            closeCamera();
+
             return;
         }
 

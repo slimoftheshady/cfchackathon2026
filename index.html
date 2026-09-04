@@ -380,7 +380,134 @@
             <button class="clear-plot-btn" id="clearPlotButton" type="button"><i class="fas fa-eraser"></i> Leave this plot empty</button>
         </section>
     </div>
+    <!-- ===== CAMERA ===== -->
+<div
+    class="camera-backdrop hidden"
+    id="cameraBackdrop"
+>
+    <section class="camera-sheet">
 
+        <div class="camera-header">
+            <div>
+                <div class="eyebrow">
+                    BIODIVERSITY SNAP
+                </div>
+
+                <h2>
+                    Spot something green?
+                </h2>
+
+                <p>
+                    Take a photo to earn 10 points.
+                </p>
+            </div>
+
+            <button
+                class="icon-btn"
+                id="closeCameraButton"
+                type="button"
+                aria-label="Close camera"
+            >
+                <i class="fas fa-xmark"></i>
+            </button>
+        </div>
+
+
+        <div class="camera-frame">
+
+            <!-- LIVE CAMERA -->
+            <video
+                id="cameraVideo"
+                autoplay
+                muted
+                playsinline
+            ></video>
+
+
+            <!-- USED TO CAPTURE THE IMAGE -->
+            <canvas
+                id="cameraCanvas"
+                class="hidden"
+            ></canvas>
+
+
+            <!-- PHOTO PREVIEW -->
+            <img
+                id="capturedPhoto"
+                class="captured-photo hidden"
+                alt="Your biodiversity snap"
+            >
+
+
+            <div
+                class="camera-status hidden"
+                id="cameraStatus"
+            ></div>
+
+        </div>
+
+
+        <!-- LIVE CAMERA CONTROLS -->
+        <div
+            class="camera-controls"
+            id="liveCameraControls"
+        >
+
+            <button
+                class="camera-secondary-btn"
+                id="switchCameraButton"
+                type="button"
+            >
+                <i class="fas fa-rotate"></i>
+                Flip
+            </button>
+
+
+            <button
+                class="capture-button"
+                id="capturePhotoButton"
+                type="button"
+                aria-label="Take photo"
+            >
+                <span class="capture-ring"></span>
+            </button>
+
+
+            <div class="camera-control-spacer"></div>
+
+        </div>
+
+
+        <!-- PHOTO CONFIRMATION CONTROLS -->
+        <div
+            class="camera-confirm-controls hidden"
+            id="photoConfirmControls"
+        >
+
+            <button
+                class="camera-secondary-btn"
+                id="retakePhotoButton"
+                type="button"
+            >
+                <i class="fas fa-rotate-left"></i>
+                Retake
+            </button>
+
+
+            <button
+                class="camera-use-btn"
+                id="usePhotoButton"
+                type="button"
+            >
+                <i class="fas fa-check"></i>
+                Use photo
+                <span>+10 ★</span>
+            </button>
+
+        </div>
+
+    </section>
+</div>
     <script src="mainscript.js"></script>
 </body>
 </html>
