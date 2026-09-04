@@ -1,0 +1,10 @@
+{
+  "description": "Explore Western Australia's biodiversity by identifying native plants through photos, earning points, and accessing conservation resources.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
