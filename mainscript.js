@@ -164,7 +164,7 @@
             // ---- add plant to garden ----
             function addPlantToGarden(plant) {
                 if (plants.length >= MAX_PLANTS) {
-                    showToast('garden is full! delete a plant first 🌿', 'fa-exclamation-circle');
+                    showToast('garden is full! Remove a plant first 🌿', 'fa-exclamation-circle');
                     return false;
                 }
                 plants.push({ ...plant });
@@ -181,24 +181,24 @@
                 const removed = plants[index];
                 plants.splice(index, 1);
                 renderPlots();
-                showToast(`🗑️ removed ${removed.name} from your garden`, 'fa-trash');
+                showToast(`Removed ${removed.name} from your garden`, 'fa-trash');
             }
 
             // ---- SNAP (no plant, just +5 points) ----
             function snapPlant() {
                 points += 10;
                 updatePoints();
-                showToast(`📸 +10 points for snapping!`, 'fa-camera');
+                showToast(`+10 points for snapping!`, 'fa-camera');
             }
 
             // ---- GACHA (costs 60 points, weighted rarity) ----
             function pullGacha() {
                 if (points < 60) {
-                    showToast(`not enough points! need 60 ★`, 'fa-exclamation-circle');
+                    showToast(`Not enough points! You need 60 ★`, 'fa-exclamation-circle');
                     return;
                 }
                 if (plants.length >= MAX_PLANTS) {
-                    showToast('garden is full! delete a plant first', 'fa-exclamation-circle');
+                    showToast('Garden is full! Remove a plant first 🌿', 'fa-exclamation-circle');
                     return;
                 }
 
@@ -313,7 +313,7 @@
                         const cost = parseInt(this.dataset.cost, 10);
                         const itemName = this.dataset.item;
                         if (points < cost) {
-                            showToast(`not enough points! need ${cost} ★`, 'fa-exclamation-circle');
+                            showToast(`Not enough points! You need ${cost} ★`, 'fa-exclamation-circle');
                             return;
                         }
                         points -= cost;
@@ -327,10 +327,10 @@
                             renderPlots();
                             showToast(`✨ ${item} placed in your garden!`, 'fa-gem');
                         } else {
-                            showToast(`garden full! can't place ${item}`, 'fa-exclamation-circle');
+                            showToast(`Garden full! can't place ${item}`, 'fa-exclamation-circle');
                             points += cost;
                             updatePoints();
-                            showToast(`refunded ${cost} points — garden full`, 'fa-undo');
+                            showToast(`Refunded ${cost} points — Garden full`, 'fa-undo');
                         }
                     });
                 });
