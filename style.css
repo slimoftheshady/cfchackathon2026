@@ -30,7 +30,6 @@
       flex-direction: column;
     }
 
-    /* ----- view container (pages) ----- */
     .view-container {
       flex: 1;
       position: relative;
@@ -123,25 +122,68 @@
       font-size: 13px;
       font-weight: 600;
       text-shadow: 0 2px 4px #102010;
+      position: relative;
+      cursor: pointer;
     }
 
     .plot i {
-      font-size: 34px;
+      font-size: 30px;
       filter: drop-shadow(0 4px 6px #0f1f0a);
       color: #d4f0c0;
       margin-bottom: 2px;
     }
 
     .plot .plant-name {
-      font-size: 11px;
+      font-size: 10px;
       background: #1b3a1bb3;
-      padding: 0 10px;
+      padding: 0 8px;
       border-radius: 40px;
       backdrop-filter: blur(2px);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 60px;
+      max-width: 56px;
+    }
+
+    .plot .rarity-badge {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      font-size: 9px;
+      background: rgba(0,0,0,0.6);
+      padding: 1px 6px;
+      border-radius: 20px;
+      color: #fff;
+      backdrop-filter: blur(2px);
+    }
+
+    .plot .delete-btn {
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
+      background: rgba(200, 40, 40, 0.85);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+      font-weight: 700;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      backdrop-filter: blur(2px);
+      padding: 0;
+      line-height: 1;
+    }
+
+    .plot:hover .delete-btn,
+    .plot .delete-btn:focus {
+      opacity: 1;
     }
 
     .plot.empty-plot {
@@ -152,12 +194,17 @@
       box-shadow: inset 0 -4px 0 #1e3a1a;
       color: #b5d3a6;
       font-size: 12px;
+      cursor: default;
     }
 
     .plot.empty-plot i {
       font-size: 28px;
       opacity: 0.6;
       color: #8bb47a;
+    }
+
+    .plot.empty-plot .delete-btn {
+      display: none;
     }
 
     .garden-hint {
@@ -214,9 +261,7 @@
     }
 
     /* ----- FRIENDS VIEW ----- */
-    .friends-view {
-      padding: 8px 0;
-    }
+    .friends-view { padding: 8px 0; }
     .friends-view .view-title {
       font-size: 24px;
       font-weight: 700;
@@ -226,9 +271,7 @@
       align-items: center;
       gap: 12px;
     }
-    .friends-view .view-title i {
-      color: #3b753b;
-    }
+    .friends-view .view-title i { color: #3b753b; }
     .friend-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -242,24 +285,29 @@
       box-shadow: 0 6px 0 #6f9364;
       border: 2px solid #aacb9c;
     }
-    .friend-card i {
-      font-size: 40px;
-      color: #3b6e3b;
-    }
-    .friend-card .fname {
-      font-weight: 700;
-      font-size: 18px;
+    .friend-card i { font-size: 32px; color: #3b6e3b; }
+    .friend-card .fname { font-weight: 700; font-size: 18px; margin: 4px 0; }
+    .friend-card .latest-plant {
+      font-size: 13px;
+      color: #1d3d1d;
+      background: #d2e6c0;
+      padding: 2px 12px;
+      border-radius: 40px;
+      display: inline-block;
       margin: 4px 0;
     }
-    .friend-card .leaf-count {
+    .friend-card .score-display {
       font-size: 14px;
-      color: #2b5a2b;
+      font-weight: 600;
+      color: #1d421d;
+    }
+    .friend-card .score-display i {
+      font-size: 14px;
+      color: #f9d56e;
     }
 
     /* ----- STORE VIEW ----- */
-    .store-view {
-      padding: 8px 0;
-    }
+    .store-view { padding: 8px 0; }
     .store-view .view-title {
       font-size: 24px;
       font-weight: 700;
@@ -269,9 +317,7 @@
       align-items: center;
       gap: 12px;
     }
-    .store-view .view-title i {
-      color: #3b753b;
-    }
+    .store-view .view-title i { color: #3b753b; }
     .store-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -291,10 +337,7 @@
       transform: translateY(4px);
       box-shadow: 0 2px 0 #4d7542;
     }
-    .store-item i {
-      font-size: 34px;
-      color: #2d642d;
-    }
+    .store-item i { font-size: 34px; color: #2d642d; }
     .store-item .cost {
       font-weight: 700;
       color: #204d1a;
@@ -304,16 +347,102 @@
       font-size: 14px;
       margin-top: 4px;
     }
-    .store-item .label {
-      font-weight: 600;
-      font-size: 14px;
+    .store-item .label { font-weight: 600; font-size: 14px; color: #1d3d1d; }
+
+    /* ----- GACHA VIEW ----- */
+    .gacha-view { padding: 8px 0; }
+    .gacha-view .view-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1d421d;
+      padding: 8px 4px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .gacha-view .view-title i { color: #3b753b; }
+    .gacha-box {
+      background: #2a4d2a;
+      background-image: radial-gradient(circle at 20% 30%, #3d6b3a, #1b3a1b);
+      border-radius: 60px;
+      padding: 28px 20px;
+      text-align: center;
+      box-shadow: inset 0 -8px 0 #123012, 0 8px 14px rgba(0,0,0,0.4);
+      border: 2px solid #6e9a62;
+      margin-bottom: 16px;
+    }
+    .gacha-box .gacha-icon {
+      font-size: 72px;
+      color: #f7d44a;
+      filter: drop-shadow(0 4px 12px #4f7a3a);
+      margin-bottom: 8px;
+    }
+    .gacha-box .gacha-cost {
+      font-size: 18px;
+      font-weight: 700;
+      color: #f4ffe0;
+      background: #1f411f;
+      padding: 6px 20px;
+      border-radius: 60px;
+      display: inline-block;
+      margin: 8px 0;
+    }
+    .gacha-btn {
+      background: #f5c542;
+      border: none;
+      border-radius: 80px;
+      padding: 16px 40px;
+      font-weight: 800;
+      font-size: 22px;
+      color: #1f3f1a;
+      box-shadow: 0 8px 0 #a07d29;
+      transition: 0.06s linear;
+      cursor: pointer;
+      border: 3px solid #ffe28b;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .gacha-btn:active {
+      transform: translateY(5px);
+      box-shadow: 0 3px 0 #7a5f1e;
+    }
+    .gacha-btn i { font-size: 32px; color: #2d4d22; }
+    .gacha-result {
+      margin-top: 16px;
+      background: #ecfade;
+      border-radius: 40px;
+      padding: 16px;
+      border: 2px solid #b3d0a2;
+      min-height: 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .gacha-result .result-plant {
+      font-size: 48px;
+      margin-bottom: 4px;
+    }
+    .gacha-result .result-name {
+      font-weight: 700;
+      font-size: 20px;
       color: #1d3d1d;
     }
+    .gacha-result .result-rarity {
+      font-size: 14px;
+      font-weight: 600;
+      padding: 2px 16px;
+      border-radius: 40px;
+      margin-top: 4px;
+    }
+    .rarity-common { background: #a8c9a0; color: #1d3d1d; }
+    .rarity-rare { background: #4d8fd1; color: #fff; }
+    .rarity-epic { background: #9b59b6; color: #fff; }
+    .rarity-legendary { background: #f39c12; color: #fff; }
 
     /* ----- PROFILE VIEW ----- */
-    .profile-view {
-      padding: 8px 0;
-    }
+    .profile-view { padding: 8px 0; }
     .profile-view .view-title {
       font-size: 24px;
       font-weight: 700;
@@ -323,9 +452,7 @@
       align-items: center;
       gap: 12px;
     }
-    .profile-view .view-title i {
-      color: #3b753b;
-    }
+    .profile-view .view-title i { color: #3b753b; }
     .profile-card {
       background: #ecfade;
       border-radius: 60px;
@@ -334,21 +461,14 @@
       border: 2px solid #b3d0a2;
       box-shadow: 0 6px 0 #88a87a;
     }
-    .profile-card .avatar {
-      font-size: 64px;
-      color: #2d6b2d;
-      margin-bottom: 8px;
-    }
-    .profile-card .pname {
-      font-size: 22px;
-      font-weight: 700;
-      color: #1a3d1a;
-    }
+    .profile-card .avatar { font-size: 64px; color: #2d6b2d; margin-bottom: 8px; }
+    .profile-card .pname { font-size: 22px; font-weight: 700; color: #1a3d1a; }
     .profile-card .pstats {
       display: flex;
       justify-content: center;
-      gap: 28px;
+      gap: 20px;
       margin: 16px 0 8px;
+      flex-wrap: wrap;
     }
     .profile-card .pstats div {
       background: #d2e6c0;
@@ -356,17 +476,46 @@
       border-radius: 60px;
       font-weight: 600;
       color: #1d401d;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .profile-card .pstats div i {
+      color: #f9d56e;
+    }
+    .profile-card .latest-section {
+      margin-top: 12px;
+      background: #d2e6c0;
+      padding: 10px;
+      border-radius: 60px;
+    }
+    .profile-card .latest-section .latest-label {
+      font-size: 13px;
+      opacity: 0.7;
+    }
+    .profile-card .latest-section .latest-plant {
+      font-weight: 700;
+      font-size: 18px;
+      color: #1d3d1d;
+    }
+    .profile-card .latest-section .latest-rarity {
+      font-size: 13px;
+      font-weight: 600;
+      padding: 2px 14px;
+      border-radius: 40px;
+      display: inline-block;
+      margin-left: 8px;
     }
 
-    /* ----- BOTTOM NAV (4 tabs) ----- */
+    /* ----- BOTTOM NAV (5 tabs) ----- */
     .bottom-nav {
       display: flex;
       justify-content: space-around;
       align-items: center;
-      gap: 4px;
+      gap: 2px;
       background: #d2e6c0;
       background: linear-gradient(145deg, #dcefd0, #bdd7ae);
-      padding: 10px 6px 8px;
+      padding: 10px 4px 8px;
       border-radius: 60px;
       margin-top: 12px;
       box-shadow: inset 0 2px 6px #a1ba92, 0 6px 0 #76996a;
@@ -379,7 +528,7 @@
       background: #eaf7de;
       border: none;
       border-radius: 60px;
-      padding: 10px 4px;
+      padding: 8px 2px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -389,21 +538,22 @@
       transition: 0.06s linear;
       cursor: pointer;
       border: 2px solid #c2ddb2;
-      font-size: 13px;
+      font-size: 11px;
       gap: 0px;
+      min-width: 0;
     }
     .nav-btn:active {
       transform: translateY(4px);
       box-shadow: 0 1px 0 #5f7f52;
     }
     .nav-btn i {
-      font-size: 26px;
+      font-size: 22px;
       color: #326a2e;
       filter: drop-shadow(0 2px 4px #8cad7a);
     }
     .nav-btn span {
-      font-size: 12px;
-      letter-spacing: 0.2px;
+      font-size: 10px;
+      letter-spacing: 0.1px;
     }
     .nav-btn.active-tab {
       background: #f5ffd6;
@@ -425,10 +575,7 @@
       border: 1px solid #7bb072;
       flex-shrink: 0;
     }
-    .toast i {
-      margin-right: 10px;
-      color: #f7d44a;
-    }
+    .toast i { margin-right: 10px; color: #f7d44a; }
 
     .footer-meta {
       text-align: center;
