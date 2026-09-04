@@ -2,150 +2,512 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>GardenQuest · gacha collection</title>
-    <!-- Font Awesome -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GardenQuest</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="app-container" id="app">
+    <div class="auth-shell" id="authShell">
+        <div class="auth-card">
+            <div class="auth-logo"><i class="fas fa-seedling"></i></div>
+            <h1>GardenQuest</h1>
+            <p class="auth-subtitle">Grow something lovely, one snap at a time.</p>
 
-        <div class="view-container">
-            <!-- ===== HOME VIEW ===== -->
-            <div id="homeView" class="view-page active">
-                <div class="garden-section">
-                    <div class="garden-header">
-                        <h2><i class="fas fa-tree"></i>My Garden</h2>
-                        <div class="points-badge">
-                            <i class="fas fa-star"></i> <span id="pointDisplay">240</span>
-                        </div>
-                    </div>
-                    <div class="plot-grid" id="plotGrid"></div>
-                    <div class="garden-hint">
-                        <span><i class="fas fa-spa"></i> click on a plant to make space for new ones!</span>
-                        <span id="plantCounter">0 / 16</span>
-                    </div>
-                </div>
-
-                <div class="camera-section">
-                    <button class="snap-btn" id="snapButton">
-                        <i class="fas fa-camera"></i>
-                        <span class="snap-text">snap <small><i class="fas fa-star"></i> +10</small></span>
-                    </button>
-                </div>
-                <div style="flex:1;"></div>
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="loginTab" type="button">Log in</button>
+                <button class="auth-tab" id="registerTab" type="button">Create account</button>
             </div>
 
-            <!-- ===== FRIENDS VIEW ===== -->
-            <div id="friendsView" class="view-page">
-                <div class="friends-view">
-                    <div class="view-title"><i class="fas fa-user-friends"></i> Garden Buddies</div>
-                    <div class="friend-grid" id="friendsGrid"></div>
-                </div>
-            </div>
-
-            <!-- ===== STORE VIEW ===== -->
-            <div id="storeView" class="view-page">
-                <div class="store-view">
-                    <div class="view-title"><i class="fas fa-gem"></i> upgrades & décor</div>
-                    <div class="store-grid" id="storeGrid">
-                        <div class="store-item" data-item="gnome" data-cost="60">
-                            <i class="fas fa-frog"></i>
-                            <div class="label">gnome</div>
-                            <div class="cost">60 ★</div>
-                        </div>
-                        <div class="store-item" data-item="bench" data-cost="100">
-                            <i class="fas fa-tree"></i>
-                            <div class="label">bench</div>
-                            <div class="cost">100 ★</div>
-                        </div>
-                        <div class="store-item" data-item="lamp" data-cost="80">
-                            <i class="fas fa-sun"></i>
-                            <div class="label">solar lamp</div>
-                            <div class="cost">80 ★</div>
-                        </div>
-                        <div class="store-item" data-item="fountain" data-cost="150">
-                            <i class="fas fa-water"></i>
-                            <div class="label">fountain</div>
-                            <div class="cost">150 ★</div>
-                        </div>
-                        <div class="store-item" data-item="birdhouse" data-cost="70">
-                            <i class="fas fa-dove"></i>
-                            <div class="label">birdhouse</div>
-                            <div class="cost">70 ★</div>
-                        </div>
-                        <div class="store-item" data-item="compost" data-cost="40">
-                            <i class="fas fa-recycle"></i>
-                            <div class="label">compost</div>
-                            <div class="cost">40 ★</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ===== GACHA VIEW ===== -->
-            <div id="gachaView" class="view-page">
-                <div class="gacha-view">
-                    <div class="view-title"><i class="fas fa-dice"></i> plant gacha</div>
-                    <div class="gacha-box">
-                        <div class="gacha-icon"><i class="fas fa-spa"></i></div>
-                        <div class="gacha-cost"><i class="fas fa-star"></i> 60 points per pull</div>
-                        <button class="gacha-btn" id="gachaButton">
-                            <i class="fas fa-gift"></i> pull plant
-                        </button>
-                    </div>
-                    <div class="gacha-result" id="gachaResult">
-                        <div style="color: #4d6b4d; opacity: 0.7; font-size: 16px;">
-                            <i class="fas fa-hand-pointer"></i> pull to discover a new plant!
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ===== PROFILE VIEW ===== -->
-            <div id="profileView" class="view-page">
-                <div class="profile-view">
-                    <div class="view-title"><i class="fas fa-user"></i> Your Profile</div>
-                    <div class="profile-card" id="profileCard">
-                        <div class="avatar"><i class="fas fa-seedling"></i></div>
-                        <div class="pname">🌱 John Smith</div>
-                        <div class="pstats">
-                            <div><i class="fas fa-leaf"></i> <span id="profilePlantCount">0</span></div>
-                            <div><i class="fas fa-star"></i> <span id="profilePoints">240</span></div>
-                            <div><i class="fas fa-trophy"></i> <span id="profileScore">0</span></div>
-                        </div>
-                        <div class="latest-section">
-                            <div class="latest-label">latest plant acquired</div>
-                            <div>
-                                <span class="latest-plant" id="profileLatestPlant">—</span>
-                                <span class="latest-rarity" id="profileLatestRarity">—</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- toast -->
-        <div class="toast" id="toastMessage">
-            <i class="fas fa-spa"></i> Rarities: green = common, blue = rare, purple = epic, orange = legendary
-        </div>
-
-        <!-- ===== BOTTOM NAV (5 tabs) ===== -->
-        <div class="bottom-nav">
-            <button class="nav-btn active-tab" data-view="homeView"><i class="fas fa-home"></i><span>Home</span></button>
-            <button class="nav-btn" data-view="friendsView"><i class="fas fa-user-friends"></i><span>Friends</span></button>
-            <button class="nav-btn" data-view="storeView"><i class="fas fa-store"></i><span>Store</span></button>
-            <button class="nav-btn" data-view="gachaView"><i class="fas fa-dice"></i><span>Gacha</span></button>
-            <button class="nav-btn" data-view="profileView"><i class="fas fa-user-circle"></i><span>Profile</span></button>
-        </div>
-
-        <div class="footer-meta">
-            <i class="fas fa-globe-americas"></i> every snap supports biodiversity
+            <form id="authForm">
+                <label>Username
+                    <input id="authUsername" name="username" autocomplete="username" minlength="3" maxlength="20" required>
+                </label>
+                <label>Password
+                    <input id="authPassword" name="password" type="password" autocomplete="current-password" minlength="8" maxlength="72" required>
+                </label>
+                <button class="primary-btn full-width" id="authSubmit" type="submit">Log in</button>
+                <div class="auth-error" id="authError" aria-live="polite"></div>
+            </form>
         </div>
     </div>
 
+    <main class="app-container app-locked" id="app">
+        <div class="view-container">
+            <!-- HOME -->
+            <section id="homeView" class="view-page active">
+                <div class="home-hero">
+                    <div>
+                        <div class="eyebrow">YOUR LITTLE PATCH</div>
+                        <h1><span id="homeUsername">My</span> garden</h1>
+                        <p>Tap any plot to choose what grows there.</p>
+                    </div>
+                    <div class="points-pill"><i class="fas fa-star"></i><span id="pointDisplay">240</span></div>
+                </div>
+
+                <div class="garden-card">
+                    <div class="garden-card-top">
+                        <div>
+                            <span class="garden-kicker"><i class="fas fa-sun"></i> today looks lovely</span>
+                            <h2>Backyard garden</h2>
+                        </div>
+                        <button class="soft-btn" id="openCollectionButton" type="button">
+                            <i class="fas fa-seedling"></i> Collection
+                        </button>
+                    </div>
+
+                    <div class="garden-scene">
+                        <div class="cloud cloud-one"></div>
+                        <div class="cloud cloud-two"></div>
+                        <div class="garden-path"></div>
+                        <div class="plot-grid" id="plotGrid"></div>
+                    </div>
+
+                    <div class="garden-footer-row">
+                        <span><i class="fas fa-wand-magic-sparkles"></i> tap a plot to customise</span>
+                        <span id="plantCounter">0 / 16 placed</span>
+                    </div>
+                </div>
+
+                <div class="snap-card">
+                    <div>
+                        <div class="snap-label">Spotted something green?</div>
+                        <div class="snap-copy">Take a biodiversity snap and earn points.</div>
+                    </div>
+                    <button class="snap-btn" id="snapButton" type="button">
+                        <i class="fas fa-camera"></i>
+                        <span>Snap</span>
+                        <small>+10 <i class="fas fa-star"></i></small>
+                    </button>
+                </div>
+            </section>
+
+            <!-- FRIENDS -->
+            <section id="friendsView" class="view-page">
+                <div class="page-heading">
+                    <div class="eyebrow">GARDEN BUDDIES</div>
+                    <h1>Friends</h1>
+                    <p>Find other gardeners and keep up with their latest discoveries.</p>
+                </div>
+
+                <div class="friend-search card-surface">
+                    <input id="friendSearchInput" type="search" placeholder="Search a username" maxlength="20" autocomplete="off">
+                    <button id="friendSearchButton" type="button" aria-label="Search users"><i class="fas fa-search"></i></button>
+                </div>
+                <div id="friendSearchResults" class="friend-search-results"></div>
+
+                <div id="friendRequestsSection" class="friend-section hidden">
+                    <div class="section-title">Friend requests</div>
+                    <div id="friendRequests" class="request-list"></div>
+                </div>
+
+                <div class="section-title">Your friends</div>
+                <div class="friend-grid" id="friendsGrid"></div>
+                <div class="empty-state" id="emptyFriends">
+                    <i class="fas fa-user-group"></i>
+                    <strong>No garden buddies yet</strong>
+                    <span>Search for someone above to get started.</span>
+                </div>
+            </section>
+
+            <!-- STORE -->
+            <section id="storeView" class="view-page">
+                <div class="page-heading">
+                    <div class="eyebrow">TINY EXTRAS</div>
+                    <h1>Garden shop</h1>
+                    <p>Unlock cute decorations, then place them anywhere in your garden.</p>
+                </div>
+
+                <div class="store-grid" id="storeGrid">
+                    <button class="store-item" data-key="gnome" data-name="Gnome" data-icon="fa-hat-wizard" data-cost="60" type="button">
+                        <span class="store-icon"><i class="fas fa-hat-wizard"></i></span><span class="label">Gnome</span><span class="cost">60 ★</span>
+                    </button>
+                    <button class="store-item" data-key="bench" data-name="Bench" data-icon="fa-chair" data-cost="100" type="button">
+                        <span class="store-icon"><i class="fas fa-chair"></i></span><span class="label">Bench</span><span class="cost">100 ★</span>
+                    </button>
+                    <button class="store-item" data-key="solar-lamp" data-name="Solar Lamp" data-icon="fa-lightbulb" data-cost="80" type="button">
+                        <span class="store-icon"><i class="fas fa-lightbulb"></i></span><span class="label">Solar lamp</span><span class="cost">80 ★</span>
+                    </button>
+                    <button class="store-item" data-key="fountain" data-name="Fountain" data-icon="fa-water" data-cost="150" type="button">
+                        <span class="store-icon"><i class="fas fa-water"></i></span><span class="label">Fountain</span><span class="cost">150 ★</span>
+                    </button>
+                    <button class="store-item" data-key="birdhouse" data-name="Birdhouse" data-icon="fa-dove" data-cost="70" type="button">
+                        <span class="store-icon"><i class="fas fa-dove"></i></span><span class="label">Birdhouse</span><span class="cost">70 ★</span>
+                    </button>
+                    <button class="store-item" data-key="compost" data-name="Compost" data-icon="fa-recycle" data-cost="40" type="button">
+                        <span class="store-icon"><i class="fas fa-recycle"></i></span><span class="label">Compost</span><span class="cost">40 ★</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- GACHA -->
+            <section id="gachaView" class="view-page">
+                <div class="page-heading">
+                    <div class="eyebrow">PLANT DISCOVERY</div>
+                    <h1>Seed packet</h1>
+                    <p>Pull a plant to unlock it permanently for your garden collection.</p>
+                </div>
+
+                <div class="gacha-card">
+                    <div class="gacha-orbit"><i class="fas fa-seedling"></i></div>
+                    <div class="gacha-price"><i class="fas fa-star"></i> 60 points</div>
+                    <button class="primary-btn gacha-btn" id="gachaButton" type="button">
+                        <i class="fas fa-gift"></i> Open seed packet
+                    </button>
+                    <div class="rarity-strip">
+                        <span>Common 80%</span><span>Rare 10%</span><span>Epic 8%</span><span>Legendary 2%</span>
+                    </div>
+                </div>
+
+                <div class="gacha-result" id="gachaResult">
+                    <div class="result-placeholder">
+                        <i class="fas fa-sparkles"></i>
+                        <span>Your next plant is waiting.</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PROFILE -->
+            <section id="profileView" class="view-page">
+                <div class="page-heading">
+                    <div class="eyebrow">YOUR PATCH</div>
+                    <h1>Profile</h1>
+                </div>
+
+                <div class="profile-card">
+                    <div class="avatar"><i class="fas fa-seedling"></i></div>
+                    <div class="pname">@<span id="profileName">Player</span></div>
+                    <div class="profile-caption">garden caretaker & plant collector</div>
+
+                    <div class="pstats">
+                        <div><strong id="profilePlantCount">0</strong><span>placed</span></div>
+                        <div><strong id="profileCollectionCount">0</strong><span>unlocked</span></div>
+                        <div><strong id="profileScore">0</strong><span>score</span></div>
+                    </div>
+
+                    <div class="latest-section">
+                        <span class="latest-label">Latest discovery</span>
+                        <div><span id="profileLatestPlant">—</span><span id="profileLatestRarity" class="latest-rarity">—</span></div>
+                    </div>
+
+                    <button class="logout-btn" id="logoutButton" type="button"><i class="fas fa-right-from-bracket"></i> Log out</button>
+                </div>
+            </section>
+        </div>
+
+        <div class="toast hidden" id="toastMessage" role="status"></div>
+
+        <nav class="bottom-nav" aria-label="Main navigation">
+            <button class="nav-btn active-tab" data-view="homeView" type="button"><i class="fas fa-house"></i><span>Home</span></button>
+            <button class="nav-btn" data-view="friendsView" id="friendsNavButton" type="button">
+                <i class="fas fa-user-friends"></i><span>Friends</span><span class="friend-notification hidden" id="friendNotification">0</span>
+            </button>
+            <button class="nav-btn" data-view="storeView" type="button"><i class="fas fa-store"></i><span>Shop</span></button>
+            <button class="nav-btn" data-view="gachaView" type="button"><i class="fas fa-dice"></i><span>Gacha</span></button>
+            <button class="nav-btn" data-view="profileView" type="button"><i class="fas fa-user-circle"></i><span>Profile</span></button>
+        </nav>
+    </main>
+
+    <!-- ===== FRIEND GARDEN VISIT ===== -->
+<div
+    class="friend-visit-backdrop hidden"
+    id="friendVisitBackdrop"
+>
+
+    <section
+        class="friend-visit-sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="friendVisitName"
+    >
+
+        <div class="picker-handle"></div>
+
+        <div class="friend-visit-header">
+
+            <div>
+
+                <div class="eyebrow">
+                    GARDEN VISIT
+                </div>
+
+                <h2 id="friendVisitName">
+                    @friend's garden
+                </h2>
+
+                <p>
+                    Take a peek around —
+                    this garden is view only.
+                </p>
+
+            </div>
+
+            <button
+                class="icon-btn"
+                id="closeFriendVisitButton"
+                type="button"
+                aria-label="Close friend garden"
+            >
+                <i class="fas fa-xmark"></i>
+            </button>
+
+        </div>
+
+
+        <!-- FRIEND STATS -->
+
+        <div class="friend-visit-stats">
+
+            <div>
+                <strong id="friendVisitPlaced">
+                    0
+                </strong>
+
+                <span>
+                    placed
+                </span>
+            </div>
+
+
+            <div>
+                <strong id="friendVisitUnlocked">
+                    0
+                </strong>
+
+                <span>
+                    unlocked
+                </span>
+            </div>
+
+
+            <div>
+                <strong id="friendVisitScore">
+                    0
+                </strong>
+
+                <span>
+                    score
+                </span>
+            </div>
+
+        </div>
+
+
+        <!-- LATEST PLANT -->
+
+        <div class="friend-visit-latest">
+
+            <span>
+                Latest discovery
+            </span>
+
+            <strong id="friendVisitLatest">
+                —
+            </strong>
+
+        </div>
+
+
+        <!-- FRIEND'S GARDEN -->
+
+        <div class="friend-garden-scene">
+
+            <div
+                class="friend-garden-sky"
+                aria-hidden="true"
+            >
+
+                <span
+                    class="friend-cloud cloud-one"
+                >
+                    <i class="fas fa-cloud"></i>
+                </span>
+
+                <span
+                    class="friend-cloud cloud-two"
+                >
+                    <i class="fas fa-cloud"></i>
+                </span>
+
+                <span class="friend-sun">
+                    <i class="fas fa-sun"></i>
+                </span>
+
+            </div>
+
+
+            <div
+                class="friend-visit-grid"
+                id="friendVisitGrid"
+            ></div>
+
+        </div>
+
+
+        <button
+            class="friend-visit-close-wide"
+            id="friendVisitDoneButton"
+            type="button"
+        >
+            <i class="fas fa-arrow-left"></i>
+            Back to my buddies
+        </button>
+
+    </section>
+
+</div>
+
+    <!-- Garden picker -->
+    <div class="picker-backdrop hidden" id="gardenPickerBackdrop">
+        <section class="garden-picker" role="dialog" aria-modal="true" aria-labelledby="pickerTitle">
+            <div class="picker-handle"></div>
+            <div class="picker-header">
+                <div>
+                    <div class="eyebrow">CUSTOMISE</div>
+                    <h2 id="pickerTitle">Choose for plot <span id="pickerSlotNumber">1</span></h2>
+                </div>
+                <button class="icon-btn" id="closePickerButton" type="button" aria-label="Close"><i class="fas fa-xmark"></i></button>
+            </div>
+
+            <div class="picker-tabs">
+                <button class="picker-tab active" data-filter="all" type="button">All</button>
+                <button class="picker-tab" data-filter="plant" type="button">Plants</button>
+                <button class="picker-tab" data-filter="decor" type="button">Decor</button>
+            </div>
+
+            <div class="collection-grid" id="collectionGrid"></div>
+
+            <button class="clear-plot-btn" id="clearPlotButton" type="button"><i class="fas fa-eraser"></i> Leave this plot empty</button>
+        </section>
+    </div>
+    <!-- ===== CAMERA ===== -->
+<div
+    class="camera-backdrop hidden"
+    id="cameraBackdrop"
+>
+    <section class="camera-sheet">
+
+        <div class="camera-header">
+            <div>
+                <div class="eyebrow">
+                    BIODIVERSITY SNAP
+                </div>
+
+                <h2>
+                    Spot something green?
+                </h2>
+
+                <p>
+                    Take a photo to earn 10 points.
+                </p>
+            </div>
+
+            <button
+                class="icon-btn"
+                id="closeCameraButton"
+                type="button"
+                aria-label="Close camera"
+            >
+                <i class="fas fa-xmark"></i>
+            </button>
+        </div>
+
+
+        <div class="camera-frame">
+
+            <!-- LIVE CAMERA -->
+            <video
+                id="cameraVideo"
+                autoplay
+                muted
+                playsinline
+            ></video>
+
+
+            <!-- USED TO CAPTURE THE IMAGE -->
+            <canvas
+                id="cameraCanvas"
+                class="hidden"
+            ></canvas>
+
+
+            <!-- PHOTO PREVIEW -->
+            <img
+                id="capturedPhoto"
+                class="captured-photo hidden"
+                alt="Your biodiversity snap"
+            >
+
+
+            <div
+                class="camera-status hidden"
+                id="cameraStatus"
+            ></div>
+
+        </div>
+
+
+        <!-- LIVE CAMERA CONTROLS -->
+        <div
+            class="camera-controls"
+            id="liveCameraControls"
+        >
+
+            <button
+                class="camera-secondary-btn"
+                id="switchCameraButton"
+                type="button"
+            >
+                <i class="fas fa-rotate"></i>
+                Flip
+            </button>
+
+
+            <button
+                class="capture-button"
+                id="capturePhotoButton"
+                type="button"
+                aria-label="Take photo"
+            >
+                <span class="capture-ring"></span>
+            </button>
+
+
+            <div class="camera-control-spacer"></div>
+
+        </div>
+
+
+        <!-- PHOTO CONFIRMATION CONTROLS -->
+        <div
+            class="camera-confirm-controls hidden"
+            id="photoConfirmControls"
+        >
+
+            <button
+                class="camera-secondary-btn"
+                id="retakePhotoButton"
+                type="button"
+            >
+                <i class="fas fa-rotate-left"></i>
+                Retake
+            </button>
+
+
+            <button
+                class="camera-use-btn"
+                id="usePhotoButton"
+                type="button"
+            >
+                <i class="fas fa-check"></i>
+                Use photo
+                <span>+10 ★</span>
+            </button>
+
+        </div>
+
+    </section>
+</div>
     <script src="mainscript.js"></script>
 </body>
 </html>
