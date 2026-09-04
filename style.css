@@ -1,0 +1,441 @@
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+    }
+
+    body {
+      background: #0a1f12;
+      background-image: radial-gradient(circle at 20% 30%, #1a402a, #051007);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 12px;
+    }
+
+    .app-container {
+      max-width: 420px;
+      width: 100%;
+      background: #dcefd2;
+      background: linear-gradient(165deg, #eaf5e0 0%, #c6ddb8 100%);
+      border-radius: 48px 48px 32px 32px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.7), 0 0 0 2px #7aa074 inset;
+      overflow: hidden;
+      padding: 20px 16px 16px;
+      backdrop-filter: blur(2px);
+      min-height: 680px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ----- view container (pages) ----- */
+    .view-container {
+      flex: 1;
+      position: relative;
+      min-height: 480px;
+    }
+
+    .view-page {
+      display: none;
+      flex-direction: column;
+      animation: fadeUp 0.2s ease;
+    }
+
+    .view-page.active {
+      display: flex;
+    }
+
+    @keyframes fadeUp {
+      0% { opacity: 0.5; transform: translateY(10px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ----- HOME VIEW (garden) ----- */
+    .garden-section {
+      background: #2a4d2a;
+      background-image: radial-gradient(circle at 10% 20%, #3d6b3a, #1b3a1b);
+      border-radius: 40px 40px 28px 28px;
+      padding: 18px 14px 16px;
+      box-shadow: inset 0 -8px 0 #123012, 0 8px 14px rgba(0,0,0,0.4);
+      margin-bottom: 18px;
+    }
+
+    .garden-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 4px 14px 4px;
+      color: #f4ffe0;
+    }
+    .garden-header h2 {
+      font-size: 20px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-shadow: 0 2px 4px #0f2b0f;
+    }
+    .garden-header h2 i {
+      color: #f7d44a;
+      filter: drop-shadow(0 2px 4px #4f7a3a);
+    }
+    .points-badge {
+      background: #1f411f;
+      padding: 6px 18px 6px 14px;
+      border-radius: 60px;
+      font-weight: 700;
+      font-size: 18px;
+      color: #f9ffdd;
+      box-shadow: 0 4px 0 #0f2a0f;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid #86a87a;
+    }
+    .points-badge i {
+      color: #f9d56e;
+      font-size: 18px;
+    }
+
+    .plot-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+
+    .plot {
+      aspect-ratio: 1/1;
+      background: #2a4f28;
+      background-image: radial-gradient(circle at 30% 30%, #4d7a45, #1d3a1a);
+      border-radius: 24px;
+      box-shadow: inset 0 -6px 0 #163016, 0 4px 8px rgba(0,0,0,0.5);
+      border: 2px solid #6e9a62;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: 0.15s ease;
+      padding: 4px;
+      color: #f4ffeb;
+      font-size: 13px;
+      font-weight: 600;
+      text-shadow: 0 2px 4px #102010;
+    }
+
+    .plot i {
+      font-size: 34px;
+      filter: drop-shadow(0 4px 6px #0f1f0a);
+      color: #d4f0c0;
+      margin-bottom: 2px;
+    }
+
+    .plot .plant-name {
+      font-size: 11px;
+      background: #1b3a1bb3;
+      padding: 0 10px;
+      border-radius: 40px;
+      backdrop-filter: blur(2px);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 60px;
+    }
+
+    .plot.empty-plot {
+      background: #1f3a1f;
+      background-image: radial-gradient(circle at 40% 40%, #3a653a, #1f3a1f);
+      opacity: 0.8;
+      border: 2px dashed #6e9462;
+      box-shadow: inset 0 -4px 0 #1e3a1a;
+      color: #b5d3a6;
+      font-size: 12px;
+    }
+
+    .plot.empty-plot i {
+      font-size: 28px;
+      opacity: 0.6;
+      color: #8bb47a;
+    }
+
+    .garden-hint {
+      display: flex;
+      justify-content: space-between;
+      color: #e2ffe0;
+      padding: 8px 8px 0;
+      font-size: 13px;
+      font-weight: 500;
+      opacity: 0.9;
+    }
+    .garden-hint i {
+      color: #d4ea7a;
+    }
+
+    .camera-section {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 6px 0 10px;
+    }
+
+    .snap-btn {
+      background: #f5c542;
+      border: none;
+      border-radius: 80px;
+      padding: 18px 36px;
+      font-weight: 800;
+      font-size: 24px;
+      color: #1f3f1a;
+      box-shadow: 0 10px 0 #a07d29, 0 8px 20px rgba(0,0,0,0.4);
+      transition: 0.06s linear;
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      border: 3px solid #ffe28b;
+      letter-spacing: 0.5px;
+    }
+    .snap-btn:active {
+      transform: translateY(6px);
+      box-shadow: 0 4px 0 #7a5f1e, 0 8px 16px rgba(0,0,0,0.3);
+    }
+    .snap-btn i {
+      font-size: 38px;
+      color: #2d4d22;
+    }
+    .snap-btn small {
+      font-weight: 500;
+      font-size: 15px;
+      background: #2b5a1e44;
+      padding: 0 12px;
+      border-radius: 60px;
+    }
+
+    /* ----- FRIENDS VIEW ----- */
+    .friends-view {
+      padding: 8px 0;
+    }
+    .friends-view .view-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1d421d;
+      padding: 8px 4px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .friends-view .view-title i {
+      color: #3b753b;
+    }
+    .friend-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    .friend-card {
+      background: #f8fff0;
+      border-radius: 40px;
+      padding: 16px 8px;
+      text-align: center;
+      box-shadow: 0 6px 0 #6f9364;
+      border: 2px solid #aacb9c;
+    }
+    .friend-card i {
+      font-size: 40px;
+      color: #3b6e3b;
+    }
+    .friend-card .fname {
+      font-weight: 700;
+      font-size: 18px;
+      margin: 4px 0;
+    }
+    .friend-card .leaf-count {
+      font-size: 14px;
+      color: #2b5a2b;
+    }
+
+    /* ----- STORE VIEW ----- */
+    .store-view {
+      padding: 8px 0;
+    }
+    .store-view .view-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1d421d;
+      padding: 8px 4px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .store-view .view-title i {
+      color: #3b753b;
+    }
+    .store-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .store-item {
+      background: #ecfade;
+      border-radius: 60px;
+      padding: 16px 4px;
+      text-align: center;
+      border: 2px solid #9fc291;
+      box-shadow: 0 6px 0 #749a68;
+      transition: 0.06s linear;
+      cursor: pointer;
+    }
+    .store-item:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #4d7542;
+    }
+    .store-item i {
+      font-size: 34px;
+      color: #2d642d;
+    }
+    .store-item .cost {
+      font-weight: 700;
+      color: #204d1a;
+      background: #f7ffd6;
+      padding: 0 12px;
+      border-radius: 40px;
+      font-size: 14px;
+      margin-top: 4px;
+    }
+    .store-item .label {
+      font-weight: 600;
+      font-size: 14px;
+      color: #1d3d1d;
+    }
+
+    /* ----- PROFILE VIEW ----- */
+    .profile-view {
+      padding: 8px 0;
+    }
+    .profile-view .view-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1d421d;
+      padding: 8px 4px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .profile-view .view-title i {
+      color: #3b753b;
+    }
+    .profile-card {
+      background: #ecfade;
+      border-radius: 60px;
+      padding: 28px 20px;
+      text-align: center;
+      border: 2px solid #b3d0a2;
+      box-shadow: 0 6px 0 #88a87a;
+    }
+    .profile-card .avatar {
+      font-size: 64px;
+      color: #2d6b2d;
+      margin-bottom: 8px;
+    }
+    .profile-card .pname {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1a3d1a;
+    }
+    .profile-card .pstats {
+      display: flex;
+      justify-content: center;
+      gap: 28px;
+      margin: 16px 0 8px;
+    }
+    .profile-card .pstats div {
+      background: #d2e6c0;
+      padding: 8px 18px;
+      border-radius: 60px;
+      font-weight: 600;
+      color: #1d401d;
+    }
+
+    /* ----- BOTTOM NAV (4 tabs) ----- */
+    .bottom-nav {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      gap: 4px;
+      background: #d2e6c0;
+      background: linear-gradient(145deg, #dcefd0, #bdd7ae);
+      padding: 10px 6px 8px;
+      border-radius: 60px;
+      margin-top: 12px;
+      box-shadow: inset 0 2px 6px #a1ba92, 0 6px 0 #76996a;
+      border: 2px solid #b1cf9e;
+      flex-shrink: 0;
+    }
+
+    .nav-btn {
+      flex: 1;
+      background: #eaf7de;
+      border: none;
+      border-radius: 60px;
+      padding: 10px 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-weight: 700;
+      color: #1f451f;
+      box-shadow: 0 5px 0 #82a074;
+      transition: 0.06s linear;
+      cursor: pointer;
+      border: 2px solid #c2ddb2;
+      font-size: 13px;
+      gap: 0px;
+    }
+    .nav-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 1px 0 #5f7f52;
+    }
+    .nav-btn i {
+      font-size: 26px;
+      color: #326a2e;
+      filter: drop-shadow(0 2px 4px #8cad7a);
+    }
+    .nav-btn span {
+      font-size: 12px;
+      letter-spacing: 0.2px;
+    }
+    .nav-btn.active-tab {
+      background: #f5ffd6;
+      border-color: #7fb06e;
+      box-shadow: 0 5px 0 #5f7f52;
+    }
+
+    /* toast */
+    .toast {
+      background: #1e3d1e;
+      color: #f6ffe0;
+      padding: 10px 18px;
+      border-radius: 60px;
+      margin: 14px 0 6px;
+      text-align: center;
+      font-weight: 500;
+      font-size: 15px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      border: 1px solid #7bb072;
+      flex-shrink: 0;
+    }
+    .toast i {
+      margin-right: 10px;
+      color: #f7d44a;
+    }
+
+    .footer-meta {
+      text-align: center;
+      color: #30612a;
+      margin-top: 10px;
+      font-size: 11px;
+      font-weight: 500;
+      opacity: 0.7;
+      flex-shrink: 0;
+    }

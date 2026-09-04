@@ -1,1082 +1,1076 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>WA Wild — Perth Suburbs Biodiversity App</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>GardenQuest · gacha collection</title>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+    }
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,600&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+    body {
+      background: #0a1f12;
+      background-image: radial-gradient(circle at 20% 30%, #1a402a, #051007);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 12px;
+    }
 
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        colors: {
-          forest: "#1e3a0f",
-          fern: "#2d5016",
-          sage: "#5a7a3a",
-          lichen: "#8ba86a",
-          parchment: "#f5f0e4",
-          cream: "#faf7f0",
-          bark: "#6b4c2a",
-          amber: "#c8860a",
-          sand: "#d4b896",
-          mist: "#e8e3d8",
-        },
-        fontFamily: {
-          display: ["Fraunces", "Georgia", "serif"],
-          body: ["Work Sans", "system-ui", "sans-serif"],
-          mono: ["DM Mono", "monospace"],
-        },
-      },
-    },
-  };
-</script>
+    .app-container {
+      max-width: 420px;
+      width: 100%;
+      background: #dcefd2;
+      background: linear-gradient(165deg, #eaf5e0 0%, #c6ddb8 100%);
+      border-radius: 48px 48px 32px 32px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.7), 0 0 0 2px #7aa074 inset;
+      overflow: hidden;
+      padding: 20px 16px 16px;
+      backdrop-filter: blur(2px);
+      min-height: 680px;
+      display: flex;
+      flex-direction: column;
+    }
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.25.6/babel.min.js"></script>
+    .view-container {
+      flex: 1;
+      position: relative;
+      min-height: 480px;
+    }
 
-<style>
-  html, body, #root { height: 100%; background: #1a1a1a; margin: 0; }
-  * { -webkit-tap-highlight-color: transparent; }
-  ::-webkit-scrollbar { width: 0; height: 0; }
-  .font-display { font-family: 'Fraunces', Georgia, serif; }
-  .font-body { font-family: 'Work Sans', system-ui, sans-serif; }
-  .font-mono { font-family: 'DM Mono', monospace; }
-  .line-clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
-  .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .animate-spin { animation: spin 1s linear infinite; }
-  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
-  .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-</style>
+    .view-page {
+      display: none;
+      flex-direction: column;
+      animation: fadeUp 0.2s ease;
+    }
+
+    .view-page.active {
+      display: flex;
+    }
+
+    @keyframes fadeUp {
+      0% { opacity: 0.5; transform: translateY(10px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ----- HOME VIEW (garden) ----- */
+    .garden-section {
+      background: #2a4d2a;
+      background-image: radial-gradient(circle at 10% 20%, #3d6b3a, #1b3a1b);
+      border-radius: 40px 40px 28px 28px;
+      padding: 18px 14px 16px;
+      box-shadow: inset 0 -8px 0 #123012, 0 8px 14px rgba(0,0,0,0.4);
+      margin-bottom: 18px;
+    }
+
+    .garden-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 4px 14px 4px;
+      color: #f4ffe0;
+    }
+    .garden-header h2 {
+      font-size: 20px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-shadow: 0 2px 4px #0f2b0f;
+    }
+    .garden-header h2 i {
+      color: #f7d44a;
+      filter: drop-shadow(0 2px 4px #4f7a3a);
+    }
+    .points-badge {
+      background: #1f411f;
+      padding: 6px 18px 6px 14px;
+      border-radius: 60px;
+      font-weight: 700;
+      font-size: 18px;
+      color: #f9ffdd;
+      box-shadow: 0 4px 0 #0f2a0f;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid #86a87a;
+    }
+    .points-badge i {
+      color: #f9d56e;
+      font-size: 18px;
+    }
+
+    .plot-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+
+    .plot {
+      aspect-ratio: 1/1;
+      background: #2a4f28;
+      background-image: radial-gradient(circle at 30% 30%, #4d7a45, #1d3a1a);
+      border-radius: 24px;
+      box-shadow: inset 0 -6px 0 #163016, 0 4px 8px rgba(0,0,0,0.5);
+      border: 2px solid #6e9a62;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: 0.15s ease;
+      padding: 4px;
+      color: #f4ffeb;
+      font-size: 13px;
+      font-weight: 600;
+      text-shadow: 0 2px 4px #102010;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .plot i {
+      font-size: 30px;
+      filter: drop-shadow(0 4px 6px #0f1f0a);
+      color: #d4f0c0;
+      margin-bottom: 2px;
+    }
+
+    .plot .plant-name {
+      font-size: 10px;
+      background: #1b3a1bb3;
+      padding: 0 8px;
+      border-radius: 40px;
+      backdrop-filter: blur(2px);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 56px;
+    }
+
+    .plot .rarity-badge {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      font-size: 9px;
+      background: rgba(0,0,0,0.6);
+      padding: 1px 6px;
+      border-radius: 20px;
+      color: #fff;
+      backdrop-filter: blur(2px);
+    }
+
+    .plot .delete-btn {
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
+      background: rgba(200, 40, 40, 0.85);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+      font-weight: 700;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      backdrop-filter: blur(2px);
+      padding: 0;
+      line-height: 1;
+    }
+
+    .plot:hover .delete-btn,
+    .plot .delete-btn:focus {
+      opacity: 1;
+    }
+
+    .plot.empty-plot {
+      background: #1f3a1f;
+      background-image: radial-gradient(circle at 40% 40%, #3a653a, #1f3a1f);
+      opacity: 0.8;
+      border: 2px dashed #6e9462;
+      box-shadow: inset 0 -4px 0 #1e3a1a;
+      color: #b5d3a6;
+      font-size: 12px;
+      cursor: default;
+    }
+
+    .plot.empty-plot i {
+      font-size: 28px;
+      opacity: 0.6;
+      color: #8bb47a;
+    }
+
+    .plot.empty-plot .delete-btn {
+      display: none;
+    }
+
+    .garden-hint {
+      display: flex;
+      justify-content: space-between;
+      color: #e2ffe0;
+      padding: 8px 8px 0;
+      font-size: 13px;
+      font-weight: 500;
+      opacity: 0.9;
+    }
+    .garden-hint i {
+      color: #d4ea7a;
+    }
+
+    .camera-section {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 6px 0 10px;
+    }
+
+    .snap-btn {
+      background: #f5c542;
+      border: none;
+      border-radius: 80px;
+      padding: 18px 36px;
+      font-weight: 800;
+      font-size: 24px;
+      color: #1f3f1a;
+      box-shadow: 0 10px 0 #a07d29, 0 8px 20px rgba(0,0,0,0.4);
+      transition: 0.06s linear;
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      border: 3px solid #ffe28b;
+      letter-spacing: 0.5px;
+    }
+    .snap-btn:active {
+      transform: translateY(6px);
+      box-shadow: 0 4px 0 #7a5f1e, 0 8px 16px rgba(0,0,0,0.3);
+    }
+    .snap-btn i {
+      font-size: 38px;
+      color: #2d4d22;
+    }
+    .snap-btn small {
+      font-weight: 500;
+      font-size: 15px;
+      background: #2b5a1e44;
+      padding: 0 12px;
+      border-radius: 60px;
+    }
+
+    /* ----- FRIENDS VIEW ----- */
+    .friends-view { padding: 8px 0; }
+    .friends-view .view-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1d421d;
+      padding: 8px 4px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .friends-view .view-title i { color: #3b753b; }
+    .friend-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    .friend-card {
+      background: #f8fff0;
+      border-radius: 40px;
+      padding: 16px 8px;
+      text-align: center;
+      box-shadow: 0 6px 0 #6f9364;
+      border: 2px solid #aacb9c;
+    }
+    .friend-card i { font-size: 32px; color: #3b6e3b; }
+    .friend-card .fname { font-weight: 700; font-size: 18px; margin: 4px 0; }
+    .friend-card .latest-plant {
+      font-size: 13px;
+      color: #1d3d1d;
+      background: #d2e6c0;
+      padding: 2px 12px;
+      border-radius: 40px;
+      display: inline-block;
+      margin: 4px 0;
+    }
+    .friend-card .score-display {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1d421d;
+    }
+    .friend-card .score-display i {
+      font-size: 14px;
+      color: #f9d56e;
+    }
+
+    /* ----- STORE VIEW ----- */
+    .store-view { padding: 8px 0; }
+    .store-view .view-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1d421d;
+      padding: 8px 4px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .store-view .view-title i { color: #3b753b; }
+    .store-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .store-item {
+      background: #ecfade;
+      border-radius: 60px;
+      padding: 16px 4px;
+      text-align: center;
+      border: 2px solid #9fc291;
+      box-shadow: 0 6px 0 #749a68;
+      transition: 0.06s linear;
+      cursor: pointer;
+    }
+    .store-item:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #4d7542;
+    }
+    .store-item i { font-size: 34px; color: #2d642d; }
+    .store-item .cost {
+      font-weight: 700;
+      color: #204d1a;
+      background: #f7ffd6;
+      padding: 0 12px;
+      border-radius: 40px;
+      font-size: 14px;
+      margin-top: 4px;
+    }
+    .store-item .label { font-weight: 600; font-size: 14px; color: #1d3d1d; }
+
+    /* ----- GACHA VIEW ----- */
+    .gacha-view { padding: 8px 0; }
+    .gacha-view .view-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1d421d;
+      padding: 8px 4px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .gacha-view .view-title i { color: #3b753b; }
+    .gacha-box {
+      background: #2a4d2a;
+      background-image: radial-gradient(circle at 20% 30%, #3d6b3a, #1b3a1b);
+      border-radius: 60px;
+      padding: 28px 20px;
+      text-align: center;
+      box-shadow: inset 0 -8px 0 #123012, 0 8px 14px rgba(0,0,0,0.4);
+      border: 2px solid #6e9a62;
+      margin-bottom: 16px;
+    }
+    .gacha-box .gacha-icon {
+      font-size: 72px;
+      color: #f7d44a;
+      filter: drop-shadow(0 4px 12px #4f7a3a);
+      margin-bottom: 8px;
+    }
+    .gacha-box .gacha-cost {
+      font-size: 18px;
+      font-weight: 700;
+      color: #f4ffe0;
+      background: #1f411f;
+      padding: 6px 20px;
+      border-radius: 60px;
+      display: inline-block;
+      margin: 8px 0;
+    }
+    .gacha-btn {
+      background: #f5c542;
+      border: none;
+      border-radius: 80px;
+      padding: 16px 40px;
+      font-weight: 800;
+      font-size: 22px;
+      color: #1f3f1a;
+      box-shadow: 0 8px 0 #a07d29;
+      transition: 0.06s linear;
+      cursor: pointer;
+      border: 3px solid #ffe28b;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .gacha-btn:active {
+      transform: translateY(5px);
+      box-shadow: 0 3px 0 #7a5f1e;
+    }
+    .gacha-btn i { font-size: 32px; color: #2d4d22; }
+    .gacha-result {
+      margin-top: 16px;
+      background: #ecfade;
+      border-radius: 40px;
+      padding: 16px;
+      border: 2px solid #b3d0a2;
+      min-height: 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .gacha-result .result-plant {
+      font-size: 48px;
+      margin-bottom: 4px;
+    }
+    .gacha-result .result-name {
+      font-weight: 700;
+      font-size: 20px;
+      color: #1d3d1d;
+    }
+    .gacha-result .result-rarity {
+      font-size: 14px;
+      font-weight: 600;
+      padding: 2px 16px;
+      border-radius: 40px;
+      margin-top: 4px;
+    }
+    .rarity-common { background: #a8c9a0; color: #1d3d1d; }
+    .rarity-rare { background: #4d8fd1; color: #fff; }
+    .rarity-epic { background: #9b59b6; color: #fff; }
+    .rarity-legendary { background: #f39c12; color: #fff; }
+
+    /* ----- PROFILE VIEW ----- */
+    .profile-view { padding: 8px 0; }
+    .profile-view .view-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1d421d;
+      padding: 8px 4px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .profile-view .view-title i { color: #3b753b; }
+    .profile-card {
+      background: #ecfade;
+      border-radius: 60px;
+      padding: 28px 20px;
+      text-align: center;
+      border: 2px solid #b3d0a2;
+      box-shadow: 0 6px 0 #88a87a;
+    }
+    .profile-card .avatar { font-size: 64px; color: #2d6b2d; margin-bottom: 8px; }
+    .profile-card .pname { font-size: 22px; font-weight: 700; color: #1a3d1a; }
+    .profile-card .pstats {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin: 16px 0 8px;
+      flex-wrap: wrap;
+    }
+    .profile-card .pstats div {
+      background: #d2e6c0;
+      padding: 8px 18px;
+      border-radius: 60px;
+      font-weight: 600;
+      color: #1d401d;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .profile-card .pstats div i {
+      color: #f9d56e;
+    }
+    .profile-card .latest-section {
+      margin-top: 12px;
+      background: #d2e6c0;
+      padding: 10px;
+      border-radius: 60px;
+    }
+    .profile-card .latest-section .latest-label {
+      font-size: 13px;
+      opacity: 0.7;
+    }
+    .profile-card .latest-section .latest-plant {
+      font-weight: 700;
+      font-size: 18px;
+      color: #1d3d1d;
+    }
+    .profile-card .latest-section .latest-rarity {
+      font-size: 13px;
+      font-weight: 600;
+      padding: 2px 14px;
+      border-radius: 40px;
+      display: inline-block;
+      margin-left: 8px;
+    }
+
+    /* ----- BOTTOM NAV (5 tabs) ----- */
+    .bottom-nav {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      gap: 2px;
+      background: #d2e6c0;
+      background: linear-gradient(145deg, #dcefd0, #bdd7ae);
+      padding: 10px 4px 8px;
+      border-radius: 60px;
+      margin-top: 12px;
+      box-shadow: inset 0 2px 6px #a1ba92, 0 6px 0 #76996a;
+      border: 2px solid #b1cf9e;
+      flex-shrink: 0;
+    }
+
+    .nav-btn {
+      flex: 1;
+      background: #eaf7de;
+      border: none;
+      border-radius: 60px;
+      padding: 8px 2px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-weight: 700;
+      color: #1f451f;
+      box-shadow: 0 5px 0 #82a074;
+      transition: 0.06s linear;
+      cursor: pointer;
+      border: 2px solid #c2ddb2;
+      font-size: 11px;
+      gap: 0px;
+      min-width: 0;
+    }
+    .nav-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 1px 0 #5f7f52;
+    }
+    .nav-btn i {
+      font-size: 22px;
+      color: #326a2e;
+      filter: drop-shadow(0 2px 4px #8cad7a);
+    }
+    .nav-btn span {
+      font-size: 10px;
+      letter-spacing: 0.1px;
+    }
+    .nav-btn.active-tab {
+      background: #f5ffd6;
+      border-color: #7fb06e;
+      box-shadow: 0 5px 0 #5f7f52;
+    }
+
+    /* toast */
+    .toast {
+      background: #1e3d1e;
+      color: #f6ffe0;
+      padding: 10px 18px;
+      border-radius: 60px;
+      margin: 14px 0 6px;
+      text-align: center;
+      font-weight: 500;
+      font-size: 15px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      border: 1px solid #7bb072;
+      flex-shrink: 0;
+    }
+    .toast i { margin-right: 10px; color: #f7d44a; }
+
+    .footer-meta {
+      text-align: center;
+      color: #30612a;
+      margin-top: 10px;
+      font-size: 11px;
+      font-weight: 500;
+      opacity: 0.7;
+      flex-shrink: 0;
+    }
+  </style>
 </head>
 <body>
-<div id="root"></div>
+<div class="app-container" id="app">
 
-<script type="text/babel" data-presets="react">
-const { useState, useMemo } = React;
-
-// ── Types ─────────────────────────────────────────────────────────────────────
-
-// ── Species Library ────────────────────────────────────────────────────────────
-
-const S = {
-  kangarooPaw: { id: "sp-kp", name: "Kangaroo Paw", scientific: "Anigozanthos manglesii", type: "flora", rarity: "common", points: 20, description: "WA's floral emblem. Paw-like flowers covered in dense red and green hairs, vital for honeyeaters.", imageId: "photo-1490750967868-88df5691cc5e" },
-  banksia: { id: "sp-bk", name: "Firewood Banksia", scientific: "Banksia menziesii", type: "flora", rarity: "common", points: 15, description: "Large orange-red flower cones. Dominant in Perth's northern sandplain banksia woodlands.", imageId: "photo-1583337130417-3346a1be7dee" },
-  grassTree: { id: "sp-gt", name: "Grass Tree", scientific: "Xanthorrhoea preissii", type: "flora", rarity: "uncommon", points: 35, description: "Ancient slow-growing plant that can live 600+ years. Fire-adapted with a blackened trunk.", imageId: "photo-1566936737687-8f392a237b8b" },
-  marri: { id: "sp-mr", name: "Marri", scientific: "Corymbia calophylla", type: "flora", rarity: "common", points: 12, description: "Dominant tree of southern Perth forests. Large urn-shaped nuts ('honky nuts') beloved by cockatoos.", imageId: "photo-1448375240586-882707db888b" },
-  jarrah: { id: "sp-jr", name: "Jarrah", scientific: "Eucalyptus marginata", type: "flora", rarity: "common", points: 12, description: "Iconic WA hardwood forming vast forests south of Perth. Deep tap roots access groundwater in summer.", imageId: "photo-1501854140801-50d01698950b" },
-  quokka: { id: "sp-qk", name: "Quokka", scientific: "Setonix brachyurus", type: "fauna", rarity: "uncommon", points: 50, description: "The world's happiest marsupial. Small colonies persist in coastal mainland scrubland near Yanchep.", imageId: "photo-1530106397714-51f2fadb4e21" },
-  numbat: { id: "sp-nb", name: "Numbat", scientific: "Myrmecobius fasciatus", type: "fauna", rarity: "endangered", points: 130, description: "WA's faunal emblem — a striped marsupial that feeds exclusively on termites. Fewer than 800 remain.", imageId: "photo-1509847863929-2a2940b16219" },
-  carnaby: { id: "sp-cb", name: "Carnaby's Black Cockatoo", scientific: "Calyptorhynchus latirostris", type: "fauna", rarity: "endangered", points: 110, description: "Iconic slow-flying flocks cross Perth skies each autumn. Requires old-growth marri and banksia.", imageId: "photo-1444464666168-49d633b86797" },
-  westernRingtail: { id: "sp-wr", name: "Western Ringtail Possum", scientific: "Pseudocheirus occidentalis", type: "fauna", rarity: "endangered", points: 100, description: "Critically endangered marsupial reliant on peppermint trees in coastal southwestern suburbs.", imageId: "photo-1551028719-00167b16eac5" },
-  dugong: { id: "sp-dg", name: "Dugong", scientific: "Dugong dugon", type: "fauna", rarity: "rare", points: 100, description: "Gentle marine herbivores that graze on seagrass in Cockburn Sound and Shark Bay.", imageId: "photo-1544551763-77ef2d0cfc6c" },
-  wattle: { id: "sp-wa", name: "Golden Wattle", scientific: "Acacia saligna", type: "flora", rarity: "common", points: 10, description: "Fast-growing wattle with bright yellow ball-flowers. Key food plant for the western ringtail possum.", imageId: "photo-1470509037663-253d2d33ef4c" },
-  corella: { id: "sp-co", name: "Little Corella", scientific: "Cacatua sanguinea", type: "fauna", rarity: "common", points: 15, description: "Noisy white cockatoos forming large flocks in suburban parks and reserves across Perth.", imageId: "photo-1444464666168-49d633b86797" },
-  bluetongue: { id: "sp-bt", name: "Bobtail Skink", scientific: "Tiliqua rugosa", type: "fauna", rarity: "common", points: 20, description: "Perth's beloved backyard reptile. Pairs mate for life and can live over 50 years.", imageId: "photo-1504606498831-1d4a5d2ef77b" },
-  banksiaWoodland: { id: "sp-bw", name: "Coast Banksia", scientific: "Banksia integrifolia", type: "flora", rarity: "uncommon", points: 25, description: "Tall coastal banksia with yellow cylindrical flowers. Essential nesting habitat for black cockatoos.", imageId: "photo-1583337130417-3346a1be7dee" },
-  undergroundOrchid: { id: "sp-uo", name: "Western Underground Orchid", scientific: "Rhizanthella gardneri", type: "flora", rarity: "endangered", points: 150, description: "One of the world's rarest plants — lives entirely underground and never sees daylight.", imageId: "photo-1504711434969-e33886168f5c" },
-  dolphin: { id: "sp-dp", name: "Indo-Pacific Bottlenose Dolphin", scientific: "Tursiops aduncus", type: "fauna", rarity: "uncommon", points: 55, description: "Resident pods frequent Rockingham and Mandurah estuaries, often interacting with boats.", imageId: "photo-1437622368342-7a3d73a34c8f" },
-  penguin: { id: "sp-pg", name: "Little Penguin", scientific: "Eudyptula minor", type: "fauna", rarity: "uncommon", points: 65, description: "Largest mainland colony of little penguins in WA nests on Penguin Island at Rockingham.", imageId: "photo-1444464666168-49d633b86797" },
-  drakea: { id: "sp-dr", name: "Hammer Orchid", scientific: "Drakaea glyptodon", type: "flora", rarity: "rare", points: 85, description: "Remarkable WA orchid that mimics a female thynnid wasp to trick males into pollinating it.", imageId: "photo-1490750967868-88df5691cc5e" },
-  quenda: { id: "sp-qe", name: "Quenda", scientific: "Isoodon fusciventer", type: "fauna", rarity: "uncommon", points: 45, description: "Southern brown bandicoot, now found in urban reserves and wetland corridors across Perth.", imageId: "photo-1551028719-00167b16eac5" },
-  seaDragon: { id: "sp-sd", name: "Weedy Sea Dragon", scientific: "Phyllopteryx taeniolatus", type: "fauna", rarity: "rare", points: 90, description: "Australia's marine emblem, found in seagrass and kelp beds along the metropolitan coastline.", imageId: "photo-1544551763-77ef2d0cfc6c" },
-  boab: { id: "sp-bo", name: "Boab Tree", scientific: "Adansonia gregorii", type: "flora", rarity: "uncommon", points: 45, description: "Iconic bottle-shaped tree unique to the Kimberley. Stores water and can live 1,500+ years.", imageId: "photo-1590674899484-d5640e854abe" },
-  gouldianFinch: { id: "sp-gf", name: "Gouldian Finch", scientific: "Erythrura gouldiae", type: "fauna", rarity: "endangered", points: 120, description: "One of Australia's most brilliantly coloured birds, now listed as endangered.", imageId: "photo-1444464666168-49d633b86797" },
-  malleefowl: { id: "sp-mf", name: "Malleefowl", scientific: "Leipoa ocellata", type: "fauna", rarity: "rare", points: 85, description: "Builds enormous mound nests to incubate eggs. Needs large areas of intact mallee scrub.", imageId: "photo-1444464666168-49d633b86797" },
-  salmonGum: { id: "sp-sg", name: "Salmon Gum", scientific: "Eucalyptus salmonophloia", type: "flora", rarity: "uncommon", points: 30, description: "Named for its striking salmon-pink smooth bark. Dominant tree of goldfields woodlands.", imageId: "photo-1448375240586-882707db888b" },
-  wandoo: { id: "sp-wn", name: "Wandoo", scientific: "Eucalyptus wandoo", type: "flora", rarity: "common", points: 18, description: "White-barked eucalypt of the wheatbelt margins. Rich hollows shelter a wide range of wildlife.", imageId: "photo-1448375240586-882707db888b" },
-};
-
-// ── Suburb Data ───────────────────────────────────────────────────────────────
-
-const SUBURBS = [
-  // ── METRO ──
-  {
-    id: "kings-park", name: "Kings Park", area: "metro", zone: "Inner", tagline: "Wildflower haven in the heart of Perth",
-    color: "#2D5016", accent: "#8ba86a", speciesCount: 324, sightings: 4821, col: 3, row: 4,
-    flora: [S.kangarooPaw, S.banksia, S.grassTree, S.drakea],
-    fauna: [S.carnaby, S.corella, S.bluetongue],
-  },
-  {
-    id: "bold-park", name: "Bold Park", area: "metro", zone: "Inner West", tagline: "Coastal tuart woodland reserve",
-    color: "#3a6b20", accent: "#8ba86a", speciesCount: 201, sightings: 2104, col: 2, row: 4,
-    flora: [S.banksia, S.grassTree, S.wattle],
-    fauna: [S.carnaby, S.bluetongue, S.quenda],
-  },
-  {
-    id: "whiteman-park", name: "Whiteman Park", area: "metro", zone: "North", tagline: "Largest urban banksia woodland",
-    color: "#4a7a28", accent: "#8ba86a", speciesCount: 178, sightings: 1893, col: 3, row: 2,
-    flora: [S.banksia, S.grassTree, S.kangarooPaw, S.banksiaWoodland],
-    fauna: [S.carnaby, S.quenda, S.corella],
-  },
-  {
-    id: "swan-valley", name: "Swan Valley", area: "metro", zone: "North East", tagline: "River wetlands & woodland corridors",
-    color: "#556b2f", accent: "#8ba86a", speciesCount: 143, sightings: 1240, col: 5, row: 3,
-    flora: [S.marri, S.wandoo, S.wattle],
-    fauna: [S.quenda, S.corella, S.bluetongue],
-  },
-  {
-    id: "kalamunda", name: "Kalamunda", area: "metro", zone: "Hills", tagline: "Perth Hills jarrah & marri forest",
-    color: "#3d5e1a", accent: "#7a9a55", speciesCount: 265, sightings: 2310, col: 6, row: 5,
-    flora: [S.jarrah, S.marri, S.grassTree, S.undergroundOrchid],
-    fauna: [S.numbat, S.carnaby, S.westernRingtail],
-  },
-  {
-    id: "mundaring", name: "Mundaring", area: "metro", zone: "Hills", tagline: "Helena River & old-growth jarrah",
-    color: "#3d5e1a", accent: "#7a9a55", speciesCount: 219, sightings: 1740, col: 7, row: 4,
-    flora: [S.jarrah, S.marri, S.grassTree],
-    fauna: [S.numbat, S.carnaby, S.westernRingtail],
-  },
-  {
-    id: "joondalup", name: "Joondalup", area: "metro", zone: "North Coast", tagline: "Lake Joondalup wetlands & coastal heath",
-    color: "#2F6B8A", accent: "#4A9BBF", speciesCount: 134, sightings: 1420, col: 2, row: 1,
-    flora: [S.banksia, S.kangarooPaw, S.banksiaWoodland],
-    fauna: [S.corella, S.quenda, S.bluetongue],
-  },
-  {
-    id: "yanchep", name: "Yanchep", area: "metro", zone: "North Coast", tagline: "Coastal caves, woodlands & quokkas",
-    color: "#2F6B8A", accent: "#4A9BBF", speciesCount: 157, sightings: 1102, col: 1, row: 1,
-    flora: [S.banksia, S.banksiaWoodland, S.grassTree],
-    fauna: [S.quokka, S.corella, S.bluetongue],
-  },
-  {
-    id: "scarborough", name: "Scarborough", area: "metro", zone: "North Coast", tagline: "Coastal dune scrub & foreshore",
-    color: "#2F6B8A", accent: "#4A9BBF", speciesCount: 89, sightings: 678, col: 2, row: 3,
-    flora: [S.banksiaWoodland, S.wattle, S.kangarooPaw],
-    fauna: [S.corella, S.bluetongue],
-  },
-  {
-    id: "fremantle", name: "Fremantle", area: "metro", zone: "South Coast", tagline: "Swan estuary & coastal scrubland",
-    color: "#4A6741", accent: "#7FAD6B", speciesCount: 96, sightings: 841, col: 2, row: 6,
-    flora: [S.wattle, S.banksiaWoodland],
-    fauna: [S.westernRingtail, S.corella, S.dolphin],
-  },
-  {
-    id: "rockingham", name: "Rockingham", area: "metro", zone: "South Coast", tagline: "Penguin Island & Shoalwater Marine Park",
-    color: "#2F6B8A", accent: "#4A9BBF", speciesCount: 187, sightings: 2240, col: 2, row: 7,
-    flora: [S.banksiaWoodland, S.grassTree, S.wattle],
-    fauna: [S.penguin, S.dolphin, S.dugong, S.seaDragon],
-  },
-  {
-    id: "mandurah", name: "Mandurah", area: "metro", zone: "South Coast", tagline: "Peel-Harvey estuary & waterways",
-    color: "#2F6B8A", accent: "#4A9BBF", speciesCount: 203, sightings: 1876, col: 2, row: 8,
-    flora: [S.banksiaWoodland, S.marri, S.wattle],
-    fauna: [S.dolphin, S.dugong, S.seaDragon, S.westernRingtail],
-  },
-  {
-    id: "armadale", name: "Armadale", area: "metro", zone: "South East", tagline: "Wungong Gorge & southern jarrah",
-    color: "#3d5e1a", accent: "#7a9a55", speciesCount: 158, sightings: 987, col: 5, row: 7,
-    flora: [S.jarrah, S.marri, S.grassTree],
-    fauna: [S.carnaby, S.quenda, S.bluetongue],
-  },
-  {
-    id: "cockburn", name: "Cockburn", area: "metro", zone: "South", tagline: "Cockburn Wetlands & Thomson's Lake",
-    color: "#4A6741", accent: "#7FAD6B", speciesCount: 112, sightings: 1104, col: 3, row: 7,
-    flora: [S.wattle, S.kangarooPaw, S.banksiaWoodland],
-    fauna: [S.quenda, S.corella, S.bluetongue],
-  },
-  {
-    id: "midland", name: "Midland", area: "metro", zone: "East", tagline: "Jane Brook & Helena River parklands",
-    color: "#556b2f", accent: "#8ba86a", speciesCount: 98, sightings: 743, col: 5, row: 4,
-    flora: [S.marri, S.wandoo, S.wattle],
-    fauna: [S.corella, S.quenda, S.bluetongue],
-  },
-  {
-    id: "serpentine", name: "Serpentine", area: "metro", zone: "South East", tagline: "Tall karri-like forest & waterfalls",
-    color: "#3d5e1a", accent: "#7a9a55", speciesCount: 172, sightings: 1330, col: 4, row: 8,
-    flora: [S.jarrah, S.marri, S.grassTree, S.drakea],
-    fauna: [S.numbat, S.westernRingtail, S.carnaby],
-  },
-  // ── REGIONAL ──
-  {
-    id: "margaret-river", name: "Margaret River", area: "regional", zone: "South West", tagline: "Cape-to-Cape coastal heath & karri",
-    color: "#2D5016", accent: "#8ba86a", speciesCount: 389, sightings: 3420, col: 0, row: 0,
-    flora: [S.jarrah, S.marri, S.kangarooPaw, S.undergroundOrchid, S.drakea],
-    fauna: [S.westernRingtail, S.carnaby, S.numbat],
-  },
-  {
-    id: "albany", name: "Albany", area: "regional", zone: "Great Southern", tagline: "Granite coast, tingle forest & whales",
-    color: "#4A6741", accent: "#7FAD6B", speciesCount: 318, sightings: 2104, col: 0, row: 0,
-    flora: [S.jarrah, S.grassTree, S.drakea, S.wattle],
-    fauna: [S.westernRingtail, S.carnaby, S.dolphin],
-  },
-  {
-    id: "esperance", name: "Esperance", area: "regional", zone: "Goldfields-Esperance", tagline: "Wildflower coast & Cape Le Grand",
-    color: "#8B7355", accent: "#C8860A", speciesCount: 246, sightings: 1240, col: 0, row: 0,
-    flora: [S.kangarooPaw, S.banksia, S.salmonGum],
-    fauna: [S.malleefowl, S.carnaby, S.dolphin],
-  },
-  {
-    id: "broome", name: "Broome", area: "regional", zone: "Kimberley", tagline: "Mangroves, mudflats & shorebirds",
-    color: "#8B4513", accent: "#D2691E", speciesCount: 198, sightings: 1560, col: 0, row: 0,
-    flora: [S.boab, S.wattle],
-    fauna: [S.gouldianFinch, S.dugong, S.dolphin],
-  },
-  {
-    id: "kalgoorlie", name: "Kalgoorlie", area: "regional", zone: "Goldfields", tagline: "Mulga scrub & goldfields woodland",
-    color: "#8B7355", accent: "#C8860A", speciesCount: 164, sightings: 876, col: 0, row: 0,
-    flora: [S.salmonGum, S.wandoo, S.wattle],
-    fauna: [S.malleefowl, S.bluetongue, S.corella],
-  },
-  {
-    id: "geraldton", name: "Geraldton", area: "regional", zone: "Mid West", tagline: "Wildflower corridor & coastal heath",
-    color: "#B5651D", accent: "#CD853F", speciesCount: 143, sightings: 920, col: 0, row: 0,
-    flora: [S.banksia, S.kangarooPaw, S.grassTree],
-    fauna: [S.carnaby, S.corella, S.dolphin],
-  },
-  {
-    id: "exmouth", name: "Exmouth", area: "regional", zone: "Gascoyne", tagline: "Ningaloo Reef & Cape Range gorges",
-    color: "#2F6B8A", accent: "#4A9BBF", speciesCount: 289, sightings: 2340, col: 0, row: 0,
-    flora: [S.wattle, S.kangarooPaw],
-    fauna: [S.dugong, S.dolphin, S.seaDragon],
-  },
-  {
-    id: "karratha", name: "Karratha", area: "regional", zone: "Pilbara", tagline: "Red earth ranges & ancient rock art",
-    color: "#B5651D", accent: "#CD853F", speciesCount: 129, sightings: 734, col: 0, row: 0,
-    flora: [S.wattle, S.grassTree],
-    fauna: [S.bluetongue, S.corella],
-  },
-];
-
-// ── Metro map zones (simplified grid cells) ────────────────────────────────────
-
-// Color mapping by zone
-const zoneColors = {
-  "Inner": "#2D5016",
-  "Inner West": "#3a6b20",
-  "North": "#4a7a28",
-  "North East": "#556b2f",
-  "Hills": "#3d5e1a",
-  "North Coast": "#2F6B8A",
-  "South Coast": "#1a4a6a",
-  "South East": "#3d5e1a",
-  "South": "#4A6741",
-  "East": "#556b2f",
-};
-
-// ── Utility ───────────────────────────────────────────────────────────────────
-
-const rarityColor = {
-  common: "#5a7a3a",
-  uncommon: "#c8860a",
-  rare: "#8B4513",
-  endangered: "#c0392b",
-};
-
-const rarityLabel = {
-  common: "Common",
-  uncommon: "Uncommon",
-  rare: "Rare",
-  endangered: "Endangered",
-};
-
-const unsplash = (id, w, h) =>
-  `https://images.unsplash.com/${id}?w=${w}&h=${h}&fit=crop&auto=format&q=80`;
-
-// ── Mock user ─────────────────────────────────────────────────────────────────
-
-const USER = {
-  name: "Alex M.",
-  points: 485,
-  rank: 12,
-  discoveries: 9,
-  streak: 7,
-  log: [
-    { id: "l1", species: S.kangarooPaw, suburb: SUBURBS[0], date: "2026-09-03", time: "08:42", notes: "Found near the Kings Park wildflower walk.", confidence: 97, points: 20 },
-    { id: "l2", species: S.carnaby, suburb: SUBURBS[0], date: "2026-09-01", time: "17:15", notes: "Flock of ~30 flying south over the escarpment.", confidence: 94, points: 110 },
-    { id: "l3", species: S.grassTree, suburb: SUBURBS[4], date: "2026-08-28", time: "09:10", notes: "Old grass tree near Kalamunda trail. Estimated 200 yrs.", confidence: 91, points: 35 },
-  ],
-};
-
-// ── Icons ─────────────────────────────────────────────────────────────────────
-
-function MapIcon({ active }) {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? "#8ba86a" : "#5a7a3a"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" />
-      <line x1="9" y1="3" x2="9" y2="18" />
-      <line x1="15" y1="6" x2="15" y2="21" />
-    </svg>
-  );
-}
-function CameraIcon({ active }) {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? "#8ba86a" : "#5a7a3a"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-      <circle cx="12" cy="13" r="4" />
-    </svg>
-  );
-}
-function JournalIcon({ active }) {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? "#8ba86a" : "#5a7a3a"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-      <line x1="12" y1="6" x2="16" y2="6" />
-      <line x1="12" y1="10" x2="16" y2="10" />
-      <line x1="8" y1="14" x2="16" y2="14" />
-    </svg>
-  );
-}
-function LeafIcon({ active }) {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? "#8ba86a" : "#5a7a3a"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17 8C8 10 5.9 16.17 3.82 19.34a1 1 0 0 0 1.35 1.39C7.27 19.54 13 17 17 8Z" />
-      <path d="M17 8L12 21" />
-    </svg>
-  );
-}
-
-// ── Bottom Nav ────────────────────────────────────────────────────────────────
-
-function BottomNav({ screen, setScreen }) {
-  const tabs = [
-    { id: "map", Icon: MapIcon, label: "Explore" },
-    { id: "camera", Icon: CameraIcon, label: "Log" },
-    { id: "profile", Icon: JournalIcon, label: "Journal" },
-    { id: "resources", Icon: LeafIcon, label: "Resources" },
-  ];
-  return (
-    <nav className="absolute bottom-0 left-0 right-0 bg-[#1e3a0f] border-t border-[#2d5016] flex items-center z-10">
-      {tabs.map(({ id, Icon, label }) => (
-        <button
-          key={id}
-          onClick={() => setScreen(id)}
-          className="flex-1 flex flex-col items-center gap-1 py-3 transition-opacity"
-          style={{ opacity: screen === id ? 1 : 0.45 }}
-        >
-          <Icon active={screen === id} />
-          <span className="text-[10px] font-body tracking-wide" style={{ color: screen === id ? "#8ba86a" : "#5a7a3a" }}>
-            {label}
-          </span>
-        </button>
-      ))}
-    </nav>
-  );
-}
-
-// ── Metro Zone SVG Map ────────────────────────────────────────────────────────
-
-const ZONE_POLYGONS = [
-  // North Coast strip
-  { zone: "North Coast", color: "#2F6B8A", d: "M 20 20 L 110 20 L 110 70 L 60 80 L 20 70 Z" },
-  // North
-  { zone: "North", color: "#4a7a28", d: "M 110 20 L 170 20 L 165 80 L 110 70 Z" },
-  // North East
-  { zone: "North East", color: "#556b2f", d: "M 170 20 L 220 25 L 215 80 L 165 80 Z" },
-  // Inner West
-  { zone: "Inner West", color: "#3a6b20", d: "M 20 70 L 60 80 L 55 130 L 20 125 Z" },
-  // Inner
-  { zone: "Inner", color: "#2D5016", d: "M 60 80 L 110 70 L 115 130 L 55 130 Z" },
-  // East / Midland
-  { zone: "East", color: "#556b2f", d: "M 110 70 L 165 80 L 165 130 L 115 130 Z" },
-  // Hills
-  { zone: "Hills", color: "#3d5e1a", d: "M 165 80 L 215 80 L 220 145 L 165 130 Z" },
-  // South (Cockburn)
-  { zone: "South", color: "#4A6741", d: "M 20 125 L 55 130 L 60 185 L 20 180 Z" },
-  // South Coast
-  { zone: "South Coast", color: "#1a4a6a", d: "M 55 130 L 115 130 L 115 185 L 60 185 Z" },
-  // South East
-  { zone: "South East", color: "#3d5e1a", d: "M 115 130 L 165 130 L 170 195 L 115 195 Z" },
-  // Swan River label area
-];
-
-// Hand-placed dot coordinates, one per suburb, chosen to sit inside that
-// suburb's own zone polygon and spaced apart from neighbours in the same zone.
-const SUBURB_COORDS = {
-  "yanchep": { x: 38, y: 32 },
-  "joondalup": { x: 68, y: 42 },
-  "scarborough": { x: 52, y: 62 },
-  "whiteman-park": { x: 138, y: 46 },
-  "swan-valley": { x: 193, y: 45 },
-  "bold-park": { x: 36, y: 100 },
-  "kings-park": { x: 86, y: 102 },
-  "midland": { x: 138, y: 100 },
-  "kalamunda": { x: 183, y: 100 },
-  "mundaring": { x: 197, y: 120 },
-  "cockburn": { x: 37, y: 154 },
-  "fremantle": { x: 66, y: 144 },
-  "rockingham": { x: 86, y: 160 },
-  "mandurah": { x: 96, y: 178 },
-  "armadale": { x: 130, y: 150 },
-  "serpentine": { x: 143, y: 176 },
-};
-
-function MetroMap({ suburbs, onSelect }) {
-  const [hovered, setHovered] = useState(null);
-
-  return (
-    <div className="relative">
-      <svg viewBox="0 0 240 210" className="w-full">
-        {/* Zone fills */}
-        {ZONE_POLYGONS.map((z) => (
-          <path key={z.zone} d={z.d} fill={z.color} stroke="#0e2408" strokeWidth="1.5" opacity="0.8" />
-        ))}
-        {/* Suburb dots */}
-        {suburbs.map((s) => {
-          const isHov = hovered === s.id;
-          const pos = SUBURB_COORDS[s.id] || { x: 120, y: 105 };
-          const x = pos.x;
-          const y = pos.y;
-          return (
-            <g key={s.id}>
-              <circle
-                cx={x} cy={y} r={isHov ? 7 : 5}
-                fill={isHov ? s.accent : s.color}
-                stroke={isHov ? "#f5f0e4" : "#0e2408"}
-                strokeWidth={isHov ? 1.5 : 1}
-                style={{ cursor: "pointer", transition: "all 0.15s" }}
-                onMouseEnter={() => setHovered(s.id)}
-                onMouseLeave={() => setHovered(null)}
-                onClick={() => onSelect(s)}
-              />
-              {isHov && (
-                <text x={x} y={y - 10} textAnchor="middle" fontSize="7" fontFamily="'Work Sans',sans-serif" fill="#f5f0e4" fontWeight="600">
-                  {s.name}
-                </text>
-              )}
-            </g>
-          );
-        })}
-        {/* Ocean label */}
-        <text x="12" y="100" fontSize="6" fontFamily="'DM Mono',monospace" fill="#2F6B8A" opacity="0.7" transform="rotate(-90, 12, 100)">INDIAN OCEAN</text>
-        {/* Compass */}
-        <text x="215" y="200" fontSize="8" fontFamily="'DM Mono',monospace" fill="#5a7a3a" opacity="0.6">N ↑</text>
-      </svg>
-    </div>
-  );
-}
-
-// ── Screen: Map ───────────────────────────────────────────────────────────────
-
-function MapScreen({ onSelectSuburb }) {
-  const [tab, setTab] = useState("metro");
-  const [query, setQuery] = useState("");
-
-  const metroSuburbs = SUBURBS.filter((s) => s.area === "metro");
-  const regionalSuburbs = SUBURBS.filter((s) => s.area === "regional");
-
-  const filtered = useMemo(() => {
-    const list = tab === "metro" ? metroSuburbs : regionalSuburbs;
-    if (!query.trim()) return list;
-    return list.filter((s) => s.name.toLowerCase().includes(query.toLowerCase()) || s.zone.toLowerCase().includes(query.toLowerCase()));
-  }, [tab, query]);
-
-  return (
-    <div className="flex flex-col h-full bg-[#0e2408]">
-      {/* Header */}
-      <div className="px-5 pt-10 pb-3 flex-shrink-0">
-        <p className="font-mono text-[10px] text-[#5a7a3a] tracking-[0.2em] uppercase mb-1">Western Australia</p>
-        <h1 className="font-display text-2xl font-semibold text-[#f5f0e4] leading-tight">Explore by Suburb</h1>
-      </div>
-
-      {/* Tabs */}
-      <div className="px-5 pb-3 flex gap-2 flex-shrink-0">
-        {(["metro", "regional"]).map((t) => (
-          <button
-            key={t}
-            onClick={() => { setTab(t); setQuery(""); }}
-            className="px-4 py-1.5 rounded-full text-xs font-body font-medium transition-all"
-            style={
-              tab === t
-                ? { background: "#2d5016", color: "#8ba86a", border: "1px solid #5a7a3a" }
-                : { background: "transparent", color: "#5a7a3a", border: "1px solid #2d5016" }
-            }
-          >
-            {t === "metro" ? "🏙 Perth Metro" : "🗺 Regional WA"}
-          </button>
-        ))}
-      </div>
-
-      {/* Search */}
-      <div className="px-4 pb-3 flex-shrink-0">
-        <div className="flex items-center gap-2 bg-[#1a3010] border border-[#2d5016] rounded-xl px-3 py-2">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5a7a3a" strokeWidth="2" strokeLinecap="round">
-            <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
-          </svg>
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={`Search ${tab === "metro" ? "Perth suburbs" : "regional towns"}…`}
-            className="flex-1 bg-transparent font-body text-xs text-[#f5f0e4] placeholder-[#3d5a2a] outline-none"
-          />
-          {query && (
-            <button onClick={() => setQuery("")}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5a7a3a" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
-            </button>
-          )}
+  <div class="view-container">
+    <!-- ===== HOME VIEW ===== -->
+    <div id="homeView" class="view-page active">
+      <div class="garden-section">
+        <div class="garden-header">
+          <h2><i class="fas fa-seedling"></i> my garden</h2>
+          <div class="points-badge">
+            <i class="fas fa-star"></i> <span id="pointDisplay">240</span>
+          </div>
+        </div>
+        <div class="plot-grid" id="plotGrid"></div>
+        <div class="garden-hint">
+          <span><i class="fas fa-leaf"></i> tap plant to delete</span>
+          <span id="plantCounter">0 / 16</span>
         </div>
       </div>
 
-      {/* Metro map (only when metro tab & no search) */}
-      {tab === "metro" && !query && (
-        <div className="px-4 pb-2 flex-shrink-0">
-          <div className="rounded-xl overflow-hidden border border-[#2d5016]">
-            <MetroMap suburbs={metroSuburbs} onSelect={onSelectSuburb} />
-          </div>
-          <p className="font-mono text-[9px] text-[#3d5a2a] text-center mt-1.5">Tap a dot to select suburb</p>
-        </div>
-      )}
-
-      {/* Suburb list */}
-      <div className="flex-1 overflow-y-auto px-4 pb-4 min-h-0">
-        {!query && <p className="font-mono text-[9px] text-[#5a7a3a] uppercase tracking-widest mb-2">{filtered.length} suburbs</p>}
-        <div className="grid grid-cols-2 gap-2">
-          {filtered.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => onSelectSuburb(s)}
-              className="text-left rounded-xl p-3 transition-all active:opacity-80"
-              style={{ background: s.color + "30", border: `1px solid ${s.color}55` }}
-            >
-              <p className="font-body text-sm font-semibold text-[#f5f0e4] leading-tight">{s.name}</p>
-              <p className="font-mono text-[9px] text-[#8ba86a] mt-0.5">{s.zone}</p>
-              <div className="flex justify-between items-end mt-2">
-                <span className="font-mono text-[9px] text-[#5a7a3a]">{s.speciesCount} spp.</span>
-                <span className="font-mono text-[9px] text-[#3d5a2a]">{s.sightings.toLocaleString()} obs.</span>
-              </div>
-            </button>
-          ))}
-        </div>
-        {filtered.length === 0 && (
-          <p className="font-body text-sm text-[#5a7a3a] text-center mt-10">No suburbs match "{query}"</p>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ── Screen: Suburb Detail ─────────────────────────────────────────────────────
-
-function SuburbScreen({
-  suburb,
-  onBack,
-  onLogSpecies,
-}) {
-  const [tab, setTab] = useState("flora");
-  const species = tab === "flora" ? suburb.flora : suburb.fauna;
-
-  return (
-    <div className="flex flex-col h-full bg-[#0e2408]">
-      {/* Hero */}
-      <div className="relative h-44 flex-shrink-0">
-        <img
-          src="https://images.unsplash.com/photo-1501854140801-50d01698950b?w=600&h=300&fit=crop&auto=format"
-          alt={suburb.name}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(14,36,8,0.4) 0%, rgba(14,36,8,0.95) 100%)" }} />
-        <button
-          onClick={onBack}
-          className="absolute top-10 left-4 w-8 h-8 flex items-center justify-center rounded-full bg-black/30 backdrop-blur-sm"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f5f0e4" strokeWidth="2.5" strokeLinecap="round">
-            <path d="M19 12H5M12 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <div className="absolute bottom-3 left-5 right-5">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="font-mono text-[9px] px-2 py-0.5 rounded-full bg-[#2d5016]/80 text-[#8ba86a] border border-[#5a7a3a]/40">{suburb.zone}</span>
-            <span className="font-mono text-[9px] text-[#8ba86a] capitalize">{suburb.area === "metro" ? "Perth Metro" : "Regional WA"}</span>
-          </div>
-          <h2 className="font-display text-2xl font-semibold text-[#f5f0e4]">{suburb.name}</h2>
-          <p className="font-body text-[11px] text-[#8ba86a] mt-0.5">{suburb.tagline}</p>
-          <div className="flex gap-4 mt-1.5">
-            <span className="font-mono text-[10px] text-[#8ba86a]">{suburb.speciesCount} species</span>
-            <span className="font-mono text-[10px] text-[#5a7a3a]">·</span>
-            <span className="font-mono text-[10px] text-[#8ba86a]">{suburb.sightings.toLocaleString()} sightings</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex gap-2 px-5 py-3 flex-shrink-0">
-        {(["flora", "fauna"]).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className="px-4 py-1.5 rounded-full text-xs font-body font-medium transition-all"
-            style={
-              tab === t
-                ? { background: suburb.color, color: "#f5f0e4" }
-                : { background: "#1e3a0f", color: "#5a7a3a", border: "1px solid #2d5016" }
-            }
-          >
-            {t === "flora" ? "🌿 Flora" : "🦎 Fauna"}
-          </button>
-        ))}
-      </div>
-
-      {/* Species list */}
-      <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-3">
-        {species.length === 0 && (
-          <p className="font-body text-sm text-[#5a7a3a] text-center mt-10">No {tab} recorded here yet.</p>
-        )}
-        {species.map((sp) => (
-          <div key={sp.id} className="rounded-xl overflow-hidden" style={{ background: "#1a3010", border: "1px solid #2d5016" }}>
-            <div className="flex gap-3 p-3">
-              <img src={unsplash(sp.imageId, 120, 120)} alt={sp.name} className="w-16 h-16 rounded-lg object-cover flex-shrink-0" />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className="font-display text-sm font-semibold text-[#f5f0e4] leading-tight">{sp.name}</p>
-                    <p className="font-body text-[10px] italic text-[#8ba86a] mt-0.5">{sp.scientific}</p>
-                  </div>
-                  <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                    <span className="font-mono text-[9px] px-2 py-0.5 rounded-full" style={{ background: rarityColor[sp.rarity] + "33", color: rarityColor[sp.rarity], border: `1px solid ${rarityColor[sp.rarity]}55` }}>
-                      {rarityLabel[sp.rarity]}
-                    </span>
-                    <span className="font-mono text-[10px] text-[#c8860a]">+{sp.points} pts</span>
-                  </div>
-                </div>
-                <p className="font-body text-[11px] text-[#8ba86a] mt-1.5 leading-relaxed line-clamp-2">{sp.description}</p>
-              </div>
-            </div>
-            <div className="px-3 pb-3">
-              <button
-                onClick={() => onLogSpecies(sp)}
-                className="w-full py-2 rounded-lg font-body text-xs font-medium text-[#1e3a0f] transition-opacity hover:opacity-90"
-                style={{ background: suburb.accent }}
-              >
-                Log Sighting
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ── Screen: Camera / Log ──────────────────────────────────────────────────────
-
-function CameraScreen({
-  preselected,
-  suburb,
-  onSave,
-}) {
-  const [step, setStep] = useState(preselected ? "form" : "scan");
-  const [detected, setDetected] = useState(preselected || null);
-  const [confidence, setConfidence] = useState(preselected ? 94 : 0);
-  const [notes, setNotes] = useState("");
-  const [saved, setSaved] = useState(false);
-
-  const handleCapture = () => {
-    setStep("detecting");
-    setTimeout(() => {
-      setDetected(S.kangarooPaw);
-      setConfidence(Math.floor(Math.random() * 10) + 88);
-      setStep("form");
-    }, 2200);
-  };
-
-  const handleSave = () => {
-    if (!detected) return;
-    onSave({
-      id: Date.now().toString(),
-      species: detected,
-      suburb: suburb || SUBURBS[0],
-      date: new Date().toISOString().split("T")[0],
-      time: new Date().toTimeString().slice(0, 5),
-      notes,
-      confidence,
-      points: detected.points,
-    });
-    setSaved(true);
-  };
-
-  if (saved && detected) {
-    return (
-      <div className="flex flex-col h-full bg-[#0e2408] items-center justify-center px-6">
-        <div className="w-16 h-16 rounded-full bg-[#2d5016] flex items-center justify-center mb-5">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#8ba86a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-        </div>
-        <h2 className="font-display text-2xl font-semibold text-[#f5f0e4] text-center mb-2">Sighting Logged!</h2>
-        <p className="font-body text-sm text-[#8ba86a] text-center mb-6">{detected.name} recorded in {(suburb && suburb.name) || "your area"}.</p>
-        <div className="rounded-2xl bg-[#1e3a0f] border border-[#2d5016] p-5 w-full mb-6">
-          <div className="flex justify-between items-center mb-3">
-            <span className="font-mono text-xs text-[#5a7a3a] uppercase tracking-wide">Points Earned</span>
-            <span className="font-display text-2xl font-semibold text-[#c8860a]">+{detected.points}</span>
-          </div>
-          <div className="h-px bg-[#2d5016] mb-3" />
-          <div className="flex justify-between text-xs">
-            <span className="font-body text-[#8ba86a]">Total Score</span>
-            <span className="font-mono text-[#f5f0e4]">{USER.points + detected.points}</span>
-          </div>
-        </div>
-        <button onClick={() => { setStep("scan"); setSaved(false); setDetected(null); setNotes(""); }} className="w-full py-3 rounded-xl font-body font-medium text-sm text-[#1e3a0f] bg-[#8ba86a]">
-          Log Another Sighting
+      <div class="camera-section">
+        <button class="snap-btn" id="snapButton">
+          <i class="fas fa-camera"></i> snap
+          <small><i class="fas fa-tag"></i> +5</small>
         </button>
       </div>
-    );
-  }
+      <div style="flex:1;"></div>
+    </div>
 
-  if (step === "scan") {
-    return (
-      <div className="flex flex-col h-full bg-[#0e2408]">
-        <div className="px-5 pt-10 pb-4">
-          <p className="font-mono text-[10px] text-[#5a7a3a] tracking-[0.2em] uppercase mb-1">Field Camera</p>
-          <h2 className="font-display text-2xl font-semibold text-[#f5f0e4]">Log a Sighting</h2>
-          {suburb && <p className="font-body text-xs text-[#8ba86a] mt-0.5">Logging in {suburb.name}</p>}
-        </div>
-        <div className="flex-1 mx-4 mb-4 rounded-2xl overflow-hidden relative bg-black flex items-center justify-center">
-          <img src="https://images.unsplash.com/photo-1490750967868-88df5691cc5e?w=400&h=500&fit=crop&auto=format" alt="Viewfinder" className="w-full h-full object-cover opacity-70" />
-          <div className="absolute inset-8 pointer-events-none">
-            <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-[#8ba86a] rounded-tl-sm" />
-            <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-[#8ba86a] rounded-tr-sm" />
-            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-[#8ba86a] rounded-bl-sm" />
-            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-[#8ba86a] rounded-br-sm" />
+    <!-- ===== FRIENDS VIEW ===== -->
+    <div id="friendsView" class="view-page">
+      <div class="friends-view">
+        <div class="view-title"><i class="fas fa-user-friends"></i> garden buddies</div>
+        <div class="friend-grid" id="friendsGrid"></div>
+      </div>
+    </div>
+
+    <!-- ===== STORE VIEW ===== -->
+    <div id="storeView" class="view-page">
+      <div class="store-view">
+        <div class="view-title"><i class="fas fa-gem"></i> upgrades & décor</div>
+        <div class="store-grid" id="storeGrid">
+          <div class="store-item" data-item="gnome" data-cost="60">
+            <i class="fas fa-frog"></i>
+            <div class="label">gnome</div>
+            <div class="cost">60 ★</div>
           </div>
-          <div className="absolute bottom-5 left-0 right-0 flex justify-center">
-            <div className="bg-black/50 backdrop-blur-sm rounded-full px-3 py-1">
-              <p className="font-mono text-[10px] text-[#8ba86a]">AI DETECT · READY</p>
-            </div>
+          <div class="store-item" data-item="bench" data-cost="100">
+            <i class="fas fa-tree"></i>
+            <div class="label">bench</div>
+            <div class="cost">100 ★</div>
+          </div>
+          <div class="store-item" data-item="lamp" data-cost="80">
+            <i class="fas fa-sun"></i>
+            <div class="label">solar lamp</div>
+            <div class="cost">80 ★</div>
+          </div>
+          <div class="store-item" data-item="fountain" data-cost="150">
+            <i class="fas fa-water"></i>
+            <div class="label">fountain</div>
+            <div class="cost">150 ★</div>
+          </div>
+          <div class="store-item" data-item="birdhouse" data-cost="70">
+            <i class="fas fa-dove"></i>
+            <div class="label">birdhouse</div>
+            <div class="cost">70 ★</div>
+          </div>
+          <div class="store-item" data-item="compost" data-cost="40">
+            <i class="fas fa-recycle"></i>
+            <div class="label">compost</div>
+            <div class="cost">40 ★</div>
           </div>
         </div>
-        <div className="px-4 pb-4">
-          <button onClick={handleCapture} className="w-full py-4 rounded-2xl font-body font-semibold text-sm text-[#1e3a0f] bg-[#8ba86a] flex items-center justify-center gap-2">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-              <circle cx="12" cy="13" r="4" />
-            </svg>
-            Capture & Identify
+      </div>
+    </div>
+
+    <!-- ===== GACHA VIEW ===== -->
+    <div id="gachaView" class="view-page">
+      <div class="gacha-view">
+        <div class="view-title"><i class="fas fa-dice"></i> plant gacha</div>
+        <div class="gacha-box">
+          <div class="gacha-icon"><i class="fas fa-seedling"></i></div>
+          <div class="gacha-cost"><i class="fas fa-star"></i> 60 points per pull</div>
+          <button class="gacha-btn" id="gachaButton">
+            <i class="fas fa-gift"></i> pull plant
           </button>
         </div>
-      </div>
-    );
-  }
-
-  if (step === "detecting") {
-    return (
-      <div className="flex flex-col h-full bg-[#0e2408] items-center justify-center px-6">
-        <div className="w-20 h-20 relative mb-6">
-          <div className="absolute inset-0 rounded-full border-2 border-[#2d5016] border-t-[#8ba86a] animate-spin" />
-          <div className="absolute inset-3 rounded-full border border-[#2d5016] border-b-[#5a7a3a] animate-spin" style={{ animationDirection: "reverse", animationDuration: "1.2s" }} />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-xl">🌿</span>
-          </div>
-        </div>
-        <h3 className="font-display text-xl font-semibold text-[#f5f0e4] mb-2">Identifying Species…</h3>
-        <p className="font-body text-sm text-[#8ba86a] text-center">Cross-referencing with WA flora & fauna database</p>
-        <div className="mt-6 flex gap-1 flex-wrap justify-center">
-          {["Leaf morphology", "Flower structure", "Bark texture"].map((label, i) => (
-            <div key={label} className="font-mono text-[9px] px-2 py-1 rounded-full bg-[#1e3a0f] text-[#5a7a3a] animate-pulse" style={{ animationDelay: `${i * 0.3}s` }}>
-              {label}
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  const today = new Date();
-  const dateStr = today.toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" });
-  const timeStr = today.toTimeString().slice(0, 5);
-
-  return (
-    <div className="flex flex-col h-full bg-[#0e2408]">
-      <div className="px-5 pt-10 pb-3 flex-shrink-0">
-        <div className="flex items-center gap-2 mb-1">
-          <div className="w-2 h-2 rounded-full bg-[#8ba86a] animate-pulse" />
-          <p className="font-mono text-[10px] text-[#5a7a3a] tracking-[0.2em] uppercase">Species Identified</p>
-        </div>
-        <h2 className="font-display text-xl font-semibold text-[#f5f0e4]">Sighting Record</h2>
-      </div>
-      <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-3">
-        {detected && (
-          <div className="rounded-2xl overflow-hidden" style={{ background: "#1a3010", border: "1px solid #2d5016" }}>
-            <div className="relative h-32">
-              <img src={unsplash(detected.imageId, 400, 200)} alt={detected.name} className="w-full h-full object-cover" />
-              <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(26,48,16,1) 0%, transparent 60%)" }} />
-              <div className="absolute top-2 right-2 bg-[#1e3a0f]/80 backdrop-blur-sm rounded-lg px-2 py-1">
-                <p className="font-mono text-[9px] text-[#8ba86a]">AI Confidence</p>
-                <p className="font-display text-lg font-semibold text-[#8ba86a]">{confidence}%</p>
-              </div>
-              <div className="absolute bottom-2 left-3">
-                <p className="font-display text-base font-semibold text-[#f5f0e4]">{detected.name}</p>
-                <p className="font-body text-[10px] italic text-[#8ba86a]">{detected.scientific}</p>
-              </div>
-            </div>
-            <div className="p-3 flex gap-3">
-              {[
-                { label: "Rarity", value: rarityLabel[detected.rarity], color: rarityColor[detected.rarity] },
-                { label: "Points", value: `+${detected.points}`, color: "#c8860a" },
-                { label: "Type", value: detected.type, color: "#f5f0e4" },
-              ].map(({ label, value, color }) => (
-                <div key={label} className="flex-1 rounded-lg bg-[#0e2408] p-2 text-center">
-                  <p className="font-mono text-[9px] text-[#5a7a3a] uppercase">{label}</p>
-                  <p className="font-display text-sm font-semibold mt-0.5 capitalize" style={{ color }}>{value}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="rounded-2xl p-4 space-y-3" style={{ background: "#1a3010", border: "1px solid #2d5016" }}>
-          <p className="font-mono text-[9px] text-[#5a7a3a] uppercase tracking-widest">Field Record Template</p>
-          {[
-            { label: "Species", value: (detected && detected.name) || "Unknown" },
-            { label: "Scientific Name", value: (detected && detected.scientific) || "—", italic: true },
-            { label: "Date", value: dateStr },
-            { label: "Time", value: timeStr },
-            { label: "Suburb", value: (suburb && suburb.name) || "Kings Park" },
-            { label: "Zone", value: (suburb && suburb.zone) || "Inner" },
-            { label: "Recorder", value: USER.name },
-          ].map(({ label, value, italic }) => (
-            <div key={label} className="flex justify-between items-start gap-2 border-b border-[#2d5016] pb-2 last:border-0 last:pb-0">
-              <span className="font-mono text-[10px] text-[#5a7a3a] uppercase tracking-wide flex-shrink-0">{label}</span>
-              <span className={`font-body text-xs text-[#f5f0e4] text-right ${italic ? "italic" : ""}`}>{value}</span>
-            </div>
-          ))}
-        </div>
-
-        <div className="rounded-2xl p-4" style={{ background: "#1a3010", border: "1px solid #2d5016" }}>
-          <label className="font-mono text-[9px] text-[#5a7a3a] uppercase tracking-widest block mb-2">Field Notes</label>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Habitat, behaviour, notable features…"
-            className="w-full bg-transparent font-body text-xs text-[#f5f0e4] placeholder-[#3d5a2a] resize-none outline-none leading-relaxed"
-            rows={3}
-          />
-        </div>
-
-        <button onClick={handleSave} className="w-full py-3.5 rounded-xl font-body font-semibold text-sm text-[#1e3a0f] bg-[#8ba86a]">
-          Save Sighting · +{(detected && detected.points) || 0} pts
-        </button>
-        <button onClick={() => { setStep("scan"); setDetected(null); }} className="w-full py-2 rounded-xl font-body text-xs text-[#5a7a3a] bg-[#1e3a0f] border border-[#2d5016]">
-          Retake Photo
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ── Screen: Profile ───────────────────────────────────────────────────────────
-
-function ProfileScreen({ log }) {
-  const allLog = [...USER.log, ...log].sort((a, b) => b.date.localeCompare(a.date));
-  const totalPoints = USER.points + log.reduce((s, e) => s + e.points, 0);
-  const totalDisc = USER.discoveries + log.length;
-
-  return (
-    <div className="flex flex-col h-full bg-[#0e2408]">
-      <div className="px-5 pt-10 pb-4 flex-shrink-0">
-        <p className="font-mono text-[10px] text-[#5a7a3a] tracking-[0.2em] uppercase mb-1">Naturalist Journal</p>
-        <h2 className="font-display text-2xl font-semibold text-[#f5f0e4]">{USER.name}</h2>
-      </div>
-      <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-4">
-        <div className="grid grid-cols-3 gap-2">
-          {[
-            { label: "Total Points", value: totalPoints.toLocaleString(), color: "#c8860a" },
-            { label: "Discoveries", value: totalDisc, color: "#8ba86a" },
-            { label: "Day Streak", value: `${USER.streak}🔥`, color: "#f5f0e4" },
-          ].map(({ label, value, color }) => (
-            <div key={label} className="rounded-xl p-3 text-center bg-[#1e3a0f] border border-[#2d5016]">
-              <p className="font-display text-xl font-semibold" style={{ color }}>{value}</p>
-              <p className="font-mono text-[9px] text-[#5a7a3a] uppercase tracking-wide mt-0.5">{label}</p>
-            </div>
-          ))}
-        </div>
-        <div className="rounded-xl p-3 bg-[#1e3a0f] border border-[#2d5016] flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-[#c8860a]/20 border border-[#c8860a]/40 flex items-center justify-center">
-            <span className="font-display text-base font-semibold text-[#c8860a]">#{USER.rank}</span>
-          </div>
-          <div>
-            <p className="font-body text-sm font-medium text-[#f5f0e4]">WA Leaderboard Rank</p>
-            <p className="font-mono text-[10px] text-[#5a7a3a]">Top 5% of naturalists this month</p>
-          </div>
-        </div>
-        <div>
-          <p className="font-mono text-[9px] text-[#5a7a3a] uppercase tracking-widest mb-2">Field Log</p>
-          <div className="space-y-2">
-            {allLog.map((entry) => (
-              <div key={entry.id} className="rounded-xl overflow-hidden bg-[#1a3010] border border-[#2d5016]">
-                <div className="flex gap-3 p-3">
-                  <img src={unsplash(entry.species.imageId, 80, 80)} alt={entry.species.name} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-start">
-                      <p className="font-display text-sm font-semibold text-[#f5f0e4] leading-tight">{entry.species.name}</p>
-                      <span className="font-mono text-[10px] text-[#c8860a] ml-2">+{entry.points}</span>
-                    </div>
-                    <p className="font-body text-[10px] italic text-[#8ba86a]">{entry.species.scientific}</p>
-                    <div className="flex gap-3 mt-1">
-                      <span className="font-mono text-[9px] text-[#5a7a3a]">{entry.suburb.name}</span>
-                      <span className="font-mono text-[9px] text-[#3d5a2a]">·</span>
-                      <span className="font-mono text-[9px] text-[#5a7a3a]">{entry.date}</span>
-                    </div>
-                    {entry.notes && <p className="font-body text-[10px] text-[#6a8a50] mt-1 italic line-clamp-1">"{entry.notes}"</p>}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div>
-          <p className="font-mono text-[9px] text-[#5a7a3a] uppercase tracking-widest mb-2">Achievements</p>
-          <div className="grid grid-cols-3 gap-2">
-            {[
-              { icon: "🌿", label: "First Flora", unlocked: true },
-              { icon: "🦎", label: "First Fauna", unlocked: true },
-              { icon: "⭐", label: "Rare Find", unlocked: true },
-              { icon: "🗺", label: "Explorer", unlocked: true },
-              { icon: "🔥", label: "Week Streak", unlocked: true },
-              { icon: "🏆", label: "Top Ranger", unlocked: false },
-            ].map((b) => (
-              <div key={b.label} className="rounded-xl p-3 text-center" style={{ background: b.unlocked ? "#1e3a0f" : "#111d0a", border: `1px solid ${b.unlocked ? "#2d5016" : "#1a2a10"}`, opacity: b.unlocked ? 1 : 0.4 }}>
-                <div className="text-2xl mb-1">{b.icon}</div>
-                <p className="font-mono text-[9px] text-[#8ba86a] leading-tight">{b.label}</p>
-              </div>
-            ))}
+        <div class="gacha-result" id="gachaResult">
+          <div style="color: #4d6b4d; opacity: 0.7; font-size: 16px;">
+            <i class="fas fa-hand-pointer"></i> pull to discover a new plant!
           </div>
         </div>
       </div>
     </div>
-  );
-}
 
-// ── Screen: Resources ─────────────────────────────────────────────────────────
-
-const RESOURCES = [
-  { id: "r1", title: "WA Biodiversity Strategy 2023–2028", org: "DBCA", type: "Policy", summary: "Western Australia's roadmap for protecting its unique biodiversity, including priority actions for threatened species recovery across all regions.", color: "#2D5016", icon: "📋" },
-  { id: "r2", title: "Bush Forever Program", org: "City of Perth", type: "Program", summary: "Protecting 51,000+ hectares of native bushland across 287 sites in the Perth metro area — including suburbs like Joondalup, Bold Park, and Whiteman Park.", color: "#1e3a0f", icon: "🌿" },
-  { id: "r3", title: "Threatened Species List WA", org: "DBCA", type: "Reference", summary: "The official register of WA's threatened flora and fauna, updated annually. Includes species like the Numbat, Carnaby's Cockatoo, and Western Ringtail Possum.", color: "#6b4c2a", icon: "⚠️" },
-  { id: "r4", title: "NatureMap", org: "DBCA", type: "Tool", summary: "Mapping portal for WA biodiversity — over 7 million species occurrence records searchable by suburb, species, or region.", color: "#2F6B8A", icon: "🗺" },
-  { id: "r5", title: "Gondwana Link", org: "Gondwana Link Ltd", type: "Initiative", summary: "Reconnecting 1,000 km of fragmented bushland from the wet southwest to the Nullarbor — one of the world's great ecological restoration projects.", color: "#4A6741", icon: "🔗" },
-  { id: "r6", title: "Perth NRM Biodiversity Projects", org: "Perth NRM", type: "Program", summary: "Local programs revegetating degraded urban reserves across Perth suburbs with native species to create wildlife corridors.", color: "#3a6b20", icon: "🌱" },
-];
-
-function ResourcesScreen() {
-  const [expanded, setExpanded] = useState(null);
-  return (
-    <div className="flex flex-col h-full bg-[#0e2408]">
-      <div className="px-5 pt-10 pb-4 flex-shrink-0">
-        <p className="font-mono text-[10px] text-[#5a7a3a] tracking-[0.2em] uppercase mb-1">Conservation</p>
-        <h2 className="font-display text-2xl font-semibold text-[#f5f0e4]">WA Biodiversity</h2>
-        <p className="font-body text-xs text-[#8ba86a] mt-1">Programs, research & policies protecting WA's native species</p>
-      </div>
-      <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-3">
-        <div className="rounded-2xl p-4 relative overflow-hidden" style={{ background: "linear-gradient(135deg, #1e3a0f 0%, #0e2408 100%)", border: "1px solid #2d5016" }}>
-          <div className="absolute right-4 top-4 text-5xl opacity-10">🌏</div>
-          <p className="font-mono text-[9px] text-[#5a7a3a] uppercase tracking-widest mb-2">Did you know?</p>
-          <p className="font-display text-base font-semibold text-[#f5f0e4] leading-snug">The Perth metro area contains <span className="text-[#c8860a]">over 2,000</span> species of native plants — most in any metropolitan area on Earth.</p>
-          <p className="font-body text-xs text-[#8ba86a] mt-2">Suburbs like Kings Park, Whiteman Park, and Kalamunda protect remnant bushland of global significance.</p>
-        </div>
-        {RESOURCES.map((r) => {
-          const isOpen = expanded === r.id;
-          return (
-            <div key={r.id} className="rounded-2xl overflow-hidden" style={{ background: "#1a3010", border: "1px solid #2d5016" }}>
-              <button className="w-full p-4 text-left flex items-start gap-3" onClick={() => setExpanded(isOpen ? null : r.id)}>
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-xl" style={{ background: r.color + "40" }}>{r.icon}</div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start gap-2">
-                    <p className="font-display text-sm font-semibold text-[#f5f0e4] leading-tight">{r.title}</p>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5a7a3a" strokeWidth="2" strokeLinecap="round" className={`flex-shrink-0 mt-0.5 transition-transform ${isOpen ? "rotate-180" : ""}`}>
-                      <polyline points="6 9 12 15 18 9" />
-                    </svg>
-                  </div>
-                  <div className="flex gap-2 mt-1">
-                    <span className="font-mono text-[9px] px-2 py-0.5 rounded-full bg-[#2d5016]/60 text-[#8ba86a]">{r.type}</span>
-                    <span className="font-mono text-[9px] text-[#5a7a3a]">{r.org}</span>
-                  </div>
-                </div>
-              </button>
-              {isOpen && (
-                <div className="px-4 pb-4">
-                  <div className="h-px bg-[#2d5016] mb-3" />
-                  <p className="font-body text-xs text-[#8ba86a] leading-relaxed">{r.summary}</p>
-                  <button className="mt-3 font-mono text-[10px] text-[#8ba86a] underline underline-offset-2">Learn more →</button>
-                </div>
-              )}
+    <!-- ===== PROFILE VIEW ===== -->
+    <div id="profileView" class="view-page">
+      <div class="profile-view">
+        <div class="view-title"><i class="fas fa-user"></i> your profile</div>
+        <div class="profile-card" id="profileCard">
+          <div class="avatar"><i class="fas fa-seedling"></i></div>
+          <div class="pname">🌱 Gardener</div>
+          <div class="pstats">
+            <div><i class="fas fa-leaf"></i> <span id="profilePlantCount">0</span></div>
+            <div><i class="fas fa-star"></i> <span id="profilePoints">240</span></div>
+            <div><i class="fas fa-trophy"></i> <span id="profileScore">0</span></div>
+          </div>
+          <div class="latest-section">
+            <div class="latest-label">latest plant acquired</div>
+            <div>
+              <span class="latest-plant" id="profileLatestPlant">—</span>
+              <span class="latest-rarity" id="profileLatestRarity">—</span>
             </div>
-          );
-        })}
-        <div className="rounded-2xl p-4 text-center" style={{ background: "#1e3a0f", border: "1px solid #2d5016" }}>
-          <p className="font-display text-base font-semibold text-[#f5f0e4] mb-1">Your sightings matter</p>
-          <p className="font-body text-xs text-[#8ba86a]">Every logged observation is submitted to WA's biodiversity database, helping researchers track species health across Perth suburbs and regional WA.</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Root App ──────────────────────────────────────────────────────────────────
-
-function App() {
-  const [screen, setScreen] = useState("map");
-  const [selectedSuburb, setSelectedSuburb] = useState(null);
-  const [cameraSpecies, setCameraSpecies] = useState();
-  const [cameraSuburb, setCameraSuburb] = useState();
-  const [userLog, setUserLog] = useState([]);
-
-  const handleSelectSuburb = (s) => {
-    setSelectedSuburb(s);
-    setScreen("region");
-  };
-
-  const handleLogSpecies = (sp) => {
-    setCameraSpecies(sp);
-    setCameraSuburb(selectedSuburb || undefined);
-    setScreen("camera");
-  };
-
-  const handleSaveEntry = (entry) => {
-    setUserLog((prev) => [entry, ...prev]);
-  };
-
-  const handleNav = (s) => {
-    if (s !== "camera") { setCameraSpecies(undefined); setCameraSuburb(undefined); }
-    setScreen(s);
-  };
-
-  const navScreen = screen === "region" ? "map" : screen;
-
-  return (
-    <div className="flex items-center justify-center w-full h-full bg-[#0a0a0a]">
-      <div
-        className="relative flex flex-col overflow-hidden"
-        style={{ width: "min(390px, 100vw)", height: "min(844px, 100vh)", background: "#0e2408", borderRadius: "min(44px, 0px)", boxShadow: "0 40px 80px rgba(0,0,0,0.8)" }}
-      >
-        {/* Status bar */}
-        <div className="absolute top-0 left-0 right-0 h-9 flex items-center justify-between px-6 z-20">
-          <span className="font-mono text-[11px] text-[#f5f0e4] font-medium">9:41</span>
-          <div className="flex items-center gap-1.5">
-            <svg width="16" height="12" viewBox="0 0 16 12" fill="#f5f0e4"><rect x="0" y="4" width="3" height="8" rx="0.5" /><rect x="4.5" y="2.5" width="3" height="9.5" rx="0.5" /><rect x="9" y="0.5" width="3" height="11.5" rx="0.5" /><rect x="13.5" y="0" width="2.5" height="12" rx="0.5" opacity="0.3" /></svg>
-            <svg width="20" height="12" viewBox="0 0 24 12" fill="none" stroke="#f5f0e4" strokeWidth="1.5"><rect x="0.75" y="0.75" width="19.5" height="10.5" rx="2" /><path d="M21.75 4v4a2 2 0 0 0 0-4z" fill="#f5f0e4" strokeWidth="0" /><rect x="2" y="2" width="14" height="8" rx="1" fill="#f5f0e4" /></svg>
           </div>
         </div>
-
-        {/* Content */}
-        <div className="absolute inset-0 top-0 bottom-[68px]">
-          {screen === "map" && <MapScreen onSelectSuburb={handleSelectSuburb} />}
-          {screen === "region" && selectedSuburb && (
-            <SuburbScreen suburb={selectedSuburb} onBack={() => setScreen("map")} onLogSpecies={handleLogSpecies} />
-          )}
-          {screen === "camera" && <CameraScreen preselected={cameraSpecies} suburb={cameraSuburb} onSave={handleSaveEntry} />}
-          {screen === "profile" && <ProfileScreen log={userLog} />}
-          {screen === "resources" && <ResourcesScreen />}
-        </div>
-
-        <div className="absolute bottom-0 left-0 right-0">
-          <BottomNav screen={navScreen} setScreen={handleNav} />
-        </div>
       </div>
     </div>
-  );
-}
+  </div>
 
-const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(<App />);
+  <!-- toast -->
+  <div class="toast" id="toastMessage">
+    <i class="fas fa-spa"></i> use gacha to grow your garden!
+  </div>
+
+  <!-- ===== BOTTOM NAV (5 tabs) ===== -->
+  <div class="bottom-nav">
+    <button class="nav-btn active-tab" data-view="homeView"><i class="fas fa-home"></i><span>Home</span></button>
+    <button class="nav-btn" data-view="friendsView"><i class="fas fa-user-friends"></i><span>Friends</span></button>
+    <button class="nav-btn" data-view="storeView"><i class="fas fa-store"></i><span>Store</span></button>
+    <button class="nav-btn" data-view="gachaView"><i class="fas fa-dice"></i><span>Gacha</span></button>
+    <button class="nav-btn" data-view="profileView"><i class="fas fa-user-circle"></i><span>Profile</span></button>
+  </div>
+
+  <div class="footer-meta">
+    <i class="fas fa-globe-americas"></i> every snap supports biodiversity
+  </div>
+</div>
+
+<script>
+  (function() {
+    // ---- PLANT POOL (16 plants, 4 of each rarity) ----
+    const PLANT_POOL = [
+      // Common (4)
+      { name: 'Daisy', icon: 'fa-leaf', rarity: 'common' },
+      { name: 'Clover', icon: 'fa-leaf', rarity: 'common' },
+      { name: 'Mint', icon: 'fa-leaf', rarity: 'common' },
+      { name: 'Fern', icon: 'fa-feather', rarity: 'common' },
+      // Rare (4)
+      { name: 'Rose', icon: 'fa-flower', rarity: 'rare' },
+      { name: 'Tulip', icon: 'fa-flower', rarity: 'rare' },
+      { name: 'Lavender', icon: 'fa-flower', rarity: 'rare' },
+      { name: 'Orchid', icon: 'fa-flower', rarity: 'rare' },
+      // Epic (4)
+      { name: 'Monstera', icon: 'fa-leaf', rarity: 'epic' },
+      { name: 'Aloe', icon: 'fa-leaf', rarity: 'epic' },
+      { name: 'Palm', icon: 'fa-tree', rarity: 'epic' },
+      { name: 'Ficus', icon: 'fa-tree', rarity: 'epic' },
+      // Legendary (4)
+      { name: 'Golden Lotus', icon: 'fa-seedling', rarity: 'legendary' },
+      { name: 'Dragon Tree', icon: 'fa-tree', rarity: 'legendary' },
+      { name: 'Moonflower', icon: 'fa-flower', rarity: 'legendary' },
+      { name: 'Starlight Orchid', icon: 'fa-feather', rarity: 'legendary' }
+    ];
+
+    // Rarity configs
+    const RARITY_CONFIG = {
+      common: { points: 25, label: 'Common', class: 'rarity-common', emoji: '🟢', weight: 0.80 },
+      rare: { points: 50, label: 'Rare', class: 'rarity-rare', emoji: '🔵', weight: 0.10 },
+      epic: { points: 70, label: 'Epic', class: 'rarity-epic', emoji: '🟣', weight: 0.08 },
+      legendary: { points: 100, label: 'Legendary', class: 'rarity-legendary', emoji: '🟠', weight: 0.02 }
+    };
+
+    // ---- state ----
+    let points = 240;
+    let score = 0; // separate score from gacha pulls
+    let plants = []; // plants in garden (max 16)
+    let latestPlant = null; // { name, rarity }
+    const MAX_PLANTS = 16;
+
+    // Friends data with latest plant and score
+    const friends = [
+      { name: 'Lena', icon: 'fa-flower', latest: { name: 'Rose', rarity: 'rare' }, score: 320 },
+      { name: 'Marco', icon: 'fa-tree', latest: { name: 'Dragon Tree', rarity: 'legendary' }, score: 540 },
+      { name: 'Sofia', icon: 'fa-leaf', latest: { name: 'Mint', rarity: 'common' }, score: 180 },
+      { name: 'Jamal', icon: 'fa-seedling', latest: { name: 'Monstera', rarity: 'epic' }, score: 410 }
+    ];
+
+    // ---- DOM refs ----
+    const plotGrid = document.getElementById('plotGrid');
+    const pointSpan = document.getElementById('pointDisplay');
+    const plantCounter = document.getElementById('plantCounter');
+    const toast = document.getElementById('toastMessage');
+    const snapBtn = document.getElementById('snapButton');
+    const gachaBtn = document.getElementById('gachaButton');
+    const gachaResult = document.getElementById('gachaResult');
+    const friendsGrid = document.getElementById('friendsGrid');
+    const profilePlantCount = document.getElementById('profilePlantCount');
+    const profilePoints = document.getElementById('profilePoints');
+    const profileScore = document.getElementById('profileScore');
+    const profileLatestPlant = document.getElementById('profileLatestPlant');
+    const profileLatestRarity = document.getElementById('profileLatestRarity');
+
+    const views = {
+      home: document.getElementById('homeView'),
+      friends: document.getElementById('friendsView'),
+      store: document.getElementById('storeView'),
+      gacha: document.getElementById('gachaView'),
+      profile: document.getElementById('profileView')
+    };
+    const navBtns = document.querySelectorAll('.nav-btn');
+
+    // ---- weighted random rarity picker ----
+    function getRandomRarity() {
+      const rand = Math.random();
+      let cumulative = 0;
+      for (const [rarity, config] of Object.entries(RARITY_CONFIG)) {
+        cumulative += config.weight;
+        if (rand <= cumulative) {
+          return rarity;
+        }
+      }
+      return 'common';
+    }
+
+    // ---- get random plant by rarity ----
+    function getRandomPlantByRarity(rarity) {
+      const pool = PLANT_POOL.filter(p => p.rarity === rarity);
+      if (pool.length === 0) return PLANT_POOL[0];
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    // ---- render garden ----
+    function renderPlots() {
+      plotGrid.innerHTML = '';
+      for (let i = 0; i < MAX_PLANTS; i++) {
+        const plot = document.createElement('div');
+        plot.className = 'plot';
+        if (i < plants.length) {
+          const p = plants[i];
+          const rarityInfo = RARITY_CONFIG[p.rarity] || RARITY_CONFIG.common;
+          plot.innerHTML = `
+            <i class="fas ${p.icon}"></i>
+            <span class="plant-name">${p.name}</span>
+            <span class="rarity-badge">${rarityInfo.emoji}</span>
+            <button class="delete-btn" data-index="${i}" title="delete plant">✕</button>
+          `;
+          plot.style.background = '#2e5a2e';
+          plot.style.backgroundImage = 'radial-gradient(circle at 30% 30%, #4d8a45, #1d3a1a)';
+        } else {
+          plot.classList.add('empty-plot');
+          plot.innerHTML = `<i class="fas fa-plus-circle"></i><span style="font-size:10px;">empty</span>`;
+        }
+        plotGrid.appendChild(plot);
+      }
+
+      // Attach delete events
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          const index = parseInt(this.dataset.index, 10);
+          deletePlant(index);
+        });
+      });
+
+      plantCounter.innerText = `${plants.length} / ${MAX_PLANTS}`;
+      updateProfile();
+    }
+
+    function updatePoints() {
+      pointSpan.innerText = points;
+      if (profilePoints) profilePoints.innerText = points;
+    }
+
+    function updateProfile() {
+      if (profilePlantCount) profilePlantCount.innerText = plants.length;
+      if (profilePoints) profilePoints.innerText = points;
+      if (profileScore) profileScore.innerText = score;
+      if (latestPlant) {
+        if (profileLatestPlant) profileLatestPlant.innerText = latestPlant.name;
+        if (profileLatestRarity) {
+          const rarityInfo = RARITY_CONFIG[latestPlant.rarity] || RARITY_CONFIG.common;
+          profileLatestRarity.innerText = `${rarityInfo.emoji} ${rarityInfo.label}`;
+          profileLatestRarity.className = `latest-rarity ${rarityInfo.class}`;
+        }
+      } else {
+        if (profileLatestPlant) profileLatestPlant.innerText = '—';
+        if (profileLatestRarity) {
+          profileLatestRarity.innerText = '—';
+          profileLatestRarity.className = 'latest-rarity';
+        }
+      }
+    }
+
+    // ---- toast ----
+    function showToast(msg, icon = 'fa-spa') {
+      toast.innerHTML = `<i class="fas ${icon}"></i> ${msg}`;
+      clearTimeout(toast._timeout);
+      toast._timeout = setTimeout(() => {
+        toast.innerHTML = `<i class="fas fa-spa"></i> use gacha to grow your garden!`;
+      }, 3500);
+    }
+
+    // ---- add plant to garden ----
+    function addPlantToGarden(plant) {
+      if (plants.length >= MAX_PLANTS) {
+        showToast('garden is full! delete a plant first 🌿', 'fa-exclamation-circle');
+        return false;
+      }
+      plants.push({ ...plant });
+      // Update latest plant
+      latestPlant = { name: plant.name, rarity: plant.rarity };
+      renderPlots();
+      updateProfile();
+      return true;
+    }
+
+    // ---- delete plant ----
+    function deletePlant(index) {
+      if (index < 0 || index >= plants.length) return;
+      const removed = plants[index];
+      plants.splice(index, 1);
+      renderPlots();
+      showToast(`🗑️ removed ${removed.name} from your garden`, 'fa-trash');
+    }
+
+    // ---- SNAP (no plant, just +5 points) ----
+    function snapPlant() {
+      points += 5;
+      updatePoints();
+      showToast(`📸 +5 points for snapping!`, 'fa-camera');
+    }
+
+    // ---- GACHA (costs 60 points, weighted rarity) ----
+    function pullGacha() {
+      if (points < 60) {
+        showToast(`not enough points! need 60 ★`, 'fa-exclamation-circle');
+        return;
+      }
+      if (plants.length >= MAX_PLANTS) {
+        showToast('garden is full! delete a plant first', 'fa-exclamation-circle');
+        return;
+      }
+
+      // Deduct points
+      points -= 60;
+      updatePoints();
+
+      // Pick rarity based on weights
+      const rarity = getRandomRarity();
+      const plant = getRandomPlantByRarity(rarity);
+      const rarityInfo = RARITY_CONFIG[rarity];
+
+      // Add to garden
+      addPlantToGarden(plant);
+
+      // Add to score (separate from points)
+      score += rarityInfo.points;
+      updateProfile();
+
+      // Show result in gacha view
+      gachaResult.innerHTML = `
+        <div class="result-plant"><i class="fas ${plant.icon}"></i></div>
+        <div class="result-name">${plant.name}</div>
+        <div class="result-rarity ${rarityInfo.class}">${rarityInfo.emoji} ${rarityInfo.label}</div>
+        <div style="margin-top:6px; font-weight:600; color:#1d3d1d;">
+          <i class="fas fa-trophy"></i> +${rarityInfo.points} score!
+        </div>
+      `;
+
+      showToast(`🎉 pulled ${plant.name} (${rarityInfo.label}) +${rarityInfo.points} score!`, 'fa-gift');
+    }
+
+    // ---- render friends ----
+    function renderFriends() {
+      friendsGrid.innerHTML = '';
+      friends.forEach(f => {
+        const card = document.createElement('div');
+        card.className = 'friend-card';
+        const rarityInfo = RARITY_CONFIG[f.latest.rarity] || RARITY_CONFIG.common;
+        card.innerHTML = `
+          <i class="fas ${f.icon}"></i>
+          <div class="fname">${f.name}</div>
+          <div class="latest-plant">🌱 ${f.latest.name}</div>
+          <div class="score-display"><i class="fas fa-trophy"></i> ${f.score}</div>
+        `;
+        friendsGrid.appendChild(card);
+      });
+    }
+
+    // ---- navigation ----
+    function navigateTo(viewId) {
+      Object.values(views).forEach(v => v.classList.remove('active'));
+      const target = document.getElementById(viewId);
+      if (target) target.classList.add('active');
+
+      navBtns.forEach(btn => {
+        btn.classList.remove('active-tab');
+        if (btn.dataset.view === viewId) {
+          btn.classList.add('active-tab');
+        }
+      });
+    }
+
+    // ---- init ----
+    function init() {
+      // Start with a few example plants
+      const starterPlants = [
+        PLANT_POOL[0], // Daisy
+        PLANT_POOL[4], // Rose
+        PLANT_POOL[8], // Monstera
+        PLANT_POOL[12] // Golden Lotus
+      ];
+      starterPlants.forEach(p => {
+        if (plants.length < MAX_PLANTS) plants.push({ ...p });
+      });
+      
+      // Set latest plant
+      if (plants.length > 0) {
+        const last = plants[plants.length - 1];
+        latestPlant = { name: last.name, rarity: last.rarity };
+      }
+
+      renderPlots();
+      updatePoints();
+      updateProfile();
+      renderFriends();
+
+      // Snap button (no plant, just points)
+      snapBtn.addEventListener('click', snapPlant);
+
+      // Gacha button
+      gachaBtn.addEventListener('click', pullGacha);
+
+      // Nav buttons
+      navBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          const viewId = this.dataset.view;
+          if (viewId) navigateTo(viewId);
+        });
+      });
+
+      // Store items
+      document.querySelectorAll('.store-item').forEach(item => {
+        item.addEventListener('click', function() {
+          const cost = parseInt(this.dataset.cost, 10);
+          const itemName = this.dataset.item;
+          if (points < cost) {
+            showToast(`not enough points! need ${cost} ★`, 'fa-exclamation-circle');
+            return;
+          }
+          points -= cost;
+          updatePoints();
+          if (plants.length < MAX_PLANTS) {
+            const decoMap = { gnome: 'fa-frog', bench: 'fa-tree', lamp: 'fa-sun', fountain: 'fa-water', birdhouse: 'fa-dove', compost: 'fa-recycle' };
+            const icon = decoMap[item] || 'fa-gem';
+            plants.push({ name: item.charAt(0).toUpperCase() + item.slice(1), icon: icon, rarity: 'common' });
+            renderPlots();
+            showToast(`✨ ${item} placed in your garden!`, 'fa-gem');
+          } else {
+            showToast(`garden full! can't place ${item}`, 'fa-exclamation-circle');
+            points += cost;
+            updatePoints();
+            showToast(`refunded ${cost} points — garden full`, 'fa-undo');
+          }
+        });
+      });
+
+      setTimeout(() => {
+        showToast('🎰 use gacha to grow your garden!', 'fa-dice');
+      }, 500);
+    }
+
+    init();
+  })();
 </script>
 </body>
 </html>
