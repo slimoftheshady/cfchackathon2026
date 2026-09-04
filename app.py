@@ -24,34 +24,10 @@ MAX_GARDEN_SLOTS = 16
 MAX_COLLECTION_ITEMS = 40
 
 STARTER_ITEMS = [
-    {
-        "key": "daisy",
-        "name": "Daisy",
-        "icon": "fa-leaf",
-        "rarity": "common",
-        "kind": "plant",
-    },
-    {
-        "key": "rose",
-        "name": "Rose",
-        "icon": "fa-seedling",
-        "rarity": "rare",
-        "kind": "plant",
-    },
-    {
-        "key": "monstera",
-        "name": "Monstera",
-        "icon": "fa-cannabis",
-        "rarity": "epic",
-        "kind": "plant",
-    },
-    {
-        "key": "golden-lotus",
-        "name": "Golden Lotus",
-        "icon": "fa-clover",
-        "rarity": "legendary",
-        "kind": "plant",
-    },
+    {"key": "kangaroo-paw", "name": "Kangaroo Paw", "icon": "fa-leaf", "rarity": "common", "kind": "plant"},
+    {"key": "featherflower", "name": "Featherflower", "icon": "fa-seedling", "rarity": "rare", "kind": "plant"},
+    {"key": "pixie-mop", "name": "Pixie Mops", "icon": "fa-cannabis", "rarity": "epic", "kind": "plant"},
+    {"key": "custard-orchid", "name": "Custard Orchid", "icon": "fa-clover", "rarity": "legendary", "kind": "plant"},
 ]
 
 
@@ -308,6 +284,9 @@ def script():
     return send_from_directory(BASE_DIR, "mainscript.js")
 
 
+@app.get("/icons/<path:filename>")
+def icons(filename):
+    return send_from_directory(BASE_DIR / "icons", filename)
 @app.post("/api/identify")
 def identify():
     _, error = login_required()

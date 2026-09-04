@@ -1,30 +1,29 @@
 (function () {
-    const PLANT_POOL = [
-        { key: 'daisy', name: 'Daisy', icon: 'fa-leaf', rarity: 'common', kind: 'plant' },
-        { key: 'clover', name: 'Clover', icon: 'fa-leaf', rarity: 'common', kind: 'plant' },
-        { key: 'mint', name: 'Mint', icon: 'fa-leaf', rarity: 'common', kind: 'plant' },
-        { key: 'fern', name: 'Fern', icon: 'fa-leaf', rarity: 'common', kind: 'plant' },
-        { key: 'rose', name: 'Rose', icon: 'fa-seedling', rarity: 'rare', kind: 'plant' },
-        { key: 'tulip', name: 'Tulip', icon: 'fa-seedling', rarity: 'rare', kind: 'plant' },
-        { key: 'lavender', name: 'Lavender', icon: 'fa-seedling', rarity: 'rare', kind: 'plant' },
-        { key: 'orchid', name: 'Orchid', icon: 'fa-seedling', rarity: 'rare', kind: 'plant' },
-        { key: 'monstera', name: 'Monstera', icon: 'fa-cannabis', rarity: 'epic', kind: 'plant' },
-        { key: 'aloe', name: 'Aloe', icon: 'fa-cannabis', rarity: 'epic', kind: 'plant' },
-        { key: 'palm', name: 'Palm', icon: 'fa-cannabis', rarity: 'epic', kind: 'plant' },
-        { key: 'ficus', name: 'Ficus', icon: 'fa-cannabis', rarity: 'epic', kind: 'plant' },
-        { key: 'golden-lotus', name: 'Golden Lotus', icon: 'fa-clover', rarity: 'legendary', kind: 'plant' },
-        { key: 'dragon-tree', name: 'Dragon Tree', icon: 'fa-clover', rarity: 'legendary', kind: 'plant' },
-        { key: 'moonflower', name: 'Moonflower', icon: 'fa-clover', rarity: 'legendary', kind: 'plant' },
-        { key: 'starlight-orchid', name: 'Starlight Orchid', icon: 'fa-clover', rarity: 'legendary', kind: 'plant' }
-    ];
+  const PLANT_POOL = [
+      { key: 'kangaroo-paw', name: 'Kangaroo Paw', icon: 'fa-leaf', rarity: 'common', kind: 'plant' },
+      { key: 'paper-daisy', name: 'Paper Daisy', icon: 'fa-leaf', rarity: 'common', kind: 'plant' },
+      { key: 'pigface', name: 'Pigface', icon: 'fa-leaf', rarity: 'common', kind: 'plant' },
+      { key: 'fringe-lily', name: 'Fringe Lily', icon: 'fa-leaf', rarity: 'common', kind: 'plant' },
+      { key: 'blue-leschenaultia', name: 'Blue Leschenaultia', icon: 'fa-seedling', rarity: 'rare', kind: 'plant' },
+      { key: 'featherflower', name: 'Featherflower', icon: 'fa-seedling', rarity: 'rare', kind: 'plant' },
+      { key: 'cowslip-orchid', name: 'Cowslip Orchid', icon: 'fa-seedling', rarity: 'rare', kind: 'plant' },
+      { key: 'donkey-orchid', name: 'Donkey Orchid', icon: 'fa-seedling', rarity: 'rare', kind: 'plant' },
+      { key: 'qualup-bell', name: 'Qualup Bell', icon: 'fa-cannabis', rarity: 'epic', kind: 'plant' },
+      { key: 'wreath-flower', name: 'Wreath Flower', icon: 'fa-cannabis', rarity: 'epic', kind: 'plant' },
+      { key: 'spider-orchid', name: 'Spider Orchid', icon: 'fa-cannabis', rarity: 'epic', kind: 'plant' },
+      { key: 'pixie-mops', name: 'Pixie Mops', icon: 'fa-cannabis', rarity: 'epic', kind: 'plant' },
+      { key: 'rhizanthella-gardneri', name: 'Rhizanthella Gardneri', icon: 'fa-clover', rarity: 'legendary', kind: 'plant' },
+      { key: 'drakaea', name: 'Drakaea', icon: 'fa-clover', rarity: 'legendary', kind: 'plant' },
+      { key: 'queen-of-sheba', name: 'Queen of Sheba Orchid', icon: 'fa-clover', rarity: 'legendary', kind: 'plant' },
+      { key: 'custard-orchid', name: 'Custard Orchid', icon: 'fa-clover', rarity: 'legendary', kind: 'plant' }
+  ];
 
     const DECOR_POOL = [
-        { key: 'gnome', name: 'Gnome', icon: 'fa-hat-wizard', rarity: 'decor', kind: 'decor', cost: 60 },
-        { key: 'bench', name: 'Bench', icon: 'fa-chair', rarity: 'decor', kind: 'decor', cost: 100 },
-        { key: 'solar-lamp', name: 'Solar Lamp', icon: 'fa-lightbulb', rarity: 'decor', kind: 'decor', cost: 80 },
-        { key: 'fountain', name: 'Fountain', icon: 'fa-water', rarity: 'decor', kind: 'decor', cost: 150 },
-        { key: 'birdhouse', name: 'Birdhouse', icon: 'fa-dove', rarity: 'decor', kind: 'decor', cost: 70 },
-        { key: 'compost', name: 'Compost', icon: 'fa-recycle', rarity: 'decor', kind: 'decor', cost: 40 }
+        { key: 'echidna', name: 'Echidna', icon: 'icons/echidna.svg', rarity: 'decor', kind: 'decor', cost: 80 },
+        { key: 'wombat', name: 'Wombat', icon: 'icons/wombat.svg', rarity: 'decor', kind: 'decor', cost: 120 },
+        { key: 'emu', name: 'Emu', icon: 'icons/emu.svg', rarity: 'decor', kind: 'decor', cost: 100 },
+        { key: 'kangaroo', name: 'Kangaroo', icon: 'icons/kangaroo.svg', rarity: 'decor', kind: 'decor', cost: 150 },
+        { key: 'cockatoo', name: 'Cockatoo', icon: 'icons/cockatoo.svg', rarity: 'decor', kind: 'decor', cost: 60 }
     ];
 
     const RARITY_CONFIG = {
@@ -71,7 +70,7 @@
     // =========================================================
 
     let points = 240;
-    let score = 0;
+    let score = 245;
 
     // What is currently displayed in the 16 garden plots.
     let gardenSlots = Array(MAX_SLOTS).fill(null);
@@ -571,7 +570,7 @@
                     plot.innerHTML = `
                         <span class="plot-sparkle"></span>
 
-                        <i class="fas ${escapeClass(item.icon)}"></i>
+                        ${renderIcon(item.icon)}
 
                         <span class="plant-name">
                             ${escapeHtml(item.name)}
@@ -827,10 +826,11 @@
 
                 card.innerHTML = `
                     <span class="collection-icon">
-                        <i class="fas ${unlocked
-                        ? escapeClass(item.icon)
-                        : 'fa-lock'
-                    }"></i>
+                        ${
+                            unlocked
+                                ? renderIcon(item.icon)
+                                : '<i class="fas fa-lock"></i>'
+                        }
                     </span>
 
                     <span class="collection-name">
@@ -1035,7 +1035,7 @@
                 </div>
 
                 <div class="result-icon">
-                    <i class="fas ${escapeClass(plant.icon)}"></i>
+                    ${renderIcon(plant.icon)}
                 </div>
 
                 <div class="result-kicker">
@@ -2025,7 +2025,7 @@
 
                 <span class="plot-sparkle"></span>
 
-                <i class="fas ${escapeClass(item.icon)}"></i>
+                ${renderIcon(item.icon)}
 
                 <span class="plant-name">
                     ${escapeHtml(item.name)}
@@ -2478,6 +2478,19 @@
             /[^A-Za-z0-9_-]/g,
             ''
         );
+    }
+
+    function renderIcon(
+        icon
+    ) {
+        if (
+            typeof icon === 'string' &&
+            icon.toLowerCase().endsWith('.svg')
+        ) {
+            return `<img src="${escapeHtml(icon)}" class="icon-img" alt="">`;
+        }
+
+        return `<i class="fas ${escapeClass(icon)}"></i>`;
     }
 
     // =========================================================

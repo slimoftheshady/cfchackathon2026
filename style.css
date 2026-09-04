@@ -492,6 +492,13 @@ button {
     filter: drop-shadow(0 2px 2px rgba(59, 73, 83, .20));
 }
 
+.plot > .icon-img {
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 2px rgba(59,73,83,.20));
+}
+
 .plot .plant-name {
     max-width: 100%;
     overflow: hidden;
@@ -862,6 +869,12 @@ button {
     font-size: 22px;
 }
 
+.store-icon .icon-img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
 .store-item .label {
     font-size: 12px;
     font-weight: 900;
@@ -1028,6 +1041,12 @@ button {
     font-size: 31px;
 }
 
+.result-icon .icon-img {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+}
+
 .result-kicker {
     font-size: 9px;
     font-weight: 900;
@@ -1167,6 +1186,12 @@ button {
     color: var(--forest);
 }
 
+.latest-rarity.rarity-common { color: var(--forest); }
+.latest-rarity.rarity-rare { color: #5c8799; }
+.latest-rarity.rarity-epic { color: #87639d; }
+.latest-rarity.rarity-legendary { color: #ad7835; }
+.latest-rarity.rarity-decor { color: #557467; }
+
 .logout-btn {
     width: 100%;
     margin-top: 13px;
@@ -1305,6 +1330,12 @@ button {
     background: var(--soft);
     color: var(--forest);
     font-size: 18px;
+}
+
+.collection-icon .icon-img {
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
 }
 
 .collection-item.rarity-rare .collection-icon {
@@ -1489,33 +1520,14 @@ button {
 }
 
 @media (max-width: 350px) {
-    .plot-grid {
-        gap: 6px;
-    }
-
-    .plot>i {
-        font-size: 19px;
-    }
-
-    .plot .plant-name {
-        font-size: 6.8px;
-    }
-
-    .garden-card-top {
-        align-items: flex-start;
-    }
-
-    .soft-btn {
-        padding: 8px;
-    }
-
-    .collection-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .friend-grid {
-        grid-template-columns: 1fr;
-    }
+    .plot-grid { gap: 6px; }
+    .plot > i { font-size: 19px; }
+    .plot > .icon-img { width: 21px; height: 21px; }
+    .plot .plant-name { font-size: 6.8px; }
+    .garden-card-top { align-items: flex-start; }
+    .soft-btn { padding: 8px; }
+    .collection-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .friend-grid { grid-template-columns: 1fr; }
 }
 
 /* =========================================================
