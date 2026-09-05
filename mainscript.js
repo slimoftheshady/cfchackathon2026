@@ -3382,6 +3382,10 @@
             currentUser?.role !== 'generic'
         ) {
             loadClassrooms();
+        }
+
+        if (
+            viewId ===
             'achievementsView'
         ) {
             loadAchievements();

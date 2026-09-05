@@ -496,16 +496,14 @@ def quest_progress_for(db, quest, student_id):
 
 def state_for_user(db, user_id):
     state = db.execute(
-        "SELECT points, score, snaps_completed, latest_name, latest_rarity FROM game_state WHERE user_id = ?",
-        "SELECT points, score, snaps_taken, gacha_pulls, latest_name, latest_rarity FROM game_state WHERE user_id = ?",
+        "SELECT points, score, snaps_completed, snaps_taken, gacha_pulls, latest_name, latest_rarity FROM game_state WHERE user_id = ?",
         (user_id,),
     ).fetchone()
 
     if not state:
         db.execute("INSERT INTO game_state(user_id) VALUES (?)", (user_id,))
         state = db.execute(
-            "SELECT points, score, snaps_completed, latest_name, latest_rarity FROM game_state WHERE user_id = ?",
-            "SELECT points, score, snaps_taken, gacha_pulls, latest_name, latest_rarity FROM game_state WHERE user_id = ?",
+            "SELECT points, score, snaps_completed, snaps_taken, gacha_pulls, latest_name, latest_rarity FROM game_state WHERE user_id = ?",
             (user_id,),
         ).fetchone()
 
