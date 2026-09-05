@@ -223,7 +223,12 @@ button {
 }
 
 .auth-card input,
-.friend-search input {
+.auth-card select,
+.friend-search input,
+.class-inline-form input,
+.quest-form input,
+.quest-form select,
+.quest-form textarea {
     width: 100%;
     border: 1.5px solid rgba(90, 120, 99, .25);
     background: white;
@@ -236,7 +241,12 @@ button {
 }
 
 .auth-card input:focus,
-.friend-search input:focus {
+.auth-card select:focus,
+.friend-search input:focus,
+.class-inline-form input:focus,
+.quest-form input:focus,
+.quest-form select:focus,
+.quest-form textarea:focus {
     border-color: var(--sage);
     box-shadow: 0 0 0 4px rgba(144, 171, 139, .18);
 }
@@ -1131,6 +1141,18 @@ button {
     margin-top: 4px;
 }
 
+.profile-role {
+    display: inline-flex;
+    align-items: center;
+    margin: 6px auto 0;
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: var(--soft);
+    color: var(--forest);
+    font-size: 9px;
+    font-weight: 900;
+}
+
 .pstats {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -1421,6 +1443,327 @@ button {
         transform: translate(-50%, 0);
     }
 }
+
+
+/* ---------- CLASSROOMS / RBAC ---------- */
+.class-card {
+    margin: 12px 0;
+    padding: 15px;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, .88);
+    border: var(--border);
+    box-shadow: var(--shadow-small);
+}
+
+.class-create-card {
+    margin-top: 0;
+}
+
+.class-inline-form {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+}
+
+.class-inline-form input {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+}
+
+.classroom-list {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.classroom-card {
+    width: 100%;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 10px;
+    text-align: left;
+    border: var(--border);
+    border-radius: 20px;
+    background: rgba(255,255,255,.85);
+    padding: 12px;
+    color: var(--teal);
+    cursor: pointer;
+    box-shadow: var(--shadow-small);
+}
+
+.classroom-card.active {
+    background: var(--soft);
+    border-color: rgba(90, 120, 99, .32);
+}
+
+.classroom-card-icon {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    background: var(--soft);
+    color: var(--forest);
+}
+
+.classroom-card-copy {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.classroom-card-copy strong {
+    font-size: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.classroom-card-copy small,
+.class-roster-row small,
+.quest-card small {
+    color: rgba(59, 73, 83, .62);
+    font-size: 9px;
+}
+
+.class-detail-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 18px 0 10px;
+}
+
+.class-detail-head h2 {
+    margin-top: 3px;
+    font-size: 22px;
+}
+
+.class-detail-head p {
+    margin-top: 4px;
+    color: rgba(59, 73, 83, .65);
+    font-size: 10px;
+}
+
+.class-back-btn {
+    width: 38px;
+    height: 38px;
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 14px;
+    background: var(--soft);
+    color: var(--forest);
+    cursor: pointer;
+}
+
+.class-search-results {
+    display: grid;
+    gap: 6px;
+    margin-top: 9px;
+}
+
+.class-roster {
+    display: grid;
+    gap: 7px;
+}
+
+.class-roster-row,
+.leaderboard-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 0;
+    border-bottom: 1px solid rgba(90, 120, 99, .10);
+}
+
+.class-roster-row:last-child,
+.leaderboard-row:last-child {
+    border-bottom: 0;
+}
+
+.class-roster-row > div {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.class-roster-row strong {
+    font-size: 11px;
+}
+
+.leaderboard {
+    display: grid;
+}
+
+.leaderboard-rank {
+    width: 25px;
+    height: 25px;
+    display: grid;
+    place-items: center;
+    border-radius: 9px;
+    background: var(--soft);
+    color: var(--forest);
+    font-size: 9px;
+    font-weight: 950;
+}
+
+.leaderboard-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.leaderboard-row strong {
+    font-size: 10px;
+}
+
+.quest-form {
+    display: grid;
+    gap: 8px;
+}
+
+.quest-form textarea {
+    width: 100%;
+    min-height: 78px;
+    resize: vertical;
+}
+
+.quest-form-grid {
+    display: grid;
+    grid-template-columns: 1.5fr .75fr;
+    gap: 8px;
+}
+
+.quest-card {
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(90, 120, 99, .10);
+}
+
+.quest-card:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+
+.quest-card:first-child {
+    padding-top: 4px;
+}
+
+.quest-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.quest-card-top > div {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.quest-card strong {
+    font-size: 11px;
+}
+
+.quest-card p {
+    margin-top: 7px;
+    color: rgba(59, 73, 83, .72);
+    font-size: 10px;
+    line-height: 1.4;
+}
+
+.quest-status-line {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    color: rgba(59, 73, 83, .62);
+    font-size: 9px;
+}
+
+.quest-status-badge {
+    flex: 0 0 auto;
+    padding: 5px 8px;
+    border-radius: 999px;
+    background: var(--soft);
+    color: var(--forest);
+    font-size: 8px;
+    font-weight: 900;
+}
+
+.quest-complete .quest-status-badge {
+    background: #e3f1dc;
+}
+
+.quest-progress-track {
+    height: 7px;
+    margin-top: 9px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgba(90, 120, 99, .13);
+}
+
+.quest-progress-track span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--forest);
+}
+
+.class-my-progress {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    text-align: center;
+    gap: 8px;
+}
+
+.class-my-progress > div {
+    padding: 6px;
+    border-radius: 14px;
+    background: var(--soft);
+}
+
+.class-my-progress span {
+    display: block;
+    font-size: 8px;
+    color: rgba(59, 73, 83, .62);
+}
+
+.class-my-progress strong {
+    display: block;
+    margin-top: 3px;
+    font-size: 17px;
+}
+
+@media (max-width: 370px) {
+    .bottom-nav.has-classroom .nav-btn {
+        font-size: 7px;
+    }
+
+    .bottom-nav.has-classroom .nav-btn i {
+        font-size: 15px;
+    }
+
+    .quest-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .class-inline-form {
+        align-items: stretch;
+        flex-direction: column;
+    }
+}
+
 
 /* ---------- TOP BAR ---------- */
 .app-topbar {
