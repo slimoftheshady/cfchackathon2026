@@ -31,6 +31,11 @@ MAX_GARDEN_SLOTS = 16
 MAX_COLLECTION_ITEMS = 40
 OBSERVATION_RADIUS_METRES = 30
 MAX_SAME_PLANT_PER_LOCATION = 3
+GARDEN_UPGRADES = (
+    {"level": 2, "cost": 150, "plots": 6},
+    {"level": 3, "cost": 300, "plots": 10},
+    {"level": 4, "cost": 500, "plots": 16},
+)
 
 DAILY_QUESTS = [
     {
@@ -317,6 +322,8 @@ def init_db():
                 snaps_completed INTEGER NOT NULL DEFAULT 0,
                 snaps_taken INTEGER NOT NULL DEFAULT 0,
                 gacha_pulls INTEGER NOT NULL DEFAULT 0,
+                garden_level INTEGER NOT NULL DEFAULT 1,
+                unlocked_plots INTEGER NOT NULL DEFAULT 4,
                 latest_name TEXT,
                 latest_rarity TEXT,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -542,6 +549,14 @@ def init_db():
             db.execute(
                 "ALTER TABLE game_state ADD COLUMN gacha_pulls INTEGER NOT NULL DEFAULT 0"
             )
+        if "garden_level" not in state_columns:
+            db.execute(
+                "ALTER TABLE game_state ADD COLUMN garden_level INTEGER NOT NULL DEFAULT 1"
+            )
+        if "unlocked_plots" not in state_columns:
+            db.execute(
+                "ALTER TABLE game_state ADD COLUMN unlocked_plots INTEGER NOT NULL DEFAULT 4"
+            )
 
         # Preserve every currently placed item as an unlocked collection item.
         old_items = db.execute(
@@ -691,14 +706,24 @@ def quest_progress_for(db, quest, student_id):
 
 def state_for_user(db, user_id):
     state = db.execute(
-        "SELECT points, score, snaps_completed, snaps_taken, gacha_pulls, latest_name, latest_rarity FROM game_state WHERE user_id = ?",
+        """
+        SELECT points, score, snaps_completed, snaps_taken, gacha_pulls,
+               garden_level, unlocked_plots, latest_name, latest_rarity
+        FROM game_state
+        WHERE user_id = ?
+        """,
         (user_id,),
     ).fetchone()
 
     if not state:
         db.execute("INSERT INTO game_state(user_id) VALUES (?)", (user_id,))
         state = db.execute(
-            "SELECT points, score, snaps_completed, snaps_taken, gacha_pulls, latest_name, latest_rarity FROM game_state WHERE user_id = ?",
+            """
+            SELECT points, score, snaps_completed, snaps_taken, gacha_pulls,
+                   garden_level, unlocked_plots, latest_name, latest_rarity
+            FROM game_state
+            WHERE user_id = ?
+            """,
             (user_id,),
         ).fetchone()
 
@@ -748,6 +773,20 @@ def state_for_user(db, user_id):
         ).fetchall()
     ]
 
+    garden_level = int(state["garden_level"] or 1)
+    unlocked_plots = min(
+        MAX_GARDEN_SLOTS,
+        max(4, int(state["unlocked_plots"] or 4)),
+    )
+    next_upgrade = next(
+        (
+            upgrade
+            for upgrade in GARDEN_UPGRADES
+            if upgrade["level"] > garden_level
+        ),
+        None,
+    )
+
     return {
         "points": state["points"],
         "score": state["score"],
@@ -761,6 +800,14 @@ def state_for_user(db, user_id):
         ),
         "gardenSlots": garden_slots,
         "collection": collection,
+        "garden": {
+            "level": garden_level,
+            "unlockedPlots": unlocked_plots,
+            "maxPlots": MAX_GARDEN_SLOTS,
+            "nextLevel": next_upgrade["level"] if next_upgrade else None,
+            "nextCost": next_upgrade["cost"] if next_upgrade else None,
+            "nextPlots": next_upgrade["plots"] if next_upgrade else None,
+        },
     }
 
 
@@ -1648,6 +1695,64 @@ def map_plants():
     })
 
 
+@app.post("/api/garden/upgrade")
+def upgrade_garden():
+    uid, error = login_required()
+    if error:
+        return error
+
+    with get_db() as db:
+        state = db.execute(
+            "SELECT points, garden_level FROM game_state WHERE user_id = ?",
+            (uid,),
+        ).fetchone()
+        if not state:
+            db.execute("INSERT INTO game_state(user_id) VALUES (?)", (uid,))
+            state = db.execute(
+                "SELECT points, garden_level FROM game_state WHERE user_id = ?",
+                (uid,),
+            ).fetchone()
+
+        current_level = int(state["garden_level"] or 1)
+        upgrade = next(
+            (
+                item
+                for item in GARDEN_UPGRADES
+                if item["level"] == current_level + 1
+            ),
+            None,
+        )
+        if not upgrade:
+            return jsonify({"error": "Your garden is already fully expanded."}), 409
+
+        points = int(state["points"] or 0)
+        if points < upgrade["cost"]:
+            return jsonify({
+                "error": f"You need {upgrade['cost']} coins for the next garden upgrade.",
+                "required": upgrade["cost"],
+                "points": points,
+            }), 400
+
+        db.execute(
+            """
+            UPDATE game_state
+            SET points = points - ?,
+                garden_level = ?,
+                unlocked_plots = ?
+            WHERE user_id = ?
+            """,
+            (upgrade["cost"], upgrade["level"], upgrade["plots"], uid),
+        )
+        saved_state = state_for_user(db, uid)
+
+    return jsonify({
+        "ok": True,
+        "points": saved_state["points"],
+        "garden": saved_state["garden"],
+        "state": saved_state,
+    })
+
+
 @app.post("/api/state")
 def save_state():
     uid, error = login_required()
@@ -1713,7 +1818,7 @@ def save_state():
             VALUES (?, ?, ?, ?, ?)
             ON CONFLICT(user_id) DO UPDATE SET
                 points = excluded.points,
-                score = excluded.score,
+                score = MAX(game_state.score, excluded.score),
                 latest_name = excluded.latest_name,
                 latest_rarity = excluded.latest_rarity
             """,
@@ -1762,7 +1867,27 @@ def save_state():
         # Check achievements after state update
         new_achievements = check_and_update_achievements(db, uid)
 
-    return jsonify({"ok": True, "new_achievements": new_achievements})
+    # Return the authoritative saved state too.
+    # Achievement checks can add XP on the server, so
+    # the browser should refresh its local copy.
+    with get_db() as db:
+        saved_state = state_for_user(
+            db,
+            uid,
+        )
+
+    return jsonify(
+        {
+            "ok":
+                True,
+
+            "new_achievements":
+                new_achievements,
+
+            "state":
+                saved_state,
+        }
+    )
 
 
 @app.get("/api/achievements")

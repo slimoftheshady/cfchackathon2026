@@ -93,6 +93,61 @@
 
     const MAX_SLOTS = 16;
 
+    // The existing database `score` value is now treated
+    // as permanent XP.
+    const PLAYER_LEVELS = [
+        {
+            level: 1,
+            title: 'New Gardener',
+            minXp: 0
+        },
+        {
+            level: 2,
+            title: 'Seedling Scout',
+            minXp: 100
+        },
+        {
+            level: 3,
+            title: 'Plant Spotter',
+            minXp: 200
+        },
+        {
+            level: 4,
+            title: 'Bushland Explorer',
+            minXp: 350
+        },
+        {
+            level: 5,
+            title: 'Biodiversity Ranger',
+            minXp: 550
+        },
+        {
+            level: 6,
+            title: 'Habitat Keeper',
+            minXp: 800
+        },
+        {
+            level: 7,
+            title: 'Wildflower Guardian',
+            minXp: 1100
+        },
+        {
+            level: 8,
+            title: 'Field Ecologist',
+            minXp: 1450
+        },
+        {
+            level: 9,
+            title: 'Conservation Leader',
+            minXp: 1850
+        },
+        {
+            level: 10,
+            title: 'Master Naturalist',
+            minXp: 2300
+        }
+    ];
+
     // =========================================================
     // GAME STATE
     // =========================================================
@@ -113,6 +168,15 @@
     let observationLayer = null;
     let currentLocationLayer = null;
     let quests = null;
+
+    let gardenProgression = {
+        level: 1,
+        unlockedPlots: 4,
+        maxPlots: MAX_SLOTS,
+        nextLevel: 2,
+        nextCost: 150,
+        nextPlots: 6
+    };
 
     // =========================================================
     // LOGIN / UI STATE
@@ -169,6 +233,21 @@
     const plantCounter = $('plantCounter');
     const snapButton = $('snapButton');
     const toast = $('toastMessage');
+
+    // Player progression
+    const playerLevelLabel = $('playerLevelLabel');
+    const playerLevelTitle = $('playerLevelTitle');
+    const playerXpTotal = $('playerXpTotal');
+    const playerXpProgress = $('playerXpProgress');
+    const playerXpText = $('playerXpText');
+    const playerNextUnlock = $('playerNextUnlock');
+
+    // Garden progression
+    const gardenLevelLabel = $('gardenLevelLabel');
+    const gardenPlotSummary = $('gardenPlotSummary');
+    const gardenUpgradeButton = $('gardenUpgradeButton');
+    const gardenUpgradeText = $('gardenUpgradeText');
+    const gardenUpgradeHint = $('gardenUpgradeHint');
 
     // Gacha
     const gachaButton = $('gachaButton');
@@ -748,6 +827,15 @@
                 null
             );
 
+        gardenProgression = {
+            level: 1,
+            unlockedPlots: 4,
+            maxPlots: MAX_SLOTS,
+            nextLevel: 2,
+            nextCost: 150,
+            nextPlots: 6
+        };
+
         friendSearchResults.innerHTML =
             '';
 
@@ -776,6 +864,73 @@
         latestPlant =
             state.latestPlant ||
             null;
+
+        gardenProgression =
+            state.garden
+            && typeof state.garden === 'object'
+                ? {
+                    level:
+                        Number(
+                            state.garden.level
+                            || state.gardenLevel
+                            || 1
+                        ),
+
+                    unlockedPlots:
+                        Number(
+                            state.garden.unlockedPlots
+                            || 4
+                        ),
+
+                    maxPlots:
+                        Number(
+                            state.garden.maxPlots
+                            || MAX_SLOTS
+                        ),
+
+                    nextLevel:
+                        state.garden.nextLevel == null
+                            ? null
+                            : Number(
+                                state.garden.nextLevel
+                            ),
+
+                    nextCost:
+                        state.garden.nextCost == null
+                            ? null
+                            : Number(
+                                state.garden.nextCost
+                            ),
+
+                    nextPlots:
+                        state.garden.nextPlots == null
+                            ? null
+                            : Number(
+                                state.garden.nextPlots
+                            )
+                }
+                : {
+                    level:
+                        Number(
+                            state.gardenLevel
+                            || 1
+                        ),
+
+                    unlockedPlots:
+                        MAX_SLOTS,
+
+                    maxPlots:
+                        MAX_SLOTS,
+
+                    nextLevel:
+                        null,
+
+                    nextCost:
+                        null,
+
+                    nextPlots:
+                        null
+                };
 
         collection =
             Array.isArray(
@@ -880,6 +1035,8 @@
 
         updateStats();
 
+        renderProgression();
+
         renderStore();
 
         if (
@@ -919,9 +1076,9 @@
                     <strong>${escapeHtml(quest.title)}</strong>
                     <p>${escapeHtml(quest.description)}</p>
                     ${questProgressBar(quest.progress, quest.target)}
-                    <span>${quest.progress} / ${quest.target} · +${quest.reward} points</span>
+                    <span>${quest.progress} / ${quest.target} · +${quest.reward} coins</span>
                 </div>
-                <div class="quest-reward ${quest.claimed ? 'claimed' : ''}"><i class="fas fa-star"></i><strong>${quest.reward}</strong><small>${quest.claimed ? 'Claimed' : quest.completed ? 'Claim' : 'points'}</small></div>
+                <div class="quest-reward ${quest.claimed ? 'claimed' : ''}"><i class="fas fa-coins"></i><strong>${quest.reward}</strong><small>${quest.claimed ? 'Claimed' : quest.completed ? 'Claim' : 'coins'}</small></div>
             </article>
         `).join('');
 
@@ -942,7 +1099,7 @@
                         <div class="community-milestone ${milestone.reached ? 'reached' : ''}" style="left: ${(milestone.target / community.target) * 100}%">
                             <span class="community-milestone-dot"></span>
                             <strong>${milestone.target.toLocaleString()}</strong>
-                            <small>+${milestone.reward} pts</small>
+                            <small>+${milestone.reward} coins</small>
                         </div>`).join('')}</div>
                 </div>
                 <div class="community-quest-total"><strong>${community.progress.toLocaleString()}</strong> / ${community.target.toLocaleString()} snaps</div>
@@ -972,7 +1129,7 @@
             updateStats();
             scheduleSave();
             await loadQuests();
-            showToast(`${data.title} reward claimed! +${data.reward} points.`, 'fa-star');
+            showToast(`${data.title} reward claimed! +${data.reward} coins.`, 'fa-coins');
         } catch (error) {
             showToast(error.message, 'fa-triangle-exclamation');
         }
@@ -1110,8 +1267,23 @@
     function renderGarden() {
         plotGrid.innerHTML = '';
 
+        const unlockedPlots = Math.max(
+            0,
+            Math.min(
+                MAX_SLOTS,
+                Number(
+                    gardenProgression
+                        .unlockedPlots
+                    || 4
+                )
+            )
+        );
+
         gardenSlots.forEach(
             (item, index) => {
+                const locked =
+                    index >=
+                    unlockedPlots;
 
                 const plot =
                     document.createElement(
@@ -1121,14 +1293,59 @@
                 plot.type =
                     'button';
 
-                plot.className =
-                    `plot ${item
-                        ? `filled rarity-${item.rarity} kind-${item.kind}`
-                        : 'empty-plot'
-                    }`;
-
                 plot.dataset.slot =
                     index;
+
+                if (locked) {
+                    plot.className =
+                        'plot locked-plot';
+
+                    plot.setAttribute(
+                        'aria-label',
+                        `Plot ${index + 1}: locked. Upgrade your garden to unlock this plot.`
+                    );
+
+                    plot.innerHTML = `
+                        <i class="fas fa-lock"></i>
+                        <span>
+                            Level ${
+                                gardenProgression
+                                    .nextLevel
+                                || gardenProgression
+                                    .level
+                            }
+                        </span>
+                    `;
+
+                    plot.addEventListener(
+                        'click',
+                        () => {
+                            const nextLevel =
+                                gardenProgression
+                                    .nextLevel;
+
+                            showToast(
+                                nextLevel
+                                    ? `Upgrade your garden to Level ${nextLevel} to unlock more plots.`
+                                    : 'This plot is not available yet.',
+                                'fa-lock'
+                            );
+                        }
+                    );
+
+                    plotGrid.appendChild(
+                        plot
+                    );
+
+                    return;
+                }
+
+                plot.className =
+                    `plot ${
+                        item
+                            ? `filled rarity-${item.rarity} kind-${item.kind}`
+                            : 'empty-plot'
+                    }`;
 
                 plot.setAttribute(
                     'aria-label',
@@ -1177,13 +1394,328 @@
 
         const occupied =
             gardenSlots
+                .slice(
+                    0,
+                    unlockedPlots
+                )
                 .filter(Boolean)
                 .length;
 
         plantCounter.textContent =
-            `${occupied} / ${MAX_SLOTS} placed`;
+            `${occupied} / ${unlockedPlots} placed`;
     }
 
+
+    function getPlayerProgression() {
+        const xp =
+            Math.max(
+                0,
+                Number(
+                    score
+                    || 0
+                )
+            );
+
+        let current =
+            PLAYER_LEVELS[0];
+
+        for (
+            const level
+            of PLAYER_LEVELS
+        ) {
+            if (
+                xp >=
+                level.minXp
+            ) {
+                current =
+                    level;
+
+            } else {
+                break;
+            }
+        }
+
+        const currentIndex =
+            PLAYER_LEVELS.findIndex(
+                level =>
+                    level.level ===
+                    current.level
+            );
+
+        const next =
+            PLAYER_LEVELS[
+                currentIndex + 1
+            ]
+            || null;
+
+        const startXp =
+            current.minXp;
+
+        const endXp =
+            next
+                ? next.minXp
+                : startXp;
+
+        const range =
+            Math.max(
+                1,
+                endXp - startXp
+            );
+
+        const progress =
+            next
+                ? Math.max(
+                    0,
+                    Math.min(
+                        100,
+                        (
+                            (
+                                xp
+                                - startXp
+                            )
+                            / range
+                        )
+                        * 100
+                    )
+                )
+                : 100;
+
+        return {
+            xp,
+            current,
+            next,
+            progress
+        };
+    }
+
+
+    function nextUnlockCopy(level) {
+        if (level < 2) {
+            return (
+                'Next: Seed store at Level 2'
+            );
+        }
+
+        if (level < 3) {
+            return (
+                'Next: Wildlife at Level 3'
+            );
+        }
+
+        if (level < 4) {
+            return (
+                'Next: Special field quests at Level 4'
+            );
+        }
+
+        if (level < 5) {
+            return (
+                'Next: Rare habitats at Level 5'
+            );
+        }
+
+        return (
+            'Keep exploring to raise your naturalist rank'
+        );
+    }
+
+
+    function renderProgression() {
+        const player =
+            getPlayerProgression();
+
+        if (playerLevelLabel) {
+            playerLevelLabel.textContent =
+                `Level ${player.current.level}`;
+        }
+
+        if (playerLevelTitle) {
+            playerLevelTitle.textContent =
+                player.current.title;
+        }
+
+        if (playerXpTotal) {
+            playerXpTotal.textContent =
+                player.xp
+                    .toLocaleString();
+        }
+
+        if (playerXpProgress) {
+            playerXpProgress
+                .style
+                .width =
+                `${player.progress}%`;
+        }
+
+        if (playerXpText) {
+            playerXpText.textContent =
+                player.next
+                    ? `${player.xp.toLocaleString()} / ${player.next.minXp.toLocaleString()} XP`
+                    : `${player.xp.toLocaleString()} XP · maximum rank`;
+        }
+
+        if (playerNextUnlock) {
+            playerNextUnlock.textContent =
+                nextUnlockCopy(
+                    player.current.level
+                );
+        }
+
+        const unlockedPlots =
+            Number(
+                gardenProgression
+                    .unlockedPlots
+                || 4
+            );
+
+        if (gardenLevelLabel) {
+            gardenLevelLabel.textContent =
+                `Garden Level ${gardenProgression.level}`;
+        }
+
+        if (gardenPlotSummary) {
+            gardenPlotSummary.textContent =
+                `${unlockedPlots} plots unlocked`;
+        }
+
+        if (
+            gardenUpgradeButton
+            && gardenUpgradeText
+            && gardenUpgradeHint
+        ) {
+            if (
+                gardenProgression
+                    .nextLevel == null
+            ) {
+                gardenUpgradeButton
+                    .disabled =
+                    true;
+
+                gardenUpgradeText
+                    .textContent =
+                    'Fully expanded';
+
+                gardenUpgradeHint
+                    .innerHTML =
+                    '<i class="fas fa-circle-check"></i> All 16 garden plots unlocked';
+
+            } else {
+                const cost =
+                    Number(
+                        gardenProgression
+                            .nextCost
+                        || 0
+                    );
+
+                const nextPlots =
+                    Number(
+                        gardenProgression
+                            .nextPlots
+                        || unlockedPlots
+                    );
+
+                gardenUpgradeButton
+                    .disabled =
+                    false;
+
+                gardenUpgradeText
+                    .textContent =
+                    `Level ${gardenProgression.nextLevel} · ${cost} coins`;
+
+                gardenUpgradeHint
+                    .innerHTML =
+                    `<i class="fas fa-lock-open"></i> Next upgrade unlocks ${nextPlots} plots`;
+            }
+        }
+    }
+
+
+    async function upgradeGarden() {
+        if (
+            gardenProgression
+                .nextLevel == null
+        ) {
+            showToast(
+                'Your garden is already fully expanded.',
+                'fa-circle-check'
+            );
+
+            return;
+        }
+
+        const cost =
+            Number(
+                gardenProgression
+                    .nextCost
+                || 0
+            );
+
+        if (
+            points <
+            cost
+        ) {
+            showToast(
+                `You need ${cost} coins for the next garden upgrade.`,
+                'fa-coins'
+            );
+
+            return;
+        }
+
+        if (gardenUpgradeButton) {
+            gardenUpgradeButton
+                .disabled =
+                true;
+        }
+
+        try {
+            const data =
+                await api(
+                    '/api/garden/upgrade',
+                    {
+                        method:
+                            'POST'
+                    }
+                );
+
+            points =
+                Number(
+                    data.points
+                    || 0
+                );
+
+            gardenProgression = {
+                ...gardenProgression,
+                ...data.garden
+            };
+
+            renderEverything();
+
+            scheduleSave();
+
+            showToast(
+                `Garden upgraded to Level ${gardenProgression.level}! ${gardenProgression.unlockedPlots} plots are now available.`,
+                'fa-arrow-up'
+            );
+
+        } catch (error) {
+            showToast(
+                error.message,
+                'fa-triangle-exclamation'
+            );
+
+        } finally {
+            if (
+                gardenUpgradeButton
+                && gardenProgression
+                    .nextLevel != null
+            ) {
+                gardenUpgradeButton
+                    .disabled =
+                    false;
+            }
+        }
+    }
     // =========================================================
     // STATS / PROFILE
     // =========================================================
@@ -1568,12 +2100,27 @@
     }
 
     async function pullGacha() {
+        const player =
+            getPlayerProgression();
+
+        if (
+            player.current.level
+            < 2
+        ) {
+            showToast(
+                'The Seed store unlocks at player Level 2.',
+                'fa-lock'
+            );
+
+            return;
+        }
+
         if (
             points < 60
         ) {
             showToast(
-                'You need 60 points to open a seed packet.',
-                'fa-star'
+                'You need 60 coins to open a seed packet.',
+                'fa-coins'
             );
 
             return;
@@ -1657,12 +2204,12 @@
                 </div>
 
                 <div class="result-score">
-                    +${config.points} score
+                    +${config.points} XP
                 </div>
 
                 <div class="result-note">
                     ${alreadyUnlocked
-                ? 'Already in your collection — score still awarded.'
+                ? 'Already in your collection — XP is still awarded.'
                 : 'Tap a garden plot on Home to place it.'
             }
                 </div>
@@ -1677,7 +2224,7 @@
             });
             points += Number(data.questUpdate?.reward || 0);
             if (data.questUpdate?.completed?.length) {
-                showToast(`Quest complete! +${data.questUpdate.reward} points.`, 'fa-map-signs');
+                showToast(`Quest complete! +${data.questUpdate.reward} coins.`, 'fa-map-signs');
             }
         } catch (error) {
             console.error('Could not update quest progress:', error);
@@ -1690,7 +2237,7 @@
 
         showToast(
             alreadyUnlocked
-                ? `${plant.name} was already unlocked — +${config.points} score.`
+                ? `${plant.name} was already unlocked — +${config.points} XP.`
                 : `${plant.name} added to your collection!`,
 
             'fa-gift'
@@ -1982,7 +2529,7 @@
             false;
 
         usePhotoButton.innerHTML =
-            '<i class="fas fa-check"></i> Use photo <span>+10 ★</span>';
+            '<i class="fas fa-check"></i> Use photo <span>+10 XP · +15 coins</span>';
 
 
         capturedPhoto.src =
@@ -2064,10 +2611,26 @@
             cameraIdentification.classList.remove('hidden');
             cameraStatus.classList.add('hidden');
 
-            points += 10 + Number(data.questUpdate?.reward || 0);
+            const questCoins =
+                Number(
+                    data.questUpdate?.reward
+                    || 0
+                );
+
+            // Base biodiversity reward.
+            points +=
+                15
+                + questCoins;
+
+            score +=
+                10;
+
             updateStats();
+            renderProgression();
             scheduleSave();
-            usePhotoButton.innerHTML = '<i class="fas fa-check"></i> Logged <span>+10 ★</span>';
+
+            usePhotoButton.innerHTML =
+                '<i class="fas fa-check"></i> Logged <span>+10 XP · +15 coins</span>';
 
             if (data.observation) {
                 mapPlants = [
@@ -2084,7 +2647,7 @@
                 ? ` ${remaining} more of this species can be logged near here.`
                 : '';
             showToast(
-                `Logged ${identification.common_name || identification.scientific_name} at your current location! +10 points.${remainingText}`,
+                `Logged ${identification.common_name || identification.scientific_name}! +10 XP and +15 coins.${questCoins ? ` Quest bonus: +${questCoins} coins.` : ''}${remainingText}`,
                 'fa-location-dot'
             );
             await loadQuests();
@@ -2171,7 +2734,7 @@
         identifiedPlantName.textContent = '';
         identifiedPlantDetails.textContent = '';
         usePhotoButton.disabled = false;
-        usePhotoButton.innerHTML = '<i class="fas fa-check"></i> Use photo <span>+10 ★</span>';
+        usePhotoButton.innerHTML = '<i class="fas fa-check"></i> Use photo <span>+10 XP · +15 coins</span>';
     }
 
 
@@ -2193,6 +2756,13 @@
     // =========================================================
 
     function renderStore() {
+        const player =
+            getPlayerProgression();
+
+        const wildlifeUnlocked =
+            player.current.level
+            >= 3;
+
         document
             .querySelectorAll(
                 '.store-item'
@@ -2217,15 +2787,42 @@
                             '.cost'
                         );
 
+                    button.disabled =
+                        !owned
+                        && !wildlifeUnlocked;
+
+                    button.classList.toggle(
+                        'level-locked',
+                        !owned
+                        && !wildlifeUnlocked
+                    );
+
                     cost.textContent =
                         owned
                             ? 'Owned ✓'
-                            : `${button.dataset.cost} ★`;
+                            : wildlifeUnlocked
+                                ? `${button.dataset.cost} coins`
+                                : 'Unlocks Level 3';
                 }
             );
     }
 
     function buyDecor(button) {
+        const player =
+            getPlayerProgression();
+
+        if (
+            player.current.level
+            < 3
+        ) {
+            showToast(
+                'Wildlife unlocks at player Level 3.',
+                'fa-lock'
+            );
+
+            return;
+        }
+
         const key =
             button.dataset.key;
 
@@ -2252,8 +2849,8 @@
             points < cost
         ) {
             showToast(
-                `You need ${cost} points for this decoration.`,
-                'fa-star'
+                `You need ${cost} coins for this wildlife unlock.`,
+                'fa-coins'
             );
 
             return;
@@ -3189,7 +3786,7 @@
         const labels = {
             manual: 'Teacher-set task',
             score: `Reach ${quest.target_value} score`,
-            points: `Have ${quest.target_value} points`,
+            points: `Have ${quest.target_value} coins`,
             collection: `Unlock ${quest.target_value} items`,
             placed: `Place ${quest.target_value} garden items`,
             snaps: `Identify ${quest.target_value} plants`
@@ -3214,7 +3811,7 @@
                     <div class="leaderboard-row">
                         <span class="leaderboard-rank">${index + 1}</span>
                         <span class="leaderboard-name">@${escapeHtml(row.username)}</span>
-                        <strong>${Number(row.score || 0)} pts</strong>
+                        <strong>${Number(row.score || 0)} XP</strong>
                     </div>
                 `).join('')}
             </div>
@@ -3327,7 +3924,7 @@
                             <option value="manual">Manual task</option>
                             <option value="snaps">Plant identifications</option>
                             <option value="score">Score target</option>
-                            <option value="points">Points target</option>
+                            <option value="points">Coins target</option>
                             <option value="collection">Collection size</option>
                             <option value="placed">Garden items placed</option>
                         </select>
@@ -3936,7 +4533,7 @@
             <div class="achievement-info">
                 <div class="achievement-header">
                     <span class="achievement-name">${escapeHtml(ach.name)}</span>
-                    <span class="achievement-points">+${ach.points} ★</span>
+                    <span class="achievement-points">+${ach.points} XP</span>
                 </div>
                 <p class="achievement-description">${escapeHtml(ach.description)}</p>
                 <div class="achievement-progress">
@@ -4399,6 +4996,13 @@
                     );
                 }
             );
+
+        if (gardenUpgradeButton) {
+            gardenUpgradeButton.addEventListener(
+                'click',
+                upgradeGarden
+            );
+        }
 
         // Achievement filters
         document

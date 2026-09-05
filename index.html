@@ -63,7 +63,7 @@
                 <i class="fas fa-seedling"></i> Djilba
             </button>
 
-            <div class="points-pill"><i class="fas fa-star"></i><span id="pointDisplay">240</span></div>
+            <div class="points-pill" title="Spendable coins"><i class="fas fa-coins"></i><span id="pointDisplay">240</span><small>coins</small></div>
         </div>
 
         <div class="side-menu-overlay" id="sideMenuOverlay"></div>
@@ -127,15 +127,80 @@
                     </div>
                 </div>
 
+                <div class="progression-card card-surface" id="progressionCard">
+                    <div class="progression-main">
+                        <div>
+                            <div class="eyebrow">PLAYER PROGRESSION</div>
+                            <h2>
+                                <span id="playerLevelLabel">Level 1</span>
+                                ·
+                                <span id="playerLevelTitle">New Gardener</span>
+                            </h2>
+                        </div>
+
+                        <div class="xp-badge">
+                            <strong id="playerXpTotal">0</strong>
+                            <span>XP</span>
+                        </div>
+                    </div>
+
+                    <div
+                        class="xp-progress-track"
+                        aria-label="Player XP progress"
+                    >
+                        <div
+                            class="xp-progress-fill"
+                            id="playerXpProgress"
+                        ></div>
+                    </div>
+
+                    <div class="xp-progress-copy">
+                        <span id="playerXpText">0 / 100 XP</span>
+                        <span id="playerNextUnlock">
+                            Next: Seed store at Level 2
+                        </span>
+                    </div>
+                </div>
+
                 <div class="garden-card">
                     <div class="garden-card-top">
                         <div>
-                            <span class="garden-kicker"><i class="fas fa-cloud-sun"></i> Djilba is waking</span>
+                            <span class="garden-kicker">
+                                <i class="fas fa-cloud-sun"></i>
+                                Djilba is waking
+                            </span>
 
+                            <div class="garden-level-line">
+                                <strong id="gardenLevelLabel">
+                                    Garden Level 1
+                                </strong>
+                                <span id="gardenPlotSummary">
+                                    4 plots unlocked
+                                </span>
+                            </div>
                         </div>
-                        <button class="soft-btn" id="openCollectionButton" type="button">
-                            <i class="fas fa-seedling"></i> Collection
-                        </button>
+
+                        <div class="garden-card-actions">
+                            <button
+                                class="soft-btn"
+                                id="gardenUpgradeButton"
+                                type="button"
+                            >
+                                <i class="fas fa-arrow-up"></i>
+                                <span id="gardenUpgradeText">
+                                    Level 2 · 150 coins
+                                </span>
+                            </button>
+
+                            <button
+                                class="soft-btn"
+                                id="openCollectionButton"
+                                type="button"
+                            >
+                                <i class="fas fa-seedling"></i>
+                                Collection
+                            </button>
+                        </div>
                     </div>
 
                     <div class="garden-scene">
@@ -146,8 +211,14 @@
                     </div>
 
                     <div class="garden-footer-row">
-                        <span><i class="fas fa-wand-magic-sparkles"></i> shape your little landscape</span>
-                        <span id="plantCounter">0 / 16 placed</span>
+                        <span id="gardenUpgradeHint">
+                            <i class="fas fa-lock-open"></i>
+                            Next upgrade unlocks 6 plots
+                        </span>
+
+                        <span id="plantCounter">
+                            0 / 4 placed
+                        </span>
                     </div>
                 </div>
 
@@ -159,7 +230,7 @@
                     <button class="snap-btn" id="snapButton" type="button">
                         <i class="fas fa-camera"></i>
                         <span>Snap</span>
-                        <small>+10 <i class="fas fa-star"></i></small>
+                        <small>+10 XP · +15 coins</small>
                     </button>
                 </div>
             </section>
@@ -241,7 +312,7 @@
 
                 <div class="gacha-card">
                     <div class="gacha-orbit"><i class="fas fa-seedling"></i></div>
-                    <div class="gacha-price"><i class="fas fa-star"></i> 60 points</div>
+                    <div class="gacha-price"><i class="fas fa-coins"></i> 60 coins · unlocks Level 2</div>
                     <button class="primary-btn gacha-btn" id="gachaButton" type="button">
                         <i class="fas fa-gift"></i> Open seed packet
                     </button>
@@ -305,7 +376,7 @@
                     <div class="pstats" style="grid-template-columns: repeat(4, 1fr);">
                         <div><strong id="profilePlantCount">0</strong><span>placed</span></div>
                         <div><strong id="profileCollectionCount">0</strong><span>unlocked</span></div>
-                        <div><strong id="profileScore">0</strong><span>score</span></div>
+                        <div><strong id="profileScore">0</strong><span>XP</span></div>
                         <div><strong id="profileAchievements">0</strong><span>achievements</span></div>
                     </div>
 

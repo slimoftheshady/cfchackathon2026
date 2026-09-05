@@ -3919,3 +3919,220 @@ button {
     color: rgba(59, 73, 83, .7);
     font-size: 10px;
 }
+
+
+/* STAGE 1: PROGRESSION FOUNDATION */
+
+.progression-card {
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.progression-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+}
+
+.progression-main h2 {
+    margin-top: 4px;
+    font-size: 18px;
+    letter-spacing: -0.025em;
+}
+
+.xp-badge {
+    min-width: 70px;
+    padding: 9px 12px;
+    border-radius: 17px;
+    background: var(--soft);
+    text-align: center;
+    color: var(--forest);
+}
+
+.xp-badge strong,
+.xp-badge span {
+    display: block;
+}
+
+.xp-badge strong {
+    font-size: 18px;
+}
+
+.xp-badge span {
+    margin-top: 1px;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: .12em;
+}
+
+.xp-progress-track {
+    height: 10px;
+    margin-top: 14px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(79, 118, 94, .12);
+}
+
+.xp-progress-fill {
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background:
+        linear-gradient(
+            90deg,
+            var(--sage),
+            var(--forest)
+        );
+    transition:
+        width .3s ease;
+}
+
+.xp-progress-copy {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 7px;
+    color:
+        rgba(
+            59,
+            73,
+            83,
+            .68
+        );
+    font-size: 10px;
+    font-weight: 750;
+}
+
+.points-pill small {
+    font-size: 9px;
+    font-weight: 850;
+    opacity: .65;
+}
+
+.garden-level-line {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 4px;
+}
+
+.garden-level-line strong {
+    font-size: 15px;
+    color: var(--teal);
+}
+
+.garden-level-line span {
+    font-size: 10px;
+    color:
+        rgba(
+            59,
+            73,
+            83,
+            .65
+        );
+    font-weight: 700;
+}
+
+.garden-card-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+
+.garden-card-actions .soft-btn {
+    white-space: nowrap;
+}
+
+.locked-plot {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    border:
+        1px dashed
+        rgba(
+            79,
+            118,
+            94,
+            .28
+        );
+    background:
+        rgba(
+            251,
+            252,
+            247,
+            .48
+        );
+    color:
+        rgba(
+            57,
+            75,
+            80,
+            .48
+        );
+    cursor: pointer;
+}
+
+.locked-plot i {
+    font-size: 18px;
+}
+
+.locked-plot span {
+    font-size: 9px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+}
+
+.locked-plot:hover {
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            .62
+        );
+}
+
+.store-item.level-locked {
+    opacity: .55;
+    filter: grayscale(.18);
+}
+
+.store-item.level-locked:hover {
+    transform: none;
+}
+
+.gacha-price {
+    line-height: 1.4;
+}
+
+@media (
+    max-width: 390px
+) {
+    .progression-main {
+        align-items: flex-start;
+    }
+
+    .xp-progress-copy {
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .garden-card-top {
+        align-items: flex-start;
+    }
+
+    .garden-card-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .garden-card-actions .soft-btn {
+        justify-content: center;
+    }
+}
