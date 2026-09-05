@@ -172,6 +172,9 @@
     let observationLayer = null;
     let currentLocationLayer = null;
     let quests = null;
+    let explorationProgress = { playerLevel: 1, completedCount: 0, total: 5, outsideSightings: 0, areas: [] };
+    let rarityAccess = { uniqueSpecies: 0, completedAreas: 0, gardenLevel: 1, rarities: {} };
+    let explorationLayer = null;
 
     let gardenProgression = {
         level: 1,
@@ -380,6 +383,10 @@
     const collectionGrid = $('collectionGrid');
     const wikiList = $('wikiList');
     const plantMap = $('plantMap');
+    const explorationAreaGrid = $('explorationAreaGrid');
+    const explorationSummary = $('explorationSummary');
+    const explorationHint = $('explorationHint');
+    const seedAccessGrid = $('seedAccessGrid');
     const mapObservationCount = $('mapObservationCount');
     const mapStatus = $('mapStatus');
     const locateMeButton = $('locateMeButton');
@@ -724,6 +731,89 @@
         });
     }
 
+
+    function renderExplorationProgress() {
+        if (explorationSummary) {
+            explorationSummary.textContent = `${Number(explorationProgress.completedCount || 0)} / ${Number(explorationProgress.total || 5)} regions completed`;
+        }
+        if (explorationHint) {
+            const outside = Number(explorationProgress.outsideSightings || 0);
+            explorationHint.textContent = outside > 0
+                ? `${outside} sighting${outside === 1 ? '' : 's'} logged outside expedition regions.`
+                : 'Different species fill each region’s expedition meter.';
+        }
+        if (explorationAreaGrid) {
+            const areas = Array.isArray(explorationProgress.areas) ? explorationProgress.areas : [];
+            explorationAreaGrid.innerHTML = areas.map(area => {
+                const percent = Math.min(100, (Number(area.progress || 0) / Math.max(1, Number(area.target_species || 1))) * 100);
+                const status = area.completed ? 'Complete' : !area.unlocked ? `Unlocks at Level ${area.required_level}` : area.readyToComplete ? 'Reward ready' : `${area.currentSpecies} / ${area.target_species} species`;
+                return `
+                    <article class="exploration-area-card ${area.completed ? 'completed' : area.unlocked ? 'unlocked' : 'locked'}">
+                        <div class="exploration-area-card-top">
+                            <div><span class="exploration-difficulty">${escapeHtml(area.difficulty)}</span><h3>${escapeHtml(area.name)}</h3><p>${escapeHtml(area.subtitle)}</p></div>
+                            <div class="exploration-area-status-icon"><i class="fas ${area.completed ? 'fa-check' : area.unlocked ? 'fa-binoculars' : 'fa-lock'}"></i></div>
+                        </div>
+                        <div class="exploration-progress-track"><span style="width: ${percent}%"></span></div>
+                        <div class="exploration-area-meta"><span>${escapeHtml(status)}</span><strong>+${Number(area.reward_coins).toLocaleString()} coins · +${Number(area.reward_xp).toLocaleString()} XP</strong></div>
+                    </article>`;
+            }).join('');
+        }
+        renderExplorationAreasOnMap();
+    }
+
+    function renderRarityAccess() {
+        if (!seedAccessGrid) return;
+        const rarities = rarityAccess && rarityAccess.rarities ? rarityAccess.rarities : {};
+        const labels = { common: 'Common', rare: 'Rare', epic: 'Epic', legendary: 'Legendary' };
+        seedAccessGrid.innerHTML = ['common', 'rare', 'epic', 'legendary'].map(rarity => {
+            const gate = rarities[rarity] || { unlocked: rarity === 'common', label: rarity === 'common' ? 'Always available' : 'Complete more fieldwork' };
+            return `<div class="seed-access-item rarity-${rarity} ${gate.unlocked ? 'unlocked' : 'locked'}"><i class="fas ${gate.unlocked ? 'fa-circle-check' : 'fa-lock'}"></i><div><strong>${labels[rarity]}</strong><span>${escapeHtml(gate.label)}</span></div></div>`;
+        }).join('');
+    }
+
+    function explorationAreaForPoint(latitude, longitude) {
+        const areas = Array.isArray(explorationProgress.areas) ? explorationProgress.areas : [];
+        let best = null;
+        areas.forEach(area => {
+            const lat1 = Number(latitude), lon1 = Number(longitude), lat2 = Number(area.latitude), lon2 = Number(area.longitude);
+            if (![lat1, lon1, lat2, lon2].every(Number.isFinite)) return;
+            const toRadians = degrees => degrees * Math.PI / 180;
+            const phi1 = toRadians(lat1), phi2 = toRadians(lat2), dPhi = toRadians(lat2 - lat1), dLambda = toRadians(lon2 - lon1);
+            const a = Math.sin(dPhi / 2) ** 2 + Math.cos(phi1) * Math.cos(phi2) * Math.sin(dLambda / 2) ** 2;
+            const distance = 6371000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            if (distance <= Number(area.radius_m || 0) && (!best || distance < best.distance)) best = { area, distance };
+        });
+        return best ? best.area : null;
+    }
+
+    function renderExplorationAreasOnMap() {
+        if (!leafletMap || !window.L) return;
+        if (!explorationLayer) explorationLayer = L.layerGroup().addTo(leafletMap);
+        explorationLayer.clearLayers();
+        (explorationProgress.areas || []).forEach(area => {
+            const latitude = Number(area.latitude), longitude = Number(area.longitude), radius = Number(area.radius_m);
+            if (![latitude, longitude, radius].every(Number.isFinite)) return;
+            L.circle([latitude, longitude], { radius, weight: 1, fillOpacity: area.unlocked ? 0.05 : 0.015, dashArray: area.completed ? null : '6 6' })
+                .bindTooltip(`${escapeHtml(area.name)} · ${area.completed ? 'Complete' : area.unlocked ? `${area.currentSpecies}/${area.target_species} species` : `Level ${area.required_level}`}`)
+                .addTo(explorationLayer);
+        });
+    }
+
+    async function syncExplorationProgress({ announce = true } = {}) {
+        try {
+            const data = await api('/api/areas/sync', { method: 'POST' });
+            if (data.state) loadState(data.state);
+            if (announce && Array.isArray(data.completed) && data.completed.length) {
+                const names = data.completed.map(item => item.name).join(', ');
+                showToast(`Expedition complete: ${names}! +${data.rewardCoins} coins and +${data.rewardXp} XP.`, 'fa-map-location-dot');
+            }
+            return data;
+        } catch (error) {
+            console.error('Could not sync exploration progress:', error);
+            return null;
+        }
+    }
+
     function ensureLeafletMap() {
         if (!plantMap || !window.L) {
             if (mapStatus) {
@@ -742,11 +832,14 @@
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(leafletMap);
         observationLayer = L.layerGroup().addTo(leafletMap);
+        explorationLayer = L.layerGroup().addTo(leafletMap);
+        renderExplorationAreasOnMap();
         return leafletMap;
     }
 
     async function loadMapPlants(options = {}) {
         try {
+            await syncExplorationProgress({ announce: false });
             const data = await api('/api/observations');
             mapPlants = Array.isArray(data.plants) ? data.plants : [];
             renderMapPlants(options);
@@ -782,6 +875,10 @@
             }
 
             const displayName = observation.common_name || observation.scientific_name || observation.name || 'Plant';
+            const expeditionArea = explorationAreaForPoint(latitude, longitude);
+            const areaLine = expeditionArea
+                ? `<span><i class="fas fa-map-location-dot"></i> ${escapeHtml(expeditionArea.name)}</span><br>`
+                : '<span>Open fieldwork</span><br>';
             const scientificLine = observation.scientific_name && observation.scientific_name !== displayName
                 ? `<em>${escapeHtml(observation.scientific_name)}</em><br>`
                 : '';
@@ -794,7 +891,8 @@
 
             L.marker([latitude, longitude]).bindPopup(`
                 <div class="map-popup">
-                    <strong>${escapeHtml(displayName)}</strong><br>
+                    <strong>${escapeHtml(displayName)}</strong><br>                    ${areaLine}
+
                     ${scientificLine}
                     <span>${escapeHtml(dateText)}</span><br>
                     <small>${escapeHtml(accuracyText)}</small>
@@ -1457,6 +1555,13 @@
                     activeEffects: []
                 };
 
+        explorationProgress = state.exploration && typeof state.exploration === 'object'
+            ? { playerLevel: Number(state.exploration.playerLevel || 1), completedCount: Number(state.exploration.completedCount || 0), total: Number(state.exploration.total || 5), outsideSightings: Number(state.exploration.outsideSightings || 0), areas: Array.isArray(state.exploration.areas) ? state.exploration.areas : [] }
+            : { playerLevel: 1, completedCount: 0, total: 5, outsideSightings: 0, areas: [] };
+        rarityAccess = state.rarityAccess && typeof state.rarityAccess === 'object'
+            ? state.rarityAccess
+            : { uniqueSpecies: 0, completedAreas: 0, gardenLevel: 1, rarities: {} };
+
         collection =
             Array.isArray(
                 state.collection
@@ -1564,6 +1669,8 @@
         renderBiodiversity();
         renderGardenStrategy();
         renderNextGoal();
+        renderExplorationProgress();
+        renderRarityAccess();
         renderStore();
 
         if (
@@ -2989,13 +3096,10 @@
                     cost
                 ).toLocaleString()} / ${cost.toLocaleString()} coins`;
 
-            nextGoalUnlocks
-                .textContent =
-                `Unlocks ${Math.max(
-                    0,
-                    nextPlots
-                    - currentPlots
-                )} more garden plots.`;
+            const extraPlots = Math.max(0, nextPlots - currentPlots);
+            nextGoalUnlocks.textContent = extraPlots > 0
+                ? `Unlocks ${extraPlots} more garden plots.`
+                : (gardenProgression.nextTierName ? `Unlocks ${gardenProgression.nextTierName}.` : 'Unlocks the next conservation tier.');
 
             if (
                 points
@@ -3612,130 +3716,44 @@
     }
 
 
+
     async function pullGacha() {
-        const progression =
-            getPlayerProgression();
-
-        if (
-            progression.current.level < 2
-        ) {
-            showToast(
-                'Reach Player Level 2 to unlock the Seed store.',
-                'fa-lock'
-            );
-            return;
-        }
-
-        const cost =
-            Number(
-                gardenStrategy.seedPacketCost
-                || 60
-            );
-
-        if (
-            points < cost
-        ) {
-            showToast(
-                `You need ${cost} coins to open a seed packet.`,
-                'fa-coins'
-            );
-            return;
-        }
-
-        gachaButton.disabled = true;
-        gachaButton.innerHTML =
-            '<i class="fas fa-spinner fa-spin"></i> Opening...';
-
-        try {
-            const data =
-                await api(
-                    '/api/gacha/pull',
-                    {
-                        method: 'POST'
-                    }
-                );
-
-            const plant =
-                data.plant;
-
-            const rarity =
-                data.rarity;
-
-            const config =
-                RARITY_CONFIG[rarity]
-                || RARITY_CONFIG.common;
-
-            const alreadyUnlocked =
-                Boolean(
-                    data.alreadyUnlocked
-                );
-
-            if (
-                data.state
-            ) {
-                loadState(
-                    data.state
-                );
+        if (typeof getPlayerProgression === 'function') {
+            const player = getPlayerProgression();
+            if (player.current && player.current.level < 2) {
+                showToast('The Seed store unlocks at Player Level 2.', 'fa-lock');
+                return;
             }
-
+        }
+        gachaButton.disabled = true;
+        try {
+            const data = await api('/api/gacha/pull-v2', { method: 'POST' });
+            const plant = data.plant;
+            const rarity = data.rarity;
+            const config = RARITY_CONFIG[rarity] || RARITY_CONFIG.common;
+            if (data.state) loadState(data.state);
+            rarityAccess = data.rarityAccess || rarityAccess;
+            renderRarityAccess();
             gachaResult.innerHTML = `
                 <div class="result-card rarity-${rarity}">
-                    <div class="result-burst">
-                        ${config.emoji}
-                    </div>
-
-                    <div class="result-icon">
-                        ${renderIcon(plant.icon)}
-                    </div>
-
-                    <div class="result-kicker">
-                        ${alreadyUnlocked
-                            ? 'You found another'
-                            : 'New plant unlocked!'
-                        }
-                    </div>
-
-                    <div class="result-name">
-                        ${escapeHtml(plant.name)}
-                    </div>
-
-                    <div class="result-rarity">
-                        ${config.label}
-                    </div>
-
-                    <div class="result-score">
-                        +${Number(data.xpReward || 0)} XP
-                    </div>
-
-                    <div class="result-note">
-                        ${alreadyUnlocked
-                            ? 'Already in your collection — XP still awarded.'
-                            : 'Tap a garden plot on Home to place it.'
-                        }
-                    </div>
-                </div>
-            `;
-
+                    <div class="result-burst">${config.emoji}</div>
+                    <div class="result-icon">${renderIcon(plant.icon)}</div>
+                    <div class="result-kicker">${data.alreadyOwned ? 'You found another' : 'New plant unlocked!'}</div>
+                    <div class="result-name">${escapeHtml(plant.name)}</div>
+                    <div class="result-rarity">${config.label}</div>
+                    <div class="result-score">+${Number(data.rewardXp || 0)} XP</div>
+                    <div class="result-note">${data.alreadyOwned ? 'Already in your collection — XP still awarded.' : 'Tap a garden plot on Home to place it.'}</div>
+                </div>`;
+            const questCoins = Number(data.questUpdate?.reward || 0);
+            const questXp = Number(data.questUpdate?.xp_reward || 0);
+            const questText = (questCoins || questXp) ? ` Quest bonus: +${questCoins} coins${questXp ? ` and +${questXp} XP` : ''}.` : '';
+            showToast(data.alreadyOwned ? `${plant.name} duplicate — +${data.rewardXp} XP.${questText}` : `${plant.name} unlocked! ${config.label} seed.${questText}`, 'fa-gift');
             await loadQuests();
             await loadAchievements();
-
-            showToast(
-                alreadyUnlocked
-                    ? `${plant.name} was already unlocked — +${Number(data.xpReward || 0)} XP.`
-                    : `${plant.name} added to your collection!`,
-                'fa-gift'
-            );
-
         } catch (error) {
-            showToast(
-                error.message,
-                'fa-triangle-exclamation'
-            );
-
+            showToast(error.message, 'fa-triangle-exclamation');
         } finally {
             gachaButton.disabled = false;
-            gachaButton.innerHTML =
-                '<i class="fas fa-gift"></i> Open seed packet';
         }
     }
 
@@ -4213,6 +4231,7 @@
                 `${rewardLabel}: +${rewardXp} XP and +${rewardCoins} coins.${multiplierText}${questText}${remainingText}`,
                 'fa-location-dot'
             );
+            await syncExplorationProgress();
             await loadQuests();
 
             // Reload achievements after snap

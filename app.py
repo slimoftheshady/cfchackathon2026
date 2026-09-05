@@ -32,9 +32,40 @@ MAX_COLLECTION_ITEMS = 40
 OBSERVATION_RADIUS_METRES = 30
 MAX_SAME_PLANT_PER_LOCATION = 3
 
-# A sighting of the same species at least this far from every
-# previous sighting counts as finding that species in a new area.
-NEW_AREA_RADIUS_METRES = 250
+
+def haversine_metres(lat1, lon1, lat2, lon2):
+    earth_radius_m = 6371000.0
+    phi1 = math.radians(lat1)
+    phi2 = math.radians(lat2)
+    delta_phi = math.radians(lat2 - lat1)
+    delta_lambda = math.radians(lon2 - lon1)
+    a = (
+        math.sin(delta_phi / 2) ** 2
+        + math.cos(phi1)
+        * math.cos(phi2)
+        * math.sin(delta_lambda / 2) ** 2
+    )
+    return earth_radius_m * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+
+def observation_taxon_key(common_name, scientific_name):
+    value = str(scientific_name or common_name or "").strip().lower()
+    value = re.sub(r"\s+", " ", value)
+    return value[:180]
+
+
+def parse_observation_location():
+    try:
+        latitude = float(request.form.get("latitude", ""))
+        longitude = float(request.form.get("longitude", ""))
+        accuracy = float(request.form.get("accuracy", "0") or 0)
+    except (TypeError, ValueError):
+        raise ValueError("A valid current location is required to log a biodiversity snap.")
+
+    if not -90 <= latitude <= 90 or not -180 <= longitude <= 180:
+        raise ValueError("The browser returned an invalid location.")
+
+    return latitude, longitude, max(0.0, min(accuracy, 10000.0))
 
 # A sighting of the same species at least this far from every
 # previous sighting counts as finding that species in a new area.
@@ -75,6 +106,21 @@ NEW_AREA_RADIUS_METRES = 250
 # A sighting of the same species at least this far from every
 # previous sighting counts as finding that species in a new area.
 NEW_AREA_RADIUS_METRES = 250
+
+# A sighting of the same species at least this far from every
+# previous sighting counts as finding that species in a new area.
+NEW_AREA_RADIUS_METRES = 250
+GARDEN_LEVELS = {
+    1: {"plots": 4, "next_cost": 150, "tier": "Starter Patch"},
+    2: {"plots": 6, "next_cost": 350, "tier": "Growing Patch"},
+    3: {"plots": 9, "next_cost": 700, "tier": "Wildlife Garden"},
+    4: {"plots": 12, "next_cost": 1200, "tier": "Habitat Garden"},
+    5: {"plots": 16, "next_cost": 1800, "tier": "Biodiversity Haven"},
+    6: {"plots": 16, "next_cost": 2600, "tier": "Conservation Haven"},
+    7: {"plots": 16, "next_cost": None, "tier": "Rare Habitat Reserve"},
+}
+MAX_GARDEN_LEVEL = max(GARDEN_LEVELS)
+
 GARDEN_UPGRADES = (
     {"level": 2, "cost": 150, "plots": 6},
     {"level": 3, "cost": 300, "plots": 10},
@@ -939,6 +985,17 @@ def init_db():
             CREATE INDEX IF NOT EXISTS idx_trusted_plant_unlocks_user
                 ON trusted_plant_unlocks(user_id, unlocked_at);
 
+            CREATE TABLE IF NOT EXISTS area_completion_claims (
+                user_id INTEGER NOT NULL,
+                area_key TEXT NOT NULL,
+                completed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id, area_key),
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_area_completion_user
+                ON area_completion_claims(user_id, completed_at);
+
             CREATE TABLE IF NOT EXISTS friendships (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 requester_id INTEGER NOT NULL,
@@ -1543,6 +1600,73 @@ def quest_progress_for(db, quest, student_id):
     }
 
 
+
+def exploration_area_for_location(latitude, longitude):
+    matches = []
+    for area in EXPLORATION_AREAS:
+        distance = haversine_metres(float(latitude), float(longitude), float(area["latitude"]), float(area["longitude"]))
+        if distance <= float(area["radius_m"]):
+            matches.append((distance, area))
+    if not matches:
+        return None
+    matches.sort(key=lambda item: item[0])
+    return matches[0][1]
+
+
+def area_progress_snapshot(db, user_id):
+    state = db.execute("SELECT score, garden_level FROM game_state WHERE user_id = ?", (user_id,)).fetchone()
+    xp = int(state["score"] if state else 0)
+    player_level = player_level_from_xp(xp) if "player_level_from_xp" in globals() else 1
+    observations = db.execute("SELECT taxon_key, latitude, longitude FROM plant_observations WHERE user_id = ?", (user_id,)).fetchall()
+    species_by_area = {area["key"]: set() for area in EXPLORATION_AREAS}
+    sightings_by_area = {area["key"]: 0 for area in EXPLORATION_AREAS}
+    outside_sightings = 0
+    for observation in observations:
+        area = exploration_area_for_location(observation["latitude"], observation["longitude"])
+        if not area:
+            outside_sightings += 1
+            continue
+        sightings_by_area[area["key"]] += 1
+        species_by_area[area["key"]].add(observation["taxon_key"])
+    completed_keys = {row["area_key"] for row in db.execute("SELECT area_key FROM area_completion_claims WHERE user_id = ?", (user_id,)).fetchall()}
+    items = []
+    for area in EXPLORATION_AREAS:
+        unique_species = len(species_by_area[area["key"]])
+        unlocked = player_level >= int(area["required_level"])
+        completed = area["key"] in completed_keys
+        items.append({**area, "currentSpecies": unique_species, "sightings": sightings_by_area[area["key"]], "progress": min(int(area["target_species"]), unique_species), "unlocked": unlocked, "completed": completed, "readyToComplete": unlocked and unique_species >= int(area["target_species"]) and not completed})
+    return {"playerLevel": player_level, "completedCount": len(completed_keys), "total": len(EXPLORATION_AREAS), "outsideSightings": outside_sightings, "areas": items}
+
+
+def rarity_access_snapshot(db, user_id):
+    state = db.execute("SELECT garden_level FROM game_state WHERE user_id = ?", (user_id,)).fetchone()
+    garden_level = int(state["garden_level"] if state else 1)
+    unique_species = int(db.execute("SELECT COUNT(DISTINCT taxon_key) FROM plant_observations WHERE user_id = ?", (user_id,)).fetchone()[0] or 0)
+    completed_areas = int(db.execute("SELECT COUNT(*) FROM area_completion_claims WHERE user_id = ?", (user_id,)).fetchone()[0] or 0)
+    access = {}
+    for rarity, rule in STAGE6_RARITY_RULES.items():
+        unlocked = unique_species >= int(rule["species"]) and completed_areas >= int(rule["areas"]) and garden_level >= int(rule["garden_level"])
+        access[rarity] = {"unlocked": unlocked, "label": rule["label"], "requiredSpecies": int(rule["species"]), "requiredAreas": int(rule["areas"]), "requiredGardenLevel": int(rule["garden_level"])}
+    return {"uniqueSpecies": unique_species, "completedAreas": completed_areas, "gardenLevel": garden_level, "rarities": access}
+
+
+def stage6_nursery_active(db, user_id):
+    return db.execute("SELECT 1 FROM plants WHERE user_id = ? AND item_key = 'structure-nursery' LIMIT 1", (user_id,)).fetchone() is not None
+
+
+def stage6_pick_weighted_rarity(allowed_rarities):
+    weighted = [(rarity, STAGE6_RARITY_WEIGHTS[rarity]) for rarity in ("common", "rare", "epic", "legendary") if rarity in allowed_rarities]
+    total = sum(weight for _, weight in weighted)
+    if total <= 0:
+        return "common"
+    roll = secrets.randbelow(total)
+    running = 0
+    for rarity, weight in weighted:
+        running += weight
+        if roll < running:
+            return rarity
+    return weighted[-1][0]
+
 def state_for_user(db, user_id):
     state = db.execute(
         """
@@ -1647,6 +1771,9 @@ def state_for_user(db, user_id):
         "snapsCompleted": state["snaps_completed"],
         "snaps_taken": state["snaps_taken"],
         "gacha_pulls": state["gacha_pulls"],
+        "exploration": area_progress_snapshot(db, user_id),
+        "rarityAccess": rarity_access_snapshot(db, user_id),
+
         "latestPlant": (
             {"name": state["latest_name"], "rarity": state["latest_rarity"]}
             if state["latest_name"]
@@ -2122,6 +2249,47 @@ def community_coin_multiplier(
     )
 
 
+
+# ============================================================
+# STAGE 6: EXPLORATION REGIONS + ENDGAME
+# ============================================================
+
+EXPLORATION_AREAS = [
+    {"key": "nedlands-dalkeith", "name": "Nedlands & Dalkeith", "subtitle": "River edge and neighbourhood bushland", "latitude": -31.9850, "longitude": 115.8060, "radius_m": 4500, "required_level": 1, "target_species": 3, "reward_xp": 100, "reward_coins": 75, "difficulty": "Starter"},
+    {"key": "kings-park", "name": "Kings Park", "subtitle": "Urban bushland expedition", "latitude": -31.9617, "longitude": 115.8320, "radius_m": 3000, "required_level": 2, "target_species": 4, "reward_xp": 150, "reward_coins": 100, "difficulty": "Field"},
+    {"key": "bold-park", "name": "Bold Park", "subtitle": "Coastal woodland expedition", "latitude": -31.9480, "longitude": 115.7700, "radius_m": 3000, "required_level": 3, "target_species": 5, "reward_xp": 200, "reward_coins": 125, "difficulty": "Advanced"},
+    {"key": "lake-claremont", "name": "Lake Claremont", "subtitle": "Wetland and restoration zone", "latitude": -31.9735, "longitude": 115.7855, "radius_m": 2200, "required_level": 4, "target_species": 5, "reward_xp": 250, "reward_coins": 150, "difficulty": "Advanced"},
+    {"key": "perth-hills", "name": "Perth Hills", "subtitle": "Endgame forest expedition", "latitude": -31.9870, "longitude": 116.0800, "radius_m": 25000, "required_level": 5, "target_species": 6, "reward_xp": 350, "reward_coins": 200, "difficulty": "Expert"},
+]
+
+STAGE6_SEED_POOL = [
+    {"key": "kangaroo-paw", "name": "Kangaroo Paw", "icon": "fa-leaf", "rarity": "common"},
+    {"key": "paper-daisy", "name": "Paper Daisy", "icon": "fa-leaf", "rarity": "common"},
+    {"key": "pigface", "name": "Pigface", "icon": "fa-leaf", "rarity": "common"},
+    {"key": "fringe-lily", "name": "Fringe Lily", "icon": "fa-leaf", "rarity": "common"},
+    {"key": "blue-leschenaultia", "name": "Blue Leschenaultia", "icon": "fa-seedling", "rarity": "rare"},
+    {"key": "featherflower", "name": "Featherflower", "icon": "fa-seedling", "rarity": "rare"},
+    {"key": "cowslip-orchid", "name": "Cowslip Orchid", "icon": "fa-seedling", "rarity": "rare"},
+    {"key": "donkey-orchid", "name": "Donkey Orchid", "icon": "fa-seedling", "rarity": "rare"},
+    {"key": "qualup-bell", "name": "Qualup Bell", "icon": "fa-cannabis", "rarity": "epic"},
+    {"key": "wreath-flower", "name": "Wreath Flower", "icon": "fa-cannabis", "rarity": "epic"},
+    {"key": "spider-orchid", "name": "Spider Orchid", "icon": "fa-cannabis", "rarity": "epic"},
+    {"key": "pixie-mops", "name": "Pixie Mops", "icon": "fa-cannabis", "rarity": "epic"},
+    {"key": "rhizanthella-gardneri", "name": "Rhizanthella Gardneri", "icon": "fa-clover", "rarity": "legendary"},
+    {"key": "drakaea", "name": "Drakaea", "icon": "fa-clover", "rarity": "legendary"},
+    {"key": "queen-of-sheba", "name": "Queen of Sheba Orchid", "icon": "fa-clover", "rarity": "legendary"},
+    {"key": "custard-orchid", "name": "Custard Orchid", "icon": "fa-clover", "rarity": "legendary"},
+]
+
+STAGE6_RARITY_WEIGHTS = {"common": 80, "rare": 10, "epic": 8, "legendary": 2}
+STAGE6_RARITY_XP = {"common": 25, "rare": 50, "epic": 70, "legendary": 100}
+STAGE6_RARITY_RULES = {
+    "common": {"species": 0, "areas": 0, "garden_level": 1, "label": "Always available"},
+    "rare": {"species": 3, "areas": 0, "garden_level": 1, "label": "Discover 3 real-world species"},
+    "epic": {"species": 8, "areas": 2, "garden_level": 1, "label": "8 species + complete 2 regions"},
+    "legendary": {"species": 15, "areas": 4, "garden_level": 6, "label": "15 species + 4 regions + Garden Level 6"},
+}
+
 def garden_level_details(level):
     garden_level = max(1, int(level or 1))
     current_upgrade = next(
@@ -2141,7 +2309,16 @@ def garden_level_details(level):
         None,
     )
 
+    config = GARDEN_LEVELS.get(garden_level, {})
+    next_level = next_upgrade["level"] if next_upgrade else None
+
     return {
+        "tierName": config.get("tier", f"Garden Level {garden_level}"),
+        "nextTierName": (
+            GARDEN_LEVELS[next_level].get("tier")
+            if next_level
+            else None
+        ),
         "level": garden_level,
         "unlockedPlots": (
             current_upgrade["plots"]
@@ -6064,6 +6241,75 @@ def build_habitat(
 
 
 
+
+@app.post("/api/areas/sync")
+def sync_exploration_areas():
+    uid, error = login_required()
+    if error:
+        return error
+    with get_db() as db:
+        db.execute("INSERT OR IGNORE INTO game_state(user_id) VALUES (?)", (uid,))
+        snapshot = area_progress_snapshot(db, uid)
+        newly_completed = []
+        total_coins = 0
+        total_xp = 0
+        for area in snapshot["areas"]:
+            if not area["readyToComplete"]:
+                continue
+            existing = db.execute("SELECT 1 FROM area_completion_claims WHERE user_id = ? AND area_key = ?", (uid, area["key"])).fetchone()
+            if existing:
+                continue
+            db.execute("INSERT INTO area_completion_claims(user_id, area_key) VALUES (?, ?)", (uid, area["key"]))
+            reward_coins = int(area["reward_coins"])
+            reward_xp = int(area["reward_xp"])
+            total_coins += reward_coins
+            total_xp += reward_xp
+            newly_completed.append({"key": area["key"], "name": area["name"], "coins": reward_coins, "xp": reward_xp})
+        if total_coins or total_xp:
+            db.execute("UPDATE game_state SET points = points + ?, score = score + ? WHERE user_id = ?", (total_coins, total_xp, uid))
+            check_and_update_achievements(db, uid)
+        state = state_for_user(db, uid)
+    return jsonify({"ok": True, "completed": newly_completed, "rewardCoins": total_coins, "rewardXp": total_xp, "state": state})
+
+
+@app.post("/api/gacha/pull-v2")
+def pull_gacha_stage6():
+    uid, error = login_required()
+    if error:
+        return error
+    with get_db() as db:
+        db.execute("INSERT OR IGNORE INTO game_state(user_id) VALUES (?)", (uid,))
+        state_row = db.execute("SELECT points, score, garden_level FROM game_state WHERE user_id = ?", (uid,)).fetchone()
+        current_coins = int(state_row["points"] or 0)
+        rarity_access = rarity_access_snapshot(db, uid)
+        allowed_rarities = {rarity for rarity, details in rarity_access["rarities"].items() if details["unlocked"]}
+        allowed_rarities.add("common")
+        seed_cost = (
+            seed_packet_cost(db, uid)
+            if "seed_packet_cost" in globals()
+            else (50 if stage6_nursery_active(db, uid) else 60)
+        )
+        if current_coins < seed_cost:
+            return jsonify({"error": f"You need {seed_cost} coins to open a seed packet.", "required": seed_cost, "coins": current_coins, "rarityAccess": rarity_access}), 409
+        rarity = stage6_pick_weighted_rarity(allowed_rarities)
+        pool = [item for item in STAGE6_SEED_POOL if item["rarity"] == rarity]
+        if not pool:
+            return jsonify({"error": "No seed is configured for that rarity."}), 500
+        plant = secrets.choice(pool)
+        already_owned = db.execute("SELECT 1 FROM collection_items WHERE user_id = ? AND item_key = ?", (uid, plant["key"])).fetchone() is not None
+        if not already_owned:
+            db.execute("INSERT INTO collection_items(user_id, item_key, name, icon, rarity, kind) VALUES (?, ?, ?, ?, ?, 'plant')", (uid, plant["key"], plant["name"], plant["icon"], plant["rarity"]))
+        db.execute(
+            "INSERT OR IGNORE INTO trusted_plant_unlocks(user_id, item_key, source) VALUES (?, ?, 'seed_packet')",
+            (uid, plant["key"]),
+        )
+        reward_xp = int(STAGE6_RARITY_XP[rarity])
+        db.execute("UPDATE game_state SET points = points - ?, score = score + ?, gacha_pulls = gacha_pulls + 1, latest_name = ?, latest_rarity = ? WHERE user_id = ?", (seed_cost, reward_xp, plant["name"], rarity, uid))
+        quest_update = apply_quest_event(db, uid, "gacha")
+        new_achievements = check_and_update_achievements(db, uid)
+        state = state_for_user(db, uid)
+    return jsonify({"plant": {**plant, "kind": "plant"}, "rarity": rarity, "alreadyOwned": already_owned, "seedCost": seed_cost, "rewardXp": reward_xp, "questUpdate": quest_update, "newAchievements": new_achievements, "rarityAccess": state["rarityAccess"], "state": state})
+
 @app.post("/api/garden/upgrade")
 def upgrade_garden():
     uid, error = login_required()
@@ -6095,6 +6341,42 @@ def upgrade_garden():
             1,
             int(state["garden_level"] or 1),
         )
+
+        # Endgame conservation requirement.
+        if current_level in (5, 6):
+            completed_areas = int(
+                db.execute(
+                    "SELECT COUNT(*) FROM area_completion_claims WHERE user_id = ?",
+                    (uid,),
+                ).fetchone()[0]
+                or 0
+            )
+            unique_species = int(
+                db.execute(
+                    "SELECT COUNT(DISTINCT taxon_key) FROM plant_observations WHERE user_id = ?",
+                    (uid,),
+                ).fetchone()[0]
+                or 0
+            )
+            if current_level == 5:
+                required_areas = 3
+                required_species = 12
+                tier_name = "Conservation Haven"
+            else:
+                required_areas = len(EXPLORATION_AREAS)
+                required_species = 18
+                tier_name = "Rare Habitat Reserve"
+            if completed_areas < required_areas or unique_species < required_species:
+                return jsonify({
+                    "error": (
+                        f"To unlock {tier_name}, complete {required_areas} exploration regions "
+                        f"and discover {required_species} different real-world species."
+                    ),
+                    "requiredAreas": required_areas,
+                    "completedAreas": completed_areas,
+                    "requiredSpecies": required_species,
+                    "uniqueSpecies": unique_species,
+                }), 409
 
         details = garden_upgrade_details_for_user(
             db,

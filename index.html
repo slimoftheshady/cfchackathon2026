@@ -528,6 +528,11 @@
                 <div class="gacha-card">
                     <div class="gacha-orbit"><i class="fas fa-seedling"></i></div>
                     <div class="gacha-price"><i class="fas fa-coins"></i> 60 coins · unlocks Level 2</div>
+                    <div class="seed-access-panel" id="seedAccessPanel">
+                        <div class="seed-access-heading"><span class="eyebrow">FIELDWORK UNLOCKS</span><strong>Seed rarity access</strong></div>
+                        <div class="seed-access-grid" id="seedAccessGrid"></div>
+                    </div>
+
                     <button class="primary-btn gacha-btn" id="gachaButton" type="button">
                         <i class="fas fa-gift"></i> Open seed packet
                     </button>
@@ -714,6 +719,17 @@
                         <i class="fas fa-location-crosshairs"></i> My location
                     </button>
                 </div>
+                <div class="exploration-summary card-surface">
+                    <div>
+                        <span class="eyebrow">EXPEDITION PROGRESS</span>
+                        <strong id="explorationSummary">0 / 5 regions completed</strong>
+                        <span id="explorationHint">Discover different species inside each region.</span>
+                    </div>
+                    <div class="exploration-summary-icon"><i class="fas fa-map-location-dot"></i></div>
+                </div>
+                <div class="exploration-area-grid" id="explorationAreaGrid"></div>
+
+
 
                 <div id="plantMap" class="plant-map" aria-label="Interactive map of your biodiversity sightings"></div>
 
