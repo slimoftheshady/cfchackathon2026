@@ -503,11 +503,11 @@ button {
     filter: drop-shadow(0 2px 2px rgba(59, 73, 83, .20));
 }
 
-.plot > .icon-img {
+.plot>.icon-img {
     width: 26px;
     height: 26px;
     object-fit: contain;
-    filter: drop-shadow(0 2px 2px rgba(59,73,83,.20));
+    filter: drop-shadow(0 2px 2px rgba(59, 73, 83, .20));
 }
 
 .plot .plant-name {
@@ -1209,11 +1209,25 @@ button {
     color: var(--forest);
 }
 
-.latest-rarity.rarity-common { color: var(--forest); }
-.latest-rarity.rarity-rare { color: #5c8799; }
-.latest-rarity.rarity-epic { color: #87639d; }
-.latest-rarity.rarity-legendary { color: #ad7835; }
-.latest-rarity.rarity-decor { color: #557467; }
+.latest-rarity.rarity-common {
+    color: var(--forest);
+}
+
+.latest-rarity.rarity-rare {
+    color: #5c8799;
+}
+
+.latest-rarity.rarity-epic {
+    color: #87639d;
+}
+
+.latest-rarity.rarity-legendary {
+    color: #ad7835;
+}
+
+.latest-rarity.rarity-decor {
+    color: #557467;
+}
 
 .logout-btn {
     width: 100%;
@@ -1486,7 +1500,7 @@ button {
     text-align: left;
     border: var(--border);
     border-radius: 20px;
-    background: rgba(255,255,255,.85);
+    background: rgba(255, 255, 255, .85);
     padding: 12px;
     color: var(--teal);
     cursor: pointer;
@@ -1584,7 +1598,7 @@ button {
     border-bottom: 0;
 }
 
-.class-roster-row > div {
+.class-roster-row>div {
     flex: 1;
     min-width: 0;
     display: flex;
@@ -1663,7 +1677,7 @@ button {
     gap: 8px;
 }
 
-.quest-card-top > div {
+.quest-card-top>div {
     min-width: 0;
     display: flex;
     flex-direction: column;
@@ -1727,7 +1741,7 @@ button {
     gap: 8px;
 }
 
-.class-my-progress > div {
+.class-my-progress>div {
     padding: 6px;
     border-radius: 14px;
     background: var(--soft);
@@ -2078,14 +2092,420 @@ button {
     color: var(--forest);
 }
 
-.wiki-rarity.rarity-rare { color: #5c8799; }
-.wiki-rarity.rarity-epic { color: #87639d; }
-.wiki-rarity.rarity-legendary { color: #ad7835; }
+.wiki-rarity.rarity-rare {
+    color: #5c8799;
+}
+
+.wiki-rarity.rarity-epic {
+    color: #87639d;
+}
+
+.wiki-rarity.rarity-legendary {
+    color: #ad7835;
+}
 
 .wiki-description {
     font-size: 12px;
     line-height: 1.45;
     color: rgba(59, 73, 83, .72);
+}
+
+/* ---------- ACHIEVEMENTS ---------- */
+.quest-section {
+    width: min(100%, 760px);
+    margin: 28px auto 0;
+}
+
+.quest-section>.section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.quest-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+}
+
+.quest-card,
+.community-quest-card,
+.special-quest-tools,
+.special-quest-create {
+    border: 1px solid rgba(90, 120, 99, .16);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, .62);
+}
+
+.quest-card {
+    position: relative;
+    display: flex;
+    gap: 12px;
+    padding: 14px;
+}
+
+.daily-quest-card.claimable {
+    cursor: pointer;
+    border-color: rgba(198, 117, 75, .42);
+    box-shadow: 0 8px 22px rgba(198, 117, 75, .12);
+}
+
+.daily-quest-card.claimable:hover {
+    transform: translateY(-1px);
+}
+
+.quest-card.completed {
+    background: #e0efd0;
+}
+
+.quest-card-icon {
+    display: grid;
+    flex: 0 0 38px;
+    width: 38px;
+    height: 38px;
+    place-items: center;
+    border-radius: 12px;
+    background: #d8e8c2;
+    color: #5a7863;
+}
+
+.quest-card-body {
+    min-width: 0;
+    display: grid;
+    gap: 5px;
+}
+
+.quest-reward {
+    display: grid;
+    flex: 0 0 58px;
+    align-content: center;
+    justify-items: center;
+    gap: 2px;
+    margin-left: auto;
+    border-left: 1px solid rgba(90, 120, 99, .14);
+    color: #c6754b;
+}
+
+.quest-reward i {
+    font-size: 14px;
+}
+
+.quest-reward strong {
+    color: #3b4953;
+    font-size: 17px;
+}
+
+.quest-reward small {
+    color: rgba(59, 73, 83, .62);
+    font-size: 8px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.quest-reward.claimed {
+    color: #5a7863;
+}
+
+.quest-card-body strong,
+.community-quest-heading h2 {
+    color: #3b4953;
+}
+
+.quest-card-body p,
+.community-quest-heading p,
+.special-quest-tools span,
+.special-quest-create span {
+    margin: 0;
+    color: rgba(59, 73, 83, .68);
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+.quest-card-body>span,
+.community-quest-total {
+    color: rgba(59, 73, 83, .68);
+    font-size: 10px;
+    font-weight: 750;
+}
+
+.quest-progress {
+    height: 7px;
+    overflow: hidden;
+    border-radius: 99px;
+    background: rgba(90, 120, 99, .15);
+}
+
+.quest-progress span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: #5a7863;
+}
+
+.community-quest-card {
+    padding: 18px;
+    background: #dcecc9;
+}
+
+.community-tracker {
+    position: relative;
+    padding: 20px 0 58px;
+}
+
+.community-tracker .quest-progress {
+    position: relative;
+    z-index: 1;
+}
+
+.community-milestones {
+    position: absolute;
+    inset: 20px 0 auto;
+    height: 58px;
+}
+
+.community-milestone {
+    position: absolute;
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    width: 58px;
+    transform: translateX(-50%);
+    color: rgba(59, 73, 83, .62);
+    font-size: 9px;
+    text-align: center;
+}
+
+.community-milestone-dot {
+    width: 13px;
+    height: 13px;
+    margin-top: -3px;
+    border: 3px solid #dcecc9;
+    border-radius: 50%;
+    background: #9eb79c;
+    box-shadow: 0 0 0 1px rgba(59, 73, 83, .2);
+}
+
+.community-milestone strong {
+    font-size: 9px;
+}
+
+.community-milestone small {
+    font-size: 8px;
+    white-space: nowrap;
+}
+
+.community-milestone.reached {
+    color: #3f6951;
+}
+
+.community-milestone.reached .community-milestone-dot {
+    background: #5a7863;
+}
+
+.community-quest-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.community-quest-heading h2 {
+    margin: 4px 0;
+    font-size: 20px;
+}
+
+.community-quest-heading>i {
+    color: #c6754b;
+    font-size: 28px;
+}
+
+.community-quest-total {
+    margin: 10px 0;
+}
+
+.community-quest-total strong {
+    color: #3b4953;
+    font-size: 20px;
+}
+
+.special-quest-tools,
+.special-quest-create {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding: 16px;
+    background: rgba(255, 255, 255, .72);
+    box-shadow: 0 8px 24px rgba(90, 120, 99, .08);
+}
+
+.special-quest-tools>div:first-child,
+.special-quest-create>div:first-child {
+    display: grid;
+    gap: 4px;
+}
+
+.quest-inline-form,
+.quest-create-form {
+    display: flex;
+    gap: 8px;
+}
+
+.quest-inline-form input,
+.quest-create-form input {
+    min-width: 0;
+    padding: 10px 11px;
+    border: 1px solid rgba(90, 120, 99, .18);
+    border-radius: 11px;
+    background: rgba(255, 255, 255, .86);
+    color: #3b4953;
+    box-shadow: inset 0 1px 2px rgba(59, 73, 83, .04);
+}
+
+.quest-inline-form input {
+    flex: 1;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+
+.quest-create-form input:first-child {
+    flex: 1;
+}
+
+.quest-create-form input[type="number"] {
+    width: 100px;
+}
+
+.special-task-list {
+    display: grid;
+    gap: 8px;
+}
+
+.special-task-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 100px 38px;
+    gap: 8px;
+    align-items: center;
+}
+
+.special-task-row input {
+    width: 100%;
+}
+
+.special-task-row .icon-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 11px;
+    background: rgba(90, 120, 99, .1);
+    color: #5a7863;
+}
+
+.special-quest-card {
+    padding-right: 48px;
+}
+
+.special-quest-delete {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: grid;
+    width: 28px;
+    height: 28px;
+    place-items: center;
+    border: 0;
+    border-radius: 9px;
+    background: rgba(90, 120, 99, .1);
+    color: rgba(59, 73, 83, .62);
+    cursor: pointer;
+}
+
+.special-quest-delete:hover {
+    background: rgba(198, 117, 75, .14);
+    color: #c6754b;
+}
+
+.quest-create-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.special-quest-result {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(90, 120, 99, .16);
+}
+
+.special-quest-qr {
+    flex: 0 0 128px;
+    min-height: 128px;
+    padding: 6px;
+    background: white;
+}
+
+.special-quest-result strong {
+    display: block;
+    margin: 5px 0;
+    color: #3b4953;
+    font-size: 22px;
+    letter-spacing: .12em;
+}
+
+.special-quest-result p {
+    margin: 0;
+    color: rgba(59, 73, 83, .68);
+    font-size: 11px;
+}
+
+.qr-scan-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 9600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(35, 48, 41, .62);
+    backdrop-filter: blur(7px);
+}
+
+.qr-scan-sheet {
+    width: min(100%, 460px);
+    padding: 18px;
+    border-radius: 24px;
+    background: #ebf4dd;
+    box-shadow: 0 24px 70px rgba(35, 48, 41, .38);
+}
+
+.qr-scan-video {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 18px;
+    background: #27352d;
+}
+
+@media (max-width: 620px) {
+
+    .quest-inline-form,
+    .quest-create-form {
+        flex-wrap: wrap;
+    }
+
+    .quest-inline-form input,
+    .quest-create-form input:first-child {
+        flex-basis: 100%;
+    }
+
+    .special-task-row {
+        grid-template-columns: minmax(0, 1fr) 82px 34px;
+    }
+
+    .community-milestone {
+        width: 42px;
+    }
 }
 
 /* ---------- ACHIEVEMENTS ---------- */
@@ -2307,14 +2727,38 @@ button {
 }
 
 @media (max-width: 350px) {
-    .plot-grid { gap: 6px; }
-    .plot > i { font-size: 19px; }
-    .plot > .icon-img { width: 21px; height: 21px; }
-    .plot .plant-name { font-size: 6.8px; }
-    .garden-card-top { align-items: flex-start; }
-    .soft-btn { padding: 8px; }
-    .collection-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
-    .friend-grid { grid-template-columns: 1fr; }
+    .plot-grid {
+        gap: 6px;
+    }
+
+    .plot>i {
+        font-size: 19px;
+    }
+
+    .plot>.icon-img {
+        width: 21px;
+        height: 21px;
+    }
+
+    .plot .plant-name {
+        font-size: 6.8px;
+    }
+
+    .garden-card-top {
+        align-items: flex-start;
+    }
+
+    .soft-btn {
+        padding: 8px;
+    }
+
+    .collection-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .friend-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* =========================================================
