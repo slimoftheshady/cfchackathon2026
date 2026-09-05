@@ -1,19 +1,19 @@
 :root {
     --cream: #fbfcf7;
-    --soft: #ebf4dd;
-    --sage: #90ab8b;
-    --forest: #5a7863;
-    --teal: #3b4953;
-    --moss: #6f8f6a;
-    --leaf: #799b73;
+    --soft: #e8f1df;
+    --sage: #88a98f;
+    --forest: #4f765e;
+    --teal: #394b50;
+    --moss: #6b916d;
+    --leaf: #78a274;
     --white: #ffffff;
-    --soil: #a98063;
-    --soil-dark: #87664f;
-    --yellow: #f0cd67;
-    --pink: #e9b5ad;
-    --blue: #a9cad9;
+    --soil: #78966f;
+    --soil-dark: #5b7d60;
+    --yellow: #d6b95b;
+    --pink: #e58fa0;
+    --blue: #a8cddd;
     --purple: #c7add8;
-    --orange: #e6b574;
+    --orange: #e4b26d;
     --danger: #c66f67;
     --shadow: 0 12px 30px rgba(59, 73, 83, 0.10);
     --shadow-small: 0 6px 14px rgba(59, 73, 83, 0.08);
@@ -34,8 +34,8 @@ body {
     min-height: 100vh;
     font-family: Inter, ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, sans-serif;
     background:
-        radial-gradient(circle at top left, rgba(235, 244, 221, 0.95), transparent 38%),
-        linear-gradient(145deg, #dfead9, #c7d7c4);
+        radial-gradient(circle at top left, rgba(232, 241, 223, 0.95), transparent 38%),
+        linear-gradient(145deg, #dcebe1, #c4d8d2);
     color: var(--teal);
     padding: 18px;
 }
@@ -148,9 +148,9 @@ button {
     place-items: center;
     padding: 20px;
     background:
-        radial-gradient(circle at 20% 18%, rgba(235, 244, 221, .88), transparent 32%),
-        radial-gradient(circle at 82% 78%, rgba(144, 171, 139, .48), transparent 34%),
-        #5a7863;
+        radial-gradient(circle at 20% 18%, rgba(232, 241, 223, .9), transparent 32%),
+        radial-gradient(circle at 82% 78%, rgba(169, 205, 221, .42), transparent 34%),
+        #4f765e;
 }
 
 .auth-card {
@@ -350,7 +350,7 @@ button {
 }
 
 .garden-kicker i {
-    color: #d6ac38;
+    color: var(--pink);
 }
 
 .garden-card-top h2 {
@@ -470,8 +470,8 @@ button {
     border-radius: 18px 18px 21px 21px;
     background:
         radial-gradient(circle at 35% 28%, rgba(255, 255, 255, .12), transparent 22%),
-        linear-gradient(155deg, #ac876d, #8f6c55);
-    box-shadow: inset 0 -5px 0 rgba(78, 52, 38, .18), 0 5px 10px rgba(59, 73, 83, .13);
+        linear-gradient(155deg, #8aaa78, #638b68);
+    box-shadow: inset 0 -5px 0 rgba(54, 91, 63, .2), 0 5px 10px rgba(59, 73, 83, .13);
     color: white;
     position: relative;
     display: flex;
@@ -624,8 +624,8 @@ button {
 .snap-btn {
     border: 0;
     border-radius: 18px;
-    background: var(--yellow);
-    color: var(--teal);
+    background: var(--pink);
+    color: #4a3c48;
     padding: 11px 12px;
     min-width: 102px;
     display: grid;
@@ -635,7 +635,7 @@ button {
     gap: 2px 7px;
     font-weight: 900;
     cursor: pointer;
-    box-shadow: 0 5px 0 rgba(115, 87, 26, .22);
+    box-shadow: 0 5px 0 rgba(126, 67, 86, .22);
     transition: transform .15s ease;
 }
 
@@ -966,14 +966,14 @@ button {
 }
 
 .gacha-price i {
-    color: var(--yellow);
+    color: var(--pink);
 }
 
 .gacha-btn {
     position: relative;
     z-index: 1;
-    background: var(--yellow);
-    color: var(--teal);
+    background: var(--pink);
+    color: #4a3c48;
 }
 
 .rarity-strip {
@@ -1443,7 +1443,7 @@ button {
 }
 
 .toast i {
-    color: var(--yellow);
+    color: var(--pink);
 }
 
 @keyframes toastIn {

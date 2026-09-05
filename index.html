@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GardenQuest</title>
+    <title>Djilba</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
@@ -15,8 +15,8 @@
     <div class="auth-shell" id="authShell">
         <div class="auth-card">
             <div class="auth-logo"><i class="fas fa-seedling"></i></div>
-            <h1>GardenQuest</h1>
-            <p class="auth-subtitle">Grow something lovely, one snap at a time.</p>
+            <h1>Djilba</h1>
+            <p class="auth-subtitle">Follow the blooms as the season turns.</p>
 
             <div class="auth-tabs">
                 <button class="auth-tab active" id="loginTab" type="button">Log in</button>
@@ -60,7 +60,7 @@
             </button>
 
             <button class="topbar-brand nav-btn" data-view="homeView" type="button">
-                <i class="fas fa-seedling"></i> GardenQuest
+                <i class="fas fa-seedling"></i> Djilba
             </button>
 
             <div class="points-pill"><i class="fas fa-star"></i><span id="pointDisplay">240</span></div>
@@ -70,7 +70,7 @@
 
         <aside class="side-menu" id="sideMenu" aria-hidden="true">
             <div class="side-menu-header">
-                <div class="side-menu-logo"><i class="fas fa-seedling"></i> GardenQuest</div>
+                <div class="side-menu-logo"><i class="fas fa-seedling"></i> Djilba</div>
                 <button class="side-menu-close" id="menuCloseButton" type="button" aria-label="Close menu">
                     <i class="fas fa-xmark"></i>
                 </button>
@@ -88,10 +88,10 @@
                     <i class="fas fa-map-signs"></i><span>Quests</span>
                 </button>
                 <button class="nav-btn side-nav-btn" data-view="gachaView" type="button">
-                    <i class="fas fa-dice"></i><span>Gacha</span>
+                    <i class="fas fa-dice"></i><span>Seed store</span>
                 </button>
                 <button class="nav-btn side-nav-btn" data-view="storeView" type="button">
-                    <i class="fas fa-clinic-medical"></i><span>Haven</span>
+                    <i class="fas fa-clinic-medical"></i><span>Wildlife</span>
                 </button>
                 <button class="nav-btn side-nav-btn hidden" data-view="classroomView" id="classroomNavButton"
                     type="button">
@@ -121,16 +121,16 @@
             <section id="homeView" class="view-page active">
                 <div class="home-hero">
                     <div>
-                        <div class="eyebrow">YOUR LITTLE PATCH</div>
-                        <h1><span id="homeUsername">My</span> garden</h1>
-                        <p>Tap any plot to choose what grows there.</p>
+                        <div class="eyebrow">DJILBA FIELD NOTES</div>
+                        <h1><span id="homeUsername">My</span> patch</h1>
+                        <p>Make room for new growth as the wildflowers return, from early acacia yellow to Djilba pink.</p>
                     </div>
                 </div>
 
                 <div class="garden-card">
                     <div class="garden-card-top">
                         <div>
-                            <span class="garden-kicker"><i class="fas fa-sun"></i> today looks lovely</span>
+                            <span class="garden-kicker"><i class="fas fa-cloud-sun"></i> Djilba is waking</span>
 
                         </div>
                         <button class="soft-btn" id="openCollectionButton" type="button">
@@ -146,15 +146,15 @@
                     </div>
 
                     <div class="garden-footer-row">
-                        <span><i class="fas fa-wand-magic-sparkles"></i> tap a plot to customise</span>
+                        <span><i class="fas fa-wand-magic-sparkles"></i> shape your little landscape</span>
                         <span id="plantCounter">0 / 16 placed</span>
                     </div>
                 </div>
 
                 <div class="snap-card">
                     <div>
-                        <div class="snap-label">Spotted something green?</div>
-                        <div class="snap-copy">Take a biodiversity snap and earn points.</div>
+                        <div class="snap-label">Seen a bloom or wild visitor?</div>
+                        <div class="snap-copy">Record blooms, weather and wildlife as cold clear days meet rain and wind.</div>
                     </div>
                     <button class="snap-btn" id="snapButton" type="button">
                         <i class="fas fa-camera"></i>
@@ -167,9 +167,9 @@
             <!-- FRIENDS -->
             <section id="friendsView" class="view-page">
                 <div class="page-heading">
-                    <div class="eyebrow">GARDEN BUDDIES</div>
+                    <div class="eyebrow">SHARED FIELD NOTES</div>
                     <h1>Friends</h1>
-                    <p>Find other gardeners and keep up with their latest discoveries.</p>
+                    <p>Find fellow observers and keep up with their latest discoveries.</p>
                 </div>
 
                 <div class="friend-search card-surface">
@@ -189,17 +189,17 @@
                 <div class="friend-grid" id="friendsGrid"></div>
                 <div class="empty-state" id="emptyFriends">
                     <i class="fas fa-user-group"></i>
-                    <strong>No garden buddies yet</strong>
-                    <span>Search for someone above to get started.</span>
+                    <strong>No field companions yet</strong>
+                    <span>Search for someone above to start comparing sightings.</span>
                 </div>
             </section>
 
             <!-- STORE -->
             <section id="storeView" class="view-page">
                 <div class="page-heading">
-                    <div class="eyebrow">TINY EXTRAS</div>
-                    <h1>Animal Haven</h1>
-                    <p>Discover animals to protect, then create safe habitats for them to thrive.</p>
+                    <div class="eyebrow">ANIMALS & WILDLIFE</div>
+                    <h1>Wildlife watch</h1>
+                    <p>Notice the yongar, waitj, koomal and woodland birds sharing the landscape, then create safe habitats for them to thrive.</p>
                 </div>
 
                 <div class="store-grid" id="storeGrid">
@@ -234,9 +234,9 @@
             <!-- GACHA -->
             <section id="gachaView" class="view-page">
                 <div class="page-heading">
-                    <div class="eyebrow">PLANT DISCOVERY</div>
-                    <h1>Seed packet</h1>
-                    <p>Pull a plant to unlock it permanently for your garden collection.</p>
+                    <div class="eyebrow">WILDFLOWER COLLECTION</div>
+                    <h1>Seed store</h1>
+                    <p>Open a seed packet and bring a new Djilba bloom into your patch.</p>
                 </div>
 
                 <div class="gacha-card">
@@ -253,7 +253,7 @@
                 <div class="gacha-result" id="gachaResult">
                     <div class="result-placeholder">
                         <i class="fas fa-sparkles"></i>
-                        <span>Your next plant is waiting.</span>
+                        <span>Your next wildflower is waiting.</span>
                     </div>
                 </div>
             </section>
@@ -292,7 +292,7 @@
             <!-- PROFILE -->
             <section id="profileView" class="view-page">
                 <div class="page-heading">
-                    <div class="eyebrow">YOUR PATCH</div>
+                    <div class="eyebrow">YOUR FIELD NOTES</div>
                     <h1>Profile</h1>
                 </div>
 
@@ -300,7 +300,7 @@
                     <div class="avatar"><i class="fas fa-seedling"></i></div>
                     <div class="pname">@<span id="profileName">Player</span></div>
                     <div class="profile-role" id="profileRole">Individual</div>
-                    <div class="profile-caption">garden caretaker & plant collector</div>
+                    <div class="profile-caption">season watcher & wildflower collector</div>
 
                     <div class="pstats" style="grid-template-columns: repeat(4, 1fr);">
                         <div><strong id="profilePlantCount">0</strong><span>placed</span></div>
@@ -320,9 +320,9 @@
             <!-- QUESTS -->
             <section id="questsView" class="view-page">
                 <div class="page-heading">
-                    <div class="eyebrow">FIELDWORK & CHALLENGES</div>
+                    <div class="eyebrow">DJILBA FIELDWORK</div>
                     <h1>Quests</h1>
-                    <p>Small observations add up to a healthier picture of our wild places.</p>
+                    <p>Small observations help us notice how the landscape changes through Djilba.</p>
                 </div>
 
                 <div class="quest-section">
@@ -387,9 +387,9 @@
             <!-- WIKI -->
             <section id="wikiView" class="view-page">
                 <div class="page-heading">
-                    <div class="eyebrow">FIELD GUIDE</div>
+                    <div class="eyebrow">DJILBA FIELD GUIDE</div>
                     <h1>Wiki</h1>
-                    <p>Learn about the plants you can grow in your garden.</p>
+                    <p>Learn about the wildflowers and plants that colour the season.</p>
                 </div>
 
                 <div class="wiki-list" id="wikiList"></div>

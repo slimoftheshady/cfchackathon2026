@@ -535,7 +535,7 @@
                     };
                     reject(new Error(
                         messages[error.code] ||
-                        'GardenQuest could not access your current location.'
+                        'Djilba could not access your current location.'
                     ));
                 },
                 {
@@ -1826,7 +1826,7 @@
             } else {
 
                 showCameraError(
-                    'GardenQuest could not open the camera.'
+                    'Djilba could not open the camera.'
                 );
 
             }
@@ -2046,7 +2046,7 @@
             cameraStatus.textContent = 'Identifying and logging your plant...';
             const imageBlob = await fetch(capturedImageData).then(response => response.blob());
             const formData = new FormData();
-            formData.append('image', imageBlob, 'gardenquest-snap.jpg');
+            formData.append('image', imageBlob, 'djilba-snap.jpg');
             formData.append('latitude', String(location.latitude));
             formData.append('longitude', String(location.longitude));
             formData.append('accuracy', String(location.accuracy || 0));
@@ -2060,7 +2060,7 @@
             identifiedPlantName.textContent = identification.common_name || identification.scientific_name;
             identifiedPlantDetails.textContent = identification.common_name
                 ? identification.scientific_name
-                : 'PlantNet match';
+                : 'Djilba field-note match';
             cameraIdentification.classList.remove('hidden');
             cameraStatus.classList.add('hidden');
 
