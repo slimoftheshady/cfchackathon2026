@@ -286,10 +286,11 @@
                     <div class="profile-role" id="profileRole">Individual</div>
                     <div class="profile-caption">garden caretaker & plant collector</div>
 
-                    <div class="pstats">
+                    <div class="pstats" style="grid-template-columns: repeat(4, 1fr);">
                         <div><strong id="profilePlantCount">0</strong><span>placed</span></div>
                         <div><strong id="profileCollectionCount">0</strong><span>unlocked</span></div>
                         <div><strong id="profileScore">0</strong><span>score</span></div>
+                        <div><strong id="profileAchievements">0</strong><span>achievements</span></div>
                     </div>
 
                     <div class="latest-section">
@@ -322,10 +323,29 @@
             <!-- ACHIEVEMENTS -->
             <section id="achievementsView" class="view-page">
                 <div class="page-heading">
-                    <div class="eyebrow">COMING SOON</div>
+                    <div class="eyebrow">BADGES & MILESTONES</div>
                     <h1>Achievements</h1>
-                    <p>Badges and milestones are on their way — check back soon!</p>
+                    <p>Complete challenges to earn points and unlock special badges.</p>
                 </div>
+
+                <div class="achievement-stats">
+                    <div class="stat-box">
+                        <strong id="achievementTotal">0</strong>
+                        <span>Completed</span>
+                    </div>
+                    <div class="stat-box">
+                        <strong id="achievementPoints">0</strong>
+                        <span>Points Earned</span>
+                    </div>
+                </div>
+
+                <div class="achievement-filter">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="completed">Completed</button>
+                    <button class="filter-btn" data-filter="incomplete">In Progress</button>
+                </div>
+
+                <div class="achievement-grid" id="achievementsGrid"></div>
             </section>
 
             <!-- SETTINGS -->
