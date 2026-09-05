@@ -4,6 +4,7 @@ import sqlite3
 from pathlib import Path
 import re
 import os
+import random
 import requests
 from model.api_call import identify_plant_from_file, parse_results
 
@@ -25,6 +26,12 @@ VALID_QUEST_TYPES = {"manual", "score", "points", "collection", "placed", "snaps
 TEACHER_INVITE_CODE = "teacher123"
 MAX_GARDEN_SLOTS = 16
 MAX_COLLECTION_ITEMS = 40
+MAP_WIDTH = 1764
+MAP_HEIGHT = 1194
+
+
+def random_map_coordinates():
+    return random.randint(0, MAP_HEIGHT - 1), random.randint(0, MAP_WIDTH - 1)
 
 STARTER_ITEMS = [
     {"key": "kangaroo-paw", "name": "Kangaroo Paw", "icon": "fa-leaf", "rarity": "common", "kind": "plant"},
@@ -908,8 +915,9 @@ def register():
                 )
                 db.execute(
                     """
-                    INSERT INTO plants(user_id, slot, item_key, name, icon, rarity, kind)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO plants
+                        (user_id, slot, item_key, name, icon, rarity, kind, Latitude, Longitude)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         user_id,
@@ -919,6 +927,7 @@ def register():
                         item["icon"],
                         item["rarity"],
                         item["kind"],
+                        *random_map_coordinates(),
                     ),
                 )
             
@@ -1112,6 +1121,8 @@ def save_state():
             if item is None:
                 continue
             latitude, longitude = existing_locations.get(slot, (None, None))
+            if latitude is None or longitude is None:
+                latitude, longitude = random_map_coordinates()
             db.execute(
                 """
                 INSERT INTO plants
