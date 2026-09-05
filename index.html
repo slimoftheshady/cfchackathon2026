@@ -30,6 +30,20 @@
                     <input id="authPassword" name="password" type="password" autocomplete="current-password"
                         minlength="8" maxlength="72" required>
                 </label>
+
+                <label id="authRoleWrap" class="hidden">Account type
+                    <select id="authRole" name="role">
+                        <option value="generic">Individual</option>
+                        <option value="student">Student / Group</option>
+                        <option value="teacher">Teacher / Admin</option>
+                    </select>
+                </label>
+
+                <label id="teacherCodeWrap" class="hidden">Teacher invite code
+                    <input id="authTeacherCode" name="teacher_code" type="password" autocomplete="off"
+                        maxlength="80" placeholder="Provided by the organiser">
+                </label>
+
                 <button class="primary-btn full-width" id="authSubmit" type="submit">Log in</button>
                 <div class="auth-error" id="authError" aria-live="polite"></div>
             </form>
@@ -170,6 +184,36 @@
                 </div>
             </section>
 
+            <!-- CLASSROOMS -->
+            <section id="classroomView" class="view-page">
+                <div class="page-heading">
+                    <div class="eyebrow">LEARN TOGETHER</div>
+                    <h1 id="classroomPageTitle">Classroom</h1>
+                    <p id="classroomPageSubtitle">Your class quests and leaderboard.</p>
+                </div>
+
+                <div id="teacherClassroomTools" class="hidden">
+                    <div class="class-card class-create-card">
+                        <div class="section-title">Create a classroom</div>
+                        <div class="class-inline-form">
+                            <input id="newClassroomName" type="text" maxlength="80" placeholder="e.g. Year 8 Biodiversity">
+                            <button class="primary-btn" id="createClassroomButton" type="button">Create</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-title">Your classrooms</div>
+                <div id="classroomList" class="classroom-list"></div>
+
+                <div id="classroomEmpty" class="empty-state hidden">
+                    <i class="fas fa-school"></i>
+                    <strong>No classrooms yet</strong>
+                    <span id="classroomEmptyText">Your classrooms will appear here.</span>
+                </div>
+
+                <div id="classroomDetail" class="hidden"></div>
+            </section>
+
             <!-- PROFILE -->
             <section id="profileView" class="view-page">
                 <div class="page-heading">
@@ -180,6 +224,7 @@
                 <div class="profile-card">
                     <div class="avatar"><i class="fas fa-seedling"></i></div>
                     <div class="pname">@<span id="profileName">Player</span></div>
+                    <div class="profile-role" id="profileRole">Individual</div>
                     <div class="profile-caption">garden caretaker & plant collector</div>
 
                     <div class="pstats">
@@ -213,6 +258,8 @@
                     class="fas fa-clinic-medical"></i><span>Haven</span></button>
             <button class="nav-btn" data-view="gachaView" type="button"><i
                     class="fas fa-dice"></i><span>Gacha</span></button>
+            <button class="nav-btn hidden" data-view="classroomView" id="classroomNavButton" type="button"><i
+                    class="fas fa-school"></i><span>Class</span></button>
             <button class="nav-btn" data-view="profileView" type="button"><i
                     class="fas fa-user-circle"></i><span>Profile</span></button>
         </nav>

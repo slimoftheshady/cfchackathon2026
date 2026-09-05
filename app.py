@@ -20,6 +20,9 @@ app.config.update(
 USERNAME_RE = re.compile(r"^[A-Za-z0-9_]{3,20}$")
 VALID_RARITIES = {"common", "rare", "epic", "legendary", "decor"}
 VALID_KINDS = {"plant", "decor"}
+VALID_ROLES = {"generic", "student", "teacher"}
+VALID_QUEST_TYPES = {"manual", "score", "points", "collection", "placed", "snaps"}
+TEACHER_INVITE_CODE = "teacher123"
 MAX_GARDEN_SLOTS = 16
 MAX_COLLECTION_ITEMS = 40
 
@@ -59,6 +62,8 @@ def init_db():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT NOT NULL COLLATE NOCASE UNIQUE,
                 password_hash TEXT NOT NULL,
+                role TEXT NOT NULL DEFAULT 'generic'
+                    CHECK(role IN ('generic', 'student', 'teacher')),
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             );
 
@@ -66,6 +71,7 @@ def init_db():
                 user_id INTEGER PRIMARY KEY,
                 points INTEGER NOT NULL DEFAULT 240,
                 score INTEGER NOT NULL DEFAULT 0,
+                snaps_completed INTEGER NOT NULL DEFAULT 0,
                 latest_name TEXT,
                 latest_rarity TEXT,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -109,13 +115,78 @@ def init_db():
                 UNIQUE(requester_id, addressee_id)
             );
 
+            CREATE TABLE IF NOT EXISTS classrooms (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                teacher_id INTEGER NOT NULL,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS classroom_members (
+                classroom_id INTEGER NOT NULL,
+                student_id INTEGER NOT NULL,
+                added_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (classroom_id, student_id),
+                FOREIGN KEY (classroom_id) REFERENCES classrooms(id) ON DELETE CASCADE,
+                FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS quests (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                classroom_id INTEGER NOT NULL,
+                created_by INTEGER NOT NULL,
+                title TEXT NOT NULL,
+                description TEXT NOT NULL DEFAULT '',
+                target_type TEXT NOT NULL DEFAULT 'manual'
+                    CHECK(target_type IN ('manual', 'score', 'points', 'collection', 'placed', 'snaps')),
+                target_value INTEGER NOT NULL DEFAULT 1,
+                due_at TEXT,
+                is_active INTEGER NOT NULL DEFAULT 1,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (classroom_id) REFERENCES classrooms(id) ON DELETE CASCADE,
+                FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS quest_progress (
+                quest_id INTEGER NOT NULL,
+                student_id INTEGER NOT NULL,
+                status TEXT NOT NULL DEFAULT 'assigned'
+                    CHECK(status IN ('assigned', 'completed')),
+                completed_at TEXT,
+                PRIMARY KEY (quest_id, student_id),
+                FOREIGN KEY (quest_id) REFERENCES quests(id) ON DELETE CASCADE,
+                FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_classrooms_teacher
+                ON classrooms(teacher_id);
+            CREATE INDEX IF NOT EXISTS idx_classroom_members_student
+                ON classroom_members(student_id);
+            CREATE INDEX IF NOT EXISTS idx_quests_classroom
+                ON quests(classroom_id, is_active);
+
             CREATE INDEX IF NOT EXISTS idx_friendships_requester
                 ON friendships(requester_id, status);
             CREATE INDEX IF NOT EXISTS idx_friendships_addressee
                 ON friendships(addressee_id, status);
             """)
 
-        # Migration for databases created by the earlier version.
+        # Migration for databases created by earlier versions.
+        user_columns = {row[1] for row in db.execute("PRAGMA table_info(users)")}
+        if "role" not in user_columns:
+            db.execute(
+                "ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'generic'"
+            )
+
+        game_state_columns = {
+            row[1] for row in db.execute("PRAGMA table_info(game_state)")
+        }
+        if "snaps_completed" not in game_state_columns:
+            db.execute(
+                "ALTER TABLE game_state ADD COLUMN snaps_completed INTEGER NOT NULL DEFAULT 0"
+            )
+
         plant_columns = {row[1] for row in db.execute("PRAGMA table_info(plants)")}
         if "kind" not in plant_columns:
             db.execute(
@@ -160,16 +231,120 @@ def login_required():
     return uid, None
 
 
+def role_required(*allowed_roles):
+    uid, error = login_required()
+    if error:
+        return None, error
+
+    with get_db() as db:
+        user = db.execute(
+            "SELECT id, username, role FROM users WHERE id = ?",
+            (uid,),
+        ).fetchone()
+
+    if not user:
+        session.clear()
+        return None, (jsonify({"error": "Account not found"}), 401)
+
+    if user["role"] not in allowed_roles:
+        return None, (jsonify({"error": "You do not have permission to do that."}), 403)
+
+    return dict(user), None
+
+
+def teacher_owns_classroom(db, teacher_id, classroom_id):
+    return db.execute(
+        "SELECT id FROM classrooms WHERE id = ? AND teacher_id = ?",
+        (classroom_id, teacher_id),
+    ).fetchone() is not None
+
+
+def student_in_classroom(db, student_id, classroom_id):
+    return db.execute(
+        """
+        SELECT 1
+        FROM classroom_members
+        WHERE classroom_id = ? AND student_id = ?
+        """,
+        (classroom_id, student_id),
+    ).fetchone() is not None
+
+
+def quest_progress_for(db, quest, student_id):
+    target = max(1, int(quest["target_value"] or 1))
+    target_type = quest["target_type"]
+
+    state = db.execute(
+        """
+        SELECT points, score, snaps_completed
+        FROM game_state
+        WHERE user_id = ?
+        """,
+        (student_id,),
+    ).fetchone()
+
+    if target_type == "manual":
+        progress = db.execute(
+            """
+            SELECT status, completed_at
+            FROM quest_progress
+            WHERE quest_id = ? AND student_id = ?
+            """,
+            (quest["id"], student_id),
+        ).fetchone()
+        completed = bool(progress and progress["status"] == "completed")
+        current = target if completed else 0
+        completed_at = progress["completed_at"] if progress else None
+    elif target_type == "score":
+        current = int(state["score"] if state else 0)
+        completed = current >= target
+        completed_at = None
+    elif target_type == "points":
+        current = int(state["points"] if state else 0)
+        completed = current >= target
+        completed_at = None
+    elif target_type == "snaps":
+        current = int(state["snaps_completed"] if state else 0)
+        completed = current >= target
+        completed_at = None
+    elif target_type == "collection":
+        current = db.execute(
+            "SELECT COUNT(*) FROM collection_items WHERE user_id = ?",
+            (student_id,),
+        ).fetchone()[0]
+        completed = current >= target
+        completed_at = None
+    elif target_type == "placed":
+        current = db.execute(
+            "SELECT COUNT(*) FROM plants WHERE user_id = ?",
+            (student_id,),
+        ).fetchone()[0]
+        completed = current >= target
+        completed_at = None
+    else:
+        current = 0
+        completed = False
+        completed_at = None
+
+    return {
+        "current": current,
+        "target": target,
+        "completed": completed,
+        "completed_at": completed_at,
+        "percent": min(100, int((current / target) * 100)) if target else 0,
+    }
+
+
 def state_for_user(db, user_id):
     state = db.execute(
-        "SELECT points, score, latest_name, latest_rarity FROM game_state WHERE user_id = ?",
+        "SELECT points, score, snaps_completed, latest_name, latest_rarity FROM game_state WHERE user_id = ?",
         (user_id,),
     ).fetchone()
 
     if not state:
         db.execute("INSERT INTO game_state(user_id) VALUES (?)", (user_id,))
         state = db.execute(
-            "SELECT points, score, latest_name, latest_rarity FROM game_state WHERE user_id = ?",
+            "SELECT points, score, snaps_completed, latest_name, latest_rarity FROM game_state WHERE user_id = ?",
             (user_id,),
         ).fetchone()
 
@@ -222,6 +397,7 @@ def state_for_user(db, user_id):
     return {
         "points": state["points"],
         "score": state["score"],
+        "snapsCompleted": state["snaps_completed"],
         "latestPlant": (
             {"name": state["latest_name"], "rarity": state["latest_rarity"]}
             if state["latest_name"]
@@ -289,7 +465,7 @@ def icons(filename):
     return send_from_directory(BASE_DIR / "icons", filename)
 @app.post("/api/identify")
 def identify():
-    _, error = login_required()
+    uid, error = login_required()
     if error:
         return error
 
@@ -341,6 +517,21 @@ def identify():
 
     if not predictions:
         return jsonify({"error": "PlantNet did not find a plant in that photo."}), 422
+
+    with get_db() as db:
+        db.execute(
+            "INSERT OR IGNORE INTO game_state(user_id) VALUES (?)",
+            (uid,),
+        )
+        db.execute(
+            """
+            UPDATE game_state
+            SET snaps_completed = snaps_completed + 1
+            WHERE user_id = ?
+            """,
+            (uid,),
+        )
+
     return jsonify({"identification": predictions[0], "predictions": predictions})
 
 
@@ -349,6 +540,17 @@ def register():
     data = request.get_json(silent=True) or {}
     username = str(data.get("username", "")).strip()
     password = str(data.get("password", ""))
+    role = str(data.get("role", "generic")).strip().lower()
+    teacher_code = str(data.get("teacher_code", ""))
+
+    if role not in VALID_ROLES:
+        return jsonify({"error": "Invalid account type."}), 400
+
+    if role == "teacher":
+        if not TEACHER_INVITE_CODE:
+            return jsonify({"error": "Teacher registration is not configured."}), 503
+        if teacher_code != TEACHER_INVITE_CODE:
+            return jsonify({"error": "Invalid teacher invite code."}), 403
 
     if not USERNAME_RE.fullmatch(username):
         return (
@@ -363,8 +565,8 @@ def register():
     try:
         with get_db() as db:
             cur = db.execute(
-                "INSERT INTO users(username, password_hash) VALUES (?, ?)",
-                (username, generate_password_hash(password)),
+                "INSERT INTO users(username, password_hash, role) VALUES (?, ?, ?)",
+                (username, generate_password_hash(password), role),
             )
             user_id = cur.lastrowid
             db.execute(
@@ -411,7 +613,7 @@ def register():
 
     session.clear()
     session["user_id"] = user_id
-    return jsonify({"ok": True, "username": username}), 201
+    return jsonify({"ok": True, "username": username, "role": role}), 201
 
 
 @app.post("/api/login")
@@ -448,7 +650,7 @@ def me():
 
     with get_db() as db:
         user = db.execute(
-            "SELECT id, username FROM users WHERE id = ?", (uid,)
+            "SELECT id, username, role FROM users WHERE id = ?", (uid,)
         ).fetchone()
         if not user:
             session.clear()
@@ -821,6 +1023,386 @@ def remove_friend(friend_id):
 
     if cur.rowcount == 0:
         return jsonify({"error": "Friend not found."}), 404
+    return jsonify({"ok": True})
+
+
+# =========================================================
+# CLASSROOMS / ROLE-BASED ACCESS CONTROL
+# =========================================================
+
+@app.get("/api/classrooms")
+def list_classrooms():
+    user, error = role_required("student", "teacher")
+    if error:
+        return error
+
+    with get_db() as db:
+        if user["role"] == "teacher":
+            rows = db.execute(
+                """
+                SELECT
+                    c.id,
+                    c.name,
+                    c.created_at,
+                    COUNT(cm.student_id) AS student_count
+                FROM classrooms c
+                LEFT JOIN classroom_members cm ON cm.classroom_id = c.id
+                WHERE c.teacher_id = ?
+                GROUP BY c.id
+                ORDER BY c.created_at DESC, c.name
+                """,
+                (user["id"],),
+            ).fetchall()
+        else:
+            rows = db.execute(
+                """
+                SELECT
+                    c.id,
+                    c.name,
+                    c.created_at,
+                    u.username AS teacher_username,
+                    (
+                        SELECT COUNT(*)
+                        FROM classroom_members cm2
+                        WHERE cm2.classroom_id = c.id
+                    ) AS student_count
+                FROM classroom_members cm
+                JOIN classrooms c ON c.id = cm.classroom_id
+                JOIN users u ON u.id = c.teacher_id
+                WHERE cm.student_id = ?
+                ORDER BY c.name
+                """,
+                (user["id"],),
+            ).fetchall()
+
+    return jsonify({"classrooms": [dict(row) for row in rows]})
+
+
+@app.post("/api/classrooms")
+def create_classroom():
+    user, error = role_required("teacher")
+    if error:
+        return error
+
+    data = request.get_json(silent=True) or {}
+    name = str(data.get("name", "")).strip()[:80]
+    if len(name) < 2:
+        return jsonify({"error": "Classroom name must be at least 2 characters."}), 400
+
+    with get_db() as db:
+        cur = db.execute(
+            "INSERT INTO classrooms(name, teacher_id) VALUES (?, ?)",
+            (name, user["id"]),
+        )
+        classroom_id = cur.lastrowid
+
+    return jsonify({"ok": True, "classroom_id": classroom_id}), 201
+
+
+@app.get("/api/classrooms/<int:classroom_id>")
+def classroom_detail(classroom_id):
+    uid, error = login_required()
+    if error:
+        return error
+
+    with get_db() as db:
+        user = db.execute(
+            "SELECT id, username, role FROM users WHERE id = ?",
+            (uid,),
+        ).fetchone()
+        if not user:
+            session.clear()
+            return jsonify({"error": "Account not found"}), 401
+
+        classroom = db.execute(
+            """
+            SELECT c.id, c.name, c.teacher_id, c.created_at,
+                   u.username AS teacher_username
+            FROM classrooms c
+            JOIN users u ON u.id = c.teacher_id
+            WHERE c.id = ?
+            """,
+            (classroom_id,),
+        ).fetchone()
+        if not classroom:
+            return jsonify({"error": "Classroom not found."}), 404
+
+        is_teacher = user["role"] == "teacher" and classroom["teacher_id"] == uid
+        is_student = user["role"] == "student" and student_in_classroom(db, uid, classroom_id)
+        if not (is_teacher or is_student):
+            return jsonify({"error": "You do not have access to this classroom."}), 403
+
+        roster = db.execute(
+            """
+            SELECT
+                u.id,
+                u.username,
+                COALESCE(gs.score, 0) AS score,
+                COALESCE(gs.points, 0) AS points,
+                COALESCE(gs.snaps_completed, 0) AS snaps_completed,
+                (SELECT COUNT(*) FROM collection_items ci WHERE ci.user_id = u.id) AS collection_count,
+                (SELECT COUNT(*) FROM plants p WHERE p.user_id = u.id) AS placed_count
+            FROM classroom_members cm
+            JOIN users u ON u.id = cm.student_id
+            LEFT JOIN game_state gs ON gs.user_id = u.id
+            WHERE cm.classroom_id = ?
+            ORDER BY score DESC, u.username COLLATE NOCASE
+            """,
+            (classroom_id,),
+        ).fetchall()
+
+        quest_rows = db.execute(
+            """
+            SELECT id, classroom_id, created_by, title, description,
+                   target_type, target_value, due_at, is_active, created_at
+            FROM quests
+            WHERE classroom_id = ? AND is_active = 1
+            ORDER BY created_at DESC
+            """,
+            (classroom_id,),
+        ).fetchall()
+
+        quests = []
+        for quest_row in quest_rows:
+            quest = dict(quest_row)
+            if is_teacher:
+                completed_count = 0
+                for student in roster:
+                    if quest_progress_for(db, quest_row, student["id"])["completed"]:
+                        completed_count += 1
+                quest["completed_count"] = completed_count
+                quest["student_count"] = len(roster)
+            else:
+                quest["progress"] = quest_progress_for(db, quest_row, uid)
+            quests.append(quest)
+
+    return jsonify(
+        {
+            "classroom": dict(classroom),
+            "viewer_role": user["role"],
+            "roster": [dict(row) for row in roster] if is_teacher else [],
+            "leaderboard": [dict(row) for row in roster],
+            "quests": quests,
+        }
+    )
+
+
+@app.get("/api/classrooms/<int:classroom_id>/students/search")
+def search_classroom_students(classroom_id):
+    teacher, error = role_required("teacher")
+    if error:
+        return error
+
+    q = request.args.get("q", "").strip()
+    if len(q) < 2:
+        return jsonify({"students": []})
+
+    with get_db() as db:
+        if not teacher_owns_classroom(db, teacher["id"], classroom_id):
+            return jsonify({"error": "Classroom not found."}), 404
+
+        rows = db.execute(
+            """
+            SELECT id, username
+            FROM users
+            WHERE role = 'student'
+              AND username LIKE ? COLLATE NOCASE
+              AND id NOT IN (
+                    SELECT student_id
+                    FROM classroom_members
+                    WHERE classroom_id = ?
+              )
+            ORDER BY username
+            LIMIT 12
+            """,
+            (f"%{q}%", classroom_id),
+        ).fetchall()
+
+    return jsonify({"students": [dict(row) for row in rows]})
+
+
+@app.post("/api/classrooms/<int:classroom_id>/students")
+def add_classroom_student(classroom_id):
+    teacher, error = role_required("teacher")
+    if error:
+        return error
+
+    data = request.get_json(silent=True) or {}
+    try:
+        student_id = int(data.get("student_id"))
+    except (TypeError, ValueError):
+        return jsonify({"error": "Invalid student."}), 400
+
+    with get_db() as db:
+        if not teacher_owns_classroom(db, teacher["id"], classroom_id):
+            return jsonify({"error": "Classroom not found."}), 404
+
+        student = db.execute(
+            "SELECT id, username, role FROM users WHERE id = ?",
+            (student_id,),
+        ).fetchone()
+        if not student:
+            return jsonify({"error": "Student not found."}), 404
+        if student["role"] != "student":
+            return jsonify({"error": "Only student accounts can be added to a classroom."}), 400
+
+        try:
+            db.execute(
+                """
+                INSERT INTO classroom_members(classroom_id, student_id)
+                VALUES (?, ?)
+                """,
+                (classroom_id, student_id),
+            )
+        except sqlite3.IntegrityError:
+            return jsonify({"error": "That student is already in the classroom."}), 409
+
+    return jsonify({"ok": True, "student": dict(student)}), 201
+
+
+@app.delete("/api/classrooms/<int:classroom_id>/students/<int:student_id>")
+def remove_classroom_student(classroom_id, student_id):
+    teacher, error = role_required("teacher")
+    if error:
+        return error
+
+    with get_db() as db:
+        if not teacher_owns_classroom(db, teacher["id"], classroom_id):
+            return jsonify({"error": "Classroom not found."}), 404
+
+        cur = db.execute(
+            """
+            DELETE FROM classroom_members
+            WHERE classroom_id = ? AND student_id = ?
+            """,
+            (classroom_id, student_id),
+        )
+        db.execute(
+            """
+            DELETE FROM quest_progress
+            WHERE student_id = ?
+              AND quest_id IN (
+                    SELECT id FROM quests WHERE classroom_id = ?
+              )
+            """,
+            (student_id, classroom_id),
+        )
+
+    if cur.rowcount == 0:
+        return jsonify({"error": "Student is not in this classroom."}), 404
+    return jsonify({"ok": True})
+
+
+@app.post("/api/classrooms/<int:classroom_id>/quests")
+def create_classroom_quest(classroom_id):
+    teacher, error = role_required("teacher")
+    if error:
+        return error
+
+    data = request.get_json(silent=True) or {}
+    title = str(data.get("title", "")).strip()[:80]
+    description = str(data.get("description", "")).strip()[:400]
+    target_type = str(data.get("target_type", "manual")).strip().lower()
+    due_at = str(data.get("due_at", "")).strip()[:32] or None
+
+    try:
+        target_value = int(data.get("target_value", 1))
+    except (TypeError, ValueError):
+        return jsonify({"error": "Target must be a number."}), 400
+
+    if not title:
+        return jsonify({"error": "Quest title is required."}), 400
+    if target_type not in VALID_QUEST_TYPES:
+        return jsonify({"error": "Invalid quest target."}), 400
+    if target_type == "manual":
+        target_value = 1
+    elif not 1 <= target_value <= 1_000_000:
+        return jsonify({"error": "Quest target must be between 1 and 1,000,000."}), 400
+
+    with get_db() as db:
+        if not teacher_owns_classroom(db, teacher["id"], classroom_id):
+            return jsonify({"error": "Classroom not found."}), 404
+
+        cur = db.execute(
+            """
+            INSERT INTO quests(
+                classroom_id, created_by, title, description,
+                target_type, target_value, due_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                classroom_id,
+                teacher["id"],
+                title,
+                description,
+                target_type,
+                target_value,
+                due_at,
+            ),
+        )
+        quest_id = cur.lastrowid
+
+    return jsonify({"ok": True, "quest_id": quest_id}), 201
+
+
+@app.delete("/api/classrooms/<int:classroom_id>/quests/<int:quest_id>")
+def delete_classroom_quest(classroom_id, quest_id):
+    teacher, error = role_required("teacher")
+    if error:
+        return error
+
+    with get_db() as db:
+        if not teacher_owns_classroom(db, teacher["id"], classroom_id):
+            return jsonify({"error": "Classroom not found."}), 404
+
+        cur = db.execute(
+            """
+            DELETE FROM quests
+            WHERE id = ? AND classroom_id = ?
+            """,
+            (quest_id, classroom_id),
+        )
+
+    if cur.rowcount == 0:
+        return jsonify({"error": "Quest not found."}), 404
+    return jsonify({"ok": True})
+
+
+@app.post("/api/classrooms/<int:classroom_id>/quests/<int:quest_id>/complete")
+def complete_manual_quest(classroom_id, quest_id):
+    student, error = role_required("student")
+    if error:
+        return error
+
+    with get_db() as db:
+        if not student_in_classroom(db, student["id"], classroom_id):
+            return jsonify({"error": "You are not in this classroom."}), 403
+
+        quest = db.execute(
+            """
+            SELECT id, target_type
+            FROM quests
+            WHERE id = ? AND classroom_id = ? AND is_active = 1
+            """,
+            (quest_id, classroom_id),
+        ).fetchone()
+        if not quest:
+            return jsonify({"error": "Quest not found."}), 404
+        if quest["target_type"] != "manual":
+            return jsonify({"error": "This quest completes automatically."}), 400
+
+        db.execute(
+            """
+            INSERT INTO quest_progress(quest_id, student_id, status, completed_at)
+            VALUES (?, ?, 'completed', CURRENT_TIMESTAMP)
+            ON CONFLICT(quest_id, student_id) DO UPDATE SET
+                status = 'completed',
+                completed_at = CURRENT_TIMESTAMP
+            """,
+            (quest_id, student["id"]),
+        )
+
     return jsonify({"ok": True})
 
 
