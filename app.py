@@ -463,6 +463,11 @@ def script():
 @app.get("/icons/<path:filename>")
 def icons(filename):
     return send_from_directory(BASE_DIR / "icons", filename)
+
+@app.get("/images/<path:filename>")
+def serve_image(filename):
+    return send_from_directory(BASE_DIR / "images", filename)
+
 @app.post("/api/identify")
 def identify():
     uid, error = login_required()
