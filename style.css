@@ -2004,6 +2004,50 @@ button {
     background: var(--soft);
 }
 
+.map-surface {
+    position: relative;
+    overflow: hidden;
+    border: var(--border);
+    border-radius: 22px;
+    background: white;
+    box-shadow: var(--shadow-small);
+}
+
+.map-surface img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.map-markers {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.map-marker {
+    position: absolute;
+    z-index: 1;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    transform: translate(-50%, -100%);
+    border: 2px solid white;
+    border-radius: 50% 50% 50% 0;
+    background: var(--coral);
+    color: white;
+    box-shadow: 0 3px 9px rgba(38, 62, 48, .35);
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.map-marker:hover,
+.map-marker:focus-visible {
+    background: var(--teal);
+    outline: 3px solid rgba(255, 255, 255, .85);
+    outline-offset: 2px;
+}
+
 .wiki-details {
     flex: 1;
     min-width: 0;

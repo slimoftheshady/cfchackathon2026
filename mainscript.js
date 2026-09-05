@@ -109,6 +109,7 @@
 
     let latestPlant = null;
     let achievements = [];
+    let mapPlants = [];
 
     // =========================================================
     // LOGIN / UI STATE
@@ -199,6 +200,7 @@
     const pickerSlotNumber = $('pickerSlotNumber');
     const collectionGrid = $('collectionGrid');
     const wikiList = $('wikiList');
+    const mapMarkers = $('mapMarkers');
     const clearPlotButton = $('clearPlotButton');
 
     // Classrooms / RBAC
@@ -465,6 +467,7 @@
 
             await loadFriends();
             await loadAchievements();
+            await loadMapPlants();
 
             if (currentUser.role !== 'generic') {
                 await loadClassrooms();
@@ -481,6 +484,52 @@
 
             showAuth();
         }
+    }
+
+    async function loadMapPlants() {
+        try {
+            const data = await api('/api/map-plants');
+            mapPlants = Array.isArray(data.plants) ? data.plants : [];
+            renderMapPlants();
+        } catch (error) {
+            if (error.status === 401) {
+                showAuth();
+                return;
+            }
+
+            showToast('Could not load plant locations.', 'fa-triangle-exclamation');
+        }
+    }
+
+    function renderMapPlants() {
+        if (!mapMarkers) {
+            return;
+        }
+
+        const mapWidth = 1764;
+        const mapHeight = 1194;
+
+        mapMarkers.innerHTML = mapPlants.map(plant => {
+            const x = Number(plant.longitude);
+            const y = Number(plant.latitude);
+
+            if (!Number.isFinite(x) || !Number.isFinite(y)) {
+                return '';
+            }
+
+            const left = Math.max(0, Math.min(100, (x / mapWidth) * 100));
+            const top = Math.max(0, Math.min(100, (y / mapHeight) * 100));
+            const label = escapeHtml(plant.name || 'Plant');
+
+            return `
+                <button class="map-marker" type="button"
+                    data-plant-id="${plant.id}"
+                    style="left: ${left}%; top: ${top}%;"
+                    title="${label}"
+                    aria-label="${label} location">
+                    <i class="fas fa-location-dot"></i>
+                </button>`;
+        }).join('');
     }
 
     async function submitAuth(event) {
@@ -3669,6 +3718,18 @@
                         )
                 )
         );
+
+        mapMarkers?.addEventListener('click', event => {
+            const marker = event.target.closest('.map-marker');
+            if (!marker) {
+                return;
+            }
+
+            const plant = mapPlants.find(item => String(item.id) === marker.dataset.plantId);
+            if (plant) {
+                showToast(`${plant.name} location`, 'fa-seedling');
+            }
+        });
 
         // Side menu
         menuToggleButton.addEventListener(
