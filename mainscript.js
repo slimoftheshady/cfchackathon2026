@@ -167,6 +167,10 @@
     // Navigation
     const navBtns = document.querySelectorAll('.nav-btn');
     const views = document.querySelectorAll('.view-page');
+    const menuToggleButton = $('menuToggleButton');
+    const menuCloseButton = $('menuCloseButton');
+    const sideMenu = $('sideMenu');
+    const sideMenuOverlay = $('sideMenuOverlay');
 
     // Camera
     const cameraBackdrop =
@@ -2415,6 +2419,40 @@
     // NAVIGATION
     // =========================================================
 
+    function openSideMenu() {
+        sideMenu.classList.add(
+            'open'
+        );
+        sideMenuOverlay.classList.add(
+            'open'
+        );
+        sideMenu.setAttribute(
+            'aria-hidden',
+            'false'
+        );
+        menuToggleButton.setAttribute(
+            'aria-expanded',
+            'true'
+        );
+    }
+
+    function closeSideMenu() {
+        sideMenu.classList.remove(
+            'open'
+        );
+        sideMenuOverlay.classList.remove(
+            'open'
+        );
+        sideMenu.setAttribute(
+            'aria-hidden',
+            'true'
+        );
+        menuToggleButton.setAttribute(
+            'aria-expanded',
+            'false'
+        );
+    }
+
     function navigateTo(
         viewId
     ) {
@@ -2447,6 +2485,8 @@
             top: 0,
             behavior: 'smooth'
         });
+
+        closeSideMenu();
     }
 
     // =========================================================
@@ -2595,6 +2635,34 @@
                             btn.dataset.view
                         )
                 )
+        );
+
+        // Side menu
+        menuToggleButton.addEventListener(
+            'click',
+            openSideMenu
+        );
+
+        menuCloseButton.addEventListener(
+            'click',
+            closeSideMenu
+        );
+
+        sideMenuOverlay.addEventListener(
+            'click',
+            closeSideMenu
+        );
+
+        document.addEventListener(
+            'keydown',
+            event => {
+                if (
+                    event.key === 'Escape' &&
+                    sideMenu.classList.contains('open')
+                ) {
+                    closeSideMenu();
+                }
+            }
         );
 
         // Friend search
