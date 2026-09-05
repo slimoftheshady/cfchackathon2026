@@ -2018,48 +2018,109 @@ button {
     background: var(--soft);
 }
 
-.map-surface {
-    position: relative;
+.map-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 13px;
+    margin-bottom: 12px;
+}
+
+.map-toolbar-copy {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.map-toolbar-copy strong {
+    color: var(--teal);
+    font-size: 13px;
+}
+
+.map-toolbar-copy span {
+    color: rgba(59, 73, 83, .66);
+    font-size: 10px;
+    line-height: 1.35;
+}
+
+.map-locate-btn:disabled {
+    opacity: .55;
+    cursor: wait;
+    transform: none;
+}
+
+.plant-map {
+    width: 100%;
+    height: min(58vh, 500px);
+    min-height: 360px;
     overflow: hidden;
     border: var(--border);
-    border-radius: 22px;
-    background: white;
+    border-radius: 24px;
+    background: #dfead9;
     box-shadow: var(--shadow-small);
 }
 
-.map-surface img {
-    display: block;
-    width: 100%;
-    height: auto;
+.plant-map .leaflet-control-zoom a {
+    color: var(--forest);
 }
 
-.map-markers {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
+.plant-map .leaflet-popup-content-wrapper,
+.plant-map .leaflet-popup-tip {
+    background: var(--cream);
+    color: var(--teal);
 }
 
-.map-marker {
-    position: absolute;
-    z-index: 1;
-    width: 30px;
-    height: 30px;
-    padding: 0;
-    transform: translate(-50%, -100%);
-    border: 2px solid white;
-    border-radius: 50% 50% 50% 0;
-    background: var(--coral);
-    color: white;
-    box-shadow: 0 3px 9px rgba(38, 62, 48, .35);
-    cursor: pointer;
-    pointer-events: auto;
+.map-popup {
+    min-width: 145px;
+    line-height: 1.4;
 }
 
-.map-marker:hover,
-.map-marker:focus-visible {
-    background: var(--teal);
-    outline: 3px solid rgba(255, 255, 255, .85);
-    outline-offset: 2px;
+.map-popup strong {
+    color: var(--forest);
+    font-size: 13px;
+}
+
+.map-popup em,
+.map-popup span,
+.map-popup small {
+    color: rgba(59, 73, 83, .7);
+    font-size: 10px;
+}
+
+.map-rule-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 11px;
+    padding: 11px 12px;
+    border-radius: 16px;
+    background: rgba(235, 244, 221, .82);
+    color: rgba(59, 73, 83, .72);
+    font-size: 10px;
+    line-height: 1.4;
+}
+
+.map-rule-note i {
+    flex: 0 0 auto;
+    margin-top: 1px;
+    color: var(--forest);
+}
+
+@media (max-width: 380px) {
+    .map-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .map-locate-btn {
+        justify-content: center;
+    }
+
+    .plant-map {
+        min-height: 320px;
+    }
 }
 
 .wiki-details {

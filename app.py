@@ -4,7 +4,7 @@ import sqlite3
 from pathlib import Path
 import re
 import os
-import random
+import math
 import secrets
 import json
 from datetime import date
@@ -29,8 +29,8 @@ VALID_QUEST_TYPES = {"manual", "score", "points", "collection", "placed", "snaps
 TEACHER_INVITE_CODE = "teacher123"
 MAX_GARDEN_SLOTS = 16
 MAX_COLLECTION_ITEMS = 40
-MAP_WIDTH = 1764
-MAP_HEIGHT = 1194
+OBSERVATION_RADIUS_METRES = 30
+MAX_SAME_PLANT_PER_LOCATION = 3
 
 DAILY_QUESTS = [
     {
@@ -72,8 +72,40 @@ COMMUNITY_QUEST = {
 }
 
 
-def random_map_coordinates():
-    return random.randint(0, MAP_HEIGHT - 1), random.randint(0, MAP_WIDTH - 1)
+def haversine_metres(lat1, lon1, lat2, lon2):
+    """Return the straight-line distance between two GPS coordinates in metres."""
+    earth_radius_m = 6371000.0
+    phi1 = math.radians(lat1)
+    phi2 = math.radians(lat2)
+    delta_phi = math.radians(lat2 - lat1)
+    delta_lambda = math.radians(lon2 - lon1)
+    a = (
+        math.sin(delta_phi / 2) ** 2
+        + math.cos(phi1)
+        * math.cos(phi2)
+        * math.sin(delta_lambda / 2) ** 2
+    )
+    return earth_radius_m * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+
+def observation_taxon_key(common_name, scientific_name):
+    value = str(scientific_name or common_name or "").strip().lower()
+    value = re.sub(r"\s+", " ", value)
+    return value[:180]
+
+
+def parse_observation_location():
+    try:
+        latitude = float(request.form.get("latitude", ""))
+        longitude = float(request.form.get("longitude", ""))
+        accuracy = float(request.form.get("accuracy", "0") or 0)
+    except (TypeError, ValueError):
+        raise ValueError("A valid current location is required to log a biodiversity snap.")
+
+    if not -90 <= latitude <= 90 or not -180 <= longitude <= 180:
+        raise ValueError("The browser returned an invalid location.")
+
+    return latitude, longitude, max(0.0, min(accuracy, 10000.0))
 
 
 STARTER_ITEMS = [
@@ -316,6 +348,24 @@ def init_db():
                 PRIMARY KEY (user_id, item_key),
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             );
+
+            CREATE TABLE IF NOT EXISTS plant_observations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                taxon_key TEXT NOT NULL,
+                common_name TEXT,
+                scientific_name TEXT,
+                latitude REAL NOT NULL,
+                longitude REAL NOT NULL,
+                accuracy_m REAL NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_observations_user_created
+                ON plant_observations(user_id, created_at);
+            CREATE INDEX IF NOT EXISTS idx_observations_user_taxon
+                ON plant_observations(user_id, taxon_key);
 
             CREATE TABLE IF NOT EXISTS friendships (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -1130,6 +1180,11 @@ def identify():
     if image.mimetype not in {"image/jpeg", "image/png", "image/webp"}:
         return jsonify({"error": "Please upload a JPEG, PNG or WebP image."}), 400
 
+    try:
+        latitude, longitude, accuracy = parse_observation_location()
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
     if not os.environ.get("PLANTNET_API_KEY"):
         return jsonify({"error": "Plant identification is not configured yet."}), 503
 
@@ -1172,36 +1227,88 @@ def identify():
     if not predictions:
         return jsonify({"error": "PlantNet did not find a plant in that photo."}), 422
 
+    identification = predictions[0]
+    common_name = str(identification.get("common_name") or "").strip()[:160] or None
+    scientific_name = str(identification.get("scientific_name") or "").strip()[:180] or None
+    taxon_key = observation_taxon_key(common_name, scientific_name)
+    if not taxon_key:
+        return jsonify({"error": "PlantNet could not determine the plant species."}), 422
+
     with get_db() as db:
-        db.execute(
-            "INSERT OR IGNORE INTO game_state(user_id) VALUES (?)",
-            (uid,),
+        previous_locations = db.execute(
+            """
+            SELECT latitude, longitude
+            FROM plant_observations
+            WHERE user_id = ? AND taxon_key = ?
+            """,
+            (uid, taxon_key),
+        ).fetchall()
+        nearby_count = sum(
+            haversine_metres(
+                latitude,
+                longitude,
+                float(row["latitude"]),
+                float(row["longitude"]),
+            ) <= OBSERVATION_RADIUS_METRES
+            for row in previous_locations
         )
+        if nearby_count >= MAX_SAME_PLANT_PER_LOCATION:
+            display_name = common_name or scientific_name or "this plant"
+            return jsonify({
+                "error": (
+                    f"You have already logged {MAX_SAME_PLANT_PER_LOCATION} "
+                    f"{display_name} sightings within {OBSERVATION_RADIUS_METRES} m "
+                    "of this location. Move to a different location or photograph another species."
+                ),
+                "code": "location_species_limit",
+                "limit": MAX_SAME_PLANT_PER_LOCATION,
+                "radius_metres": OBSERVATION_RADIUS_METRES,
+            }), 409
+
+        observation_id = db.execute(
+            """
+            INSERT INTO plant_observations(
+                user_id, taxon_key, common_name, scientific_name,
+                latitude, longitude, accuracy_m
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (uid, taxon_key, common_name, scientific_name, latitude, longitude, accuracy),
+        ).lastrowid
+        db.execute("INSERT OR IGNORE INTO game_state(user_id) VALUES (?)", (uid,))
         db.execute(
             """
             UPDATE game_state
-            SET snaps_completed = snaps_completed + 1
+            SET snaps_completed = snaps_completed + 1,
+                snaps_taken = snaps_taken + 1
             WHERE user_id = ?
             """,
             (uid,),
         )
-
-    # Update snap count
-    with get_db() as db:
-        db.execute(
-            "UPDATE game_state SET snaps_taken = snaps_taken + 1 WHERE user_id = ?",
-            (current_user_id(),),
-        )
-        check_and_update_achievements(db, current_user_id())
+        check_and_update_achievements(db, uid)
         quest_update = apply_quest_event(db, uid, "snap")
+        observation = db.execute(
+            """
+            SELECT id, COALESCE(common_name, scientific_name, 'Plant') AS name,
+                   common_name, scientific_name, latitude, longitude, accuracy_m, created_at
+            FROM plant_observations WHERE id = ?
+            """,
+            (observation_id,),
+        ).fetchone()
 
-    return jsonify(
-        {
-            "identification": predictions[0],
-            "predictions": predictions,
-            "questUpdate": quest_update,
-        }
-    )
+    return jsonify({
+        "identification": identification,
+        "predictions": predictions,
+        "questUpdate": quest_update,
+        "observation": dict(observation),
+        "remaining_at_location": max(
+            0,
+            MAX_SAME_PLANT_PER_LOCATION - nearby_count - 1,
+        ),
+        "locationLimit": {
+            "maxSamePlant": MAX_SAME_PLANT_PER_LOCATION,
+            "radiusMetres": OBSERVATION_RADIUS_METRES,
+        },
+    })
 
 
 @app.get("/api/quests")
@@ -1434,8 +1541,8 @@ def register():
                 db.execute(
                     """
                     INSERT INTO plants
-                        (user_id, slot, item_key, name, icon, rarity, kind, Latitude, Longitude)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        (user_id, slot, item_key, name, icon, rarity, kind)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         user_id,
@@ -1445,7 +1552,6 @@ def register():
                         item["icon"],
                         item["rarity"],
                         item["kind"],
-                        *random_map_coordinates(),
                     ),
                 )
 
@@ -1514,6 +1620,7 @@ def me():
     return jsonify({"user": dict(user), "state": state})
 
 
+@app.get("/api/observations")
 @app.get("/api/map-plants")
 def map_plants():
     uid, error = login_required()
@@ -1523,17 +1630,22 @@ def map_plants():
     with get_db() as db:
         rows = db.execute(
             """
-            SELECT id, name, rarity, Latitude AS latitude, Longitude AS longitude
-            FROM plants
-            WHERE user_id = ?
-              AND Latitude IS NOT NULL
-              AND Longitude IS NOT NULL
-            ORDER BY id
+                        SELECT id, COALESCE(common_name, scientific_name, 'Plant') AS name,
+                                     common_name, scientific_name, latitude, longitude, accuracy_m, created_at
+                        FROM plant_observations
+                        WHERE user_id = ?
+                        ORDER BY created_at DESC, id DESC
             """,
             (uid,),
         ).fetchall()
 
-    return jsonify({"plants": [dict(row) for row in rows]})
+    return jsonify({
+        "plants": [dict(row) for row in rows],
+        "limit": {
+            "max_same_plant": MAX_SAME_PLANT_PER_LOCATION,
+            "radius_metres": OBSERVATION_RADIUS_METRES,
+        },
+    })
 
 
 @app.post("/api/state")
@@ -1595,14 +1707,6 @@ def save_state():
             latest_name = latest_rarity = None
 
     with get_db() as db:
-        existing_locations = {
-            row["slot"]: (row["Latitude"], row["Longitude"])
-            for row in db.execute(
-                "SELECT slot, Latitude, Longitude FROM plants WHERE user_id = ?",
-                (uid,),
-            ).fetchall()
-        }
-
         db.execute(
             """
             INSERT INTO game_state(user_id, points, score, latest_name, latest_rarity)
@@ -1638,14 +1742,11 @@ def save_state():
         for slot, item in enumerate(cleaned_slots):
             if item is None:
                 continue
-            latitude, longitude = existing_locations.get(slot, (None, None))
-            if latitude is None or longitude is None:
-                latitude, longitude = random_map_coordinates()
             db.execute(
                 """
                 INSERT INTO plants
-                    (user_id, slot, item_key, name, icon, rarity, kind, Latitude, Longitude)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    (user_id, slot, item_key, name, icon, rarity, kind)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     uid,
@@ -1655,8 +1756,6 @@ def save_state():
                     item["icon"],
                     item["rarity"],
                     item["kind"],
-                    latitude,
-                    longitude,
                 ),
             )
 

@@ -109,6 +109,9 @@
     let latestPlant = null;
     let achievements = [];
     let mapPlants = [];
+    let leafletMap = null;
+    let observationLayer = null;
+    let currentLocationLayer = null;
     let quests = null;
 
     // =========================================================
@@ -200,7 +203,10 @@
     const pickerSlotNumber = $('pickerSlotNumber');
     const collectionGrid = $('collectionGrid');
     const wikiList = $('wikiList');
-    const mapMarkers = $('mapMarkers');
+    const plantMap = $('plantMap');
+    const mapObservationCount = $('mapObservationCount');
+    const mapStatus = $('mapStatus');
+    const locateMeButton = $('locateMeButton');
     const clearPlotButton = $('clearPlotButton');
 
     // Classrooms / RBAC
@@ -508,50 +514,168 @@
         }
     }
 
-    async function loadMapPlants() {
+    function getCurrentLocation() {
+        return new Promise((resolve, reject) => {
+            if (!navigator.geolocation) {
+                reject(new Error('Location is not supported by this browser.'));
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                position => resolve({
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude,
+                    accuracy: position.coords.accuracy || 0
+                }),
+                error => {
+                    const messages = {
+                        1: 'Location permission is required to log a biodiversity snap.',
+                        2: 'Your location could not be determined. Try moving somewhere with better GPS reception.',
+                        3: 'Getting your location took too long. Please try again.'
+                    };
+                    reject(new Error(
+                        messages[error.code] ||
+                        'GardenQuest could not access your current location.'
+                    ));
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 12000,
+                    maximumAge: 15000
+                }
+            );
+        });
+    }
+
+    function ensureLeafletMap() {
+        if (!plantMap || !window.L) {
+            if (mapStatus) {
+                mapStatus.textContent = 'The interactive map library could not be loaded.';
+            }
+            return null;
+        }
+
+        if (leafletMap) {
+            return leafletMap;
+        }
+
+        leafletMap = L.map(plantMap).setView([-31.9505, 115.8605], 11);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(leafletMap);
+        observationLayer = L.layerGroup().addTo(leafletMap);
+        return leafletMap;
+    }
+
+    async function loadMapPlants(options = {}) {
         try {
-            const data = await api('/api/map-plants');
+            const data = await api('/api/observations');
             mapPlants = Array.isArray(data.plants) ? data.plants : [];
-            renderMapPlants();
+            renderMapPlants(options);
         } catch (error) {
             if (error.status === 401) {
                 showAuth();
                 return;
             }
-
+            if (mapStatus) {
+                mapStatus.textContent = 'Could not load your sightings.';
+            }
             showToast('Could not load plant locations.', 'fa-triangle-exclamation');
         }
     }
 
-    function renderMapPlants() {
-        if (!mapMarkers) {
+    function renderMapPlants(options = {}) {
+        const map = ensureLeafletMap();
+        if (mapObservationCount) {
+            const count = mapPlants.length;
+            mapObservationCount.textContent = `${count} ${count === 1 ? 'sighting' : 'sightings'}`;
+        }
+        if (!map || !observationLayer) {
             return;
         }
 
-        const mapWidth = 1764;
-        const mapHeight = 1194;
-
-        mapMarkers.innerHTML = mapPlants.map(plant => {
-            const x = Number(plant.longitude);
-            const y = Number(plant.latitude);
-
-            if (!Number.isFinite(x) || !Number.isFinite(y)) {
-                return '';
+        observationLayer.clearLayers();
+        const bounds = [];
+        mapPlants.forEach(observation => {
+            const latitude = Number(observation.latitude);
+            const longitude = Number(observation.longitude);
+            if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+                return;
             }
 
-            const left = Math.max(0, Math.min(100, (x / mapWidth) * 100));
-            const top = Math.max(0, Math.min(100, (y / mapHeight) * 100));
-            const label = escapeHtml(plant.name || 'Plant');
+            const displayName = observation.common_name || observation.scientific_name || observation.name || 'Plant';
+            const scientificLine = observation.scientific_name && observation.scientific_name !== displayName
+                ? `<em>${escapeHtml(observation.scientific_name)}</em><br>`
+                : '';
+            const rawDate = String(observation.created_at || '');
+            const dateText = rawDate
+                ? new Date(`${rawDate.replace(' ', 'T')}Z`).toLocaleString()
+                : 'Recently logged';
+            const accuracy = Number(observation.accuracy_m || 0);
+            const accuracyText = accuracy > 0 ? `GPS accuracy +/-${Math.round(accuracy)} m` : 'GPS location';
 
-            return `
-                <button class="map-marker" type="button"
-                    data-plant-id="${plant.id}"
-                    style="left: ${left}%; top: ${top}%;"
-                    title="${label}"
-                    aria-label="${label} location">
-                    <i class="fas fa-location-dot"></i>
-                </button>`;
-        }).join('');
+            L.marker([latitude, longitude]).bindPopup(`
+                <div class="map-popup">
+                    <strong>${escapeHtml(displayName)}</strong><br>
+                    ${scientificLine}
+                    <span>${escapeHtml(dateText)}</span><br>
+                    <small>${escapeHtml(accuracyText)}</small>
+                </div>
+            `).addTo(observationLayer);
+            bounds.push([latitude, longitude]);
+        });
+
+        if (mapStatus) {
+            mapStatus.textContent = mapPlants.length
+                ? 'Tap a marker to see what you found.'
+                : 'No sightings yet. Take a biodiversity snap to add the first one.';
+        }
+
+        if (options.focusObservation) {
+            const latitude = Number(options.focusObservation.latitude);
+            const longitude = Number(options.focusObservation.longitude);
+            if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
+                map.setView([latitude, longitude], 17);
+            }
+        } else if (options.fitBounds && bounds.length) {
+            bounds.length === 1
+                ? map.setView(bounds[0], 16)
+                : map.fitBounds(bounds, { padding: [24, 24], maxZoom: 17 });
+        }
+
+        setTimeout(() => map.invalidateSize(), 0);
+    }
+
+    async function locateOnMap() {
+        if (locateMeButton) locateMeButton.disabled = true;
+        if (mapStatus) mapStatus.textContent = 'Finding your current location...';
+        try {
+            const location = await getCurrentLocation();
+            const map = ensureLeafletMap();
+            if (!map) return;
+            currentLocationLayer?.remove();
+            currentLocationLayer = L.layerGroup().addTo(map);
+            L.circle([location.latitude, location.longitude], {
+                radius: Math.max(5, location.accuracy || 0),
+                weight: 1,
+                fillOpacity: 0.08
+            }).addTo(currentLocationLayer);
+            L.circleMarker([location.latitude, location.longitude], {
+                radius: 7,
+                weight: 3,
+                fillOpacity: 1
+            }).bindTooltip('You are here').addTo(currentLocationLayer);
+            map.setView([location.latitude, location.longitude], Math.max(map.getZoom(), 16));
+            if (mapStatus) {
+                mapStatus.textContent = `Current location found - accuracy +/-${Math.round(location.accuracy || 0)} m.`;
+            }
+        } catch (error) {
+            if (mapStatus) mapStatus.textContent = error.message;
+            showToast(error.message, 'fa-location-dot');
+        } finally {
+            if (locateMeButton) locateMeButton.disabled = false;
+        }
     }
 
     async function submitAuth(event) {
@@ -1914,13 +2038,18 @@
         }
 
         usePhotoButton.disabled = true;
-        cameraStatus.textContent = 'Identifying your plant...';
+        cameraStatus.textContent = 'Getting your current location...';
         cameraStatus.classList.remove('hidden');
 
         try {
+            const location = await getCurrentLocation();
+            cameraStatus.textContent = 'Identifying and logging your plant...';
             const imageBlob = await fetch(capturedImageData).then(response => response.blob());
             const formData = new FormData();
             formData.append('image', imageBlob, 'gardenquest-snap.jpg');
+            formData.append('latitude', String(location.latitude));
+            formData.append('longitude', String(location.longitude));
+            formData.append('accuracy', String(location.accuracy || 0));
 
             const data = await api('/api/identify', {
                 method: 'POST',
@@ -1938,8 +2067,26 @@
             points += 10 + Number(data.questUpdate?.reward || 0);
             updateStats();
             scheduleSave();
-            usePhotoButton.innerHTML = '<i class="fas fa-check"></i> Identified <span>+10 ★</span>';
-            showToast(`Identified as ${identification.common_name || identification.scientific_name}! +10 points.`, 'fa-leaf');
+            usePhotoButton.innerHTML = '<i class="fas fa-check"></i> Logged <span>+10 ★</span>';
+
+            if (data.observation) {
+                mapPlants = [
+                    data.observation,
+                    ...mapPlants.filter(item => item.id !== data.observation.id)
+                ];
+                renderMapPlants({ focusObservation: data.observation });
+            } else {
+                await loadMapPlants();
+            }
+
+            const remaining = Number(data.remaining_at_location);
+            const remainingText = Number.isFinite(remaining)
+                ? ` ${remaining} more of this species can be logged near here.`
+                : '';
+            showToast(
+                `Logged ${identification.common_name || identification.scientific_name} at your current location! +10 points.${remainingText}`,
+                'fa-location-dot'
+            );
             await loadQuests();
 
             // Reload achievements after snap
@@ -3692,6 +3839,11 @@
             loadQuests();
         }
 
+        if (viewId === 'mapView') {
+            loadMapPlants({ fitBounds: true });
+            setTimeout(() => leafletMap?.invalidateSize(), 0);
+        }
+
         window.scrollTo({
             top: 0,
             behavior: 'smooth'
@@ -4042,17 +4194,9 @@
                 )
         );
 
-        mapMarkers?.addEventListener('click', event => {
-            const marker = event.target.closest('.map-marker');
-            if (!marker) {
-                return;
-            }
-
-            const plant = mapPlants.find(item => String(item.id) === marker.dataset.plantId);
-            if (plant) {
-                showToast(`${plant.name} location`, 'fa-seedling');
-            }
-        });
+        if (locateMeButton) {
+            locateMeButton.addEventListener('click', locateOnMap);
+        }
 
         // Side menu
         menuToggleButton.addEventListener(
