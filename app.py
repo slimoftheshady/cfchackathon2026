@@ -461,6 +461,168 @@ PLAYER_LEVEL_XP_THRESHOLDS = [
     (10, 2300),
 ]
 
+# ============================================================
+# Stage 5: strategic garden
+# ============================================================
+
+PLANT_PASSIVES = {
+    "kangaroo-paw": {
+        "name": "Kangaroo Paw",
+        "icon": "fa-leaf",
+        "effect": "+10% coins from biodiversity snaps",
+        "effect_key": "snap_coin_bonus",
+        "percent": 10,
+    },
+    "featherflower": {
+        "name": "Featherflower",
+        "icon": "fa-seedling",
+        "effect": "+10% XP from biodiversity snaps",
+        "effect_key": "snap_xp_bonus",
+        "percent": 10,
+    },
+    "spider-orchid": {
+        "name": "Spider Orchid",
+        "icon": "fa-cannabis",
+        "effect": "+20% coins and XP for new-area discoveries",
+        "effect_key": "new_area_bonus",
+        "percent": 20,
+    },
+    "queen-of-sheba": {
+        "name": "Queen of Sheba Orchid",
+        "icon": "fa-clover",
+        "effect": "+25% coins and XP for first-ever species",
+        "effect_key": "first_species_bonus",
+        "percent": 25,
+    },
+}
+
+STRUCTURES = {
+    "nursery": {
+        "item_key": "structure-nursery",
+        "name": "Nursery",
+        "icon": "fa-house-chimney-window",
+        "description": "Propagate seeds more efficiently. While placed, seed packets cost 50 instead of 60 coins.",
+        "effect": "Seed packets cost 50 coins",
+        "cost": 300,
+        "player_level": 2,
+        "garden_level": 2,
+        "unique_species": 0,
+    },
+    "research-station": {
+        "item_key": "structure-research-station",
+        "name": "Research Station",
+        "icon": "fa-microscope",
+        "description": "Turn field observations into better research notes. While placed, biodiversity snaps earn +10% XP.",
+        "effect": "+10% biodiversity-snap XP",
+        "cost": 600,
+        "player_level": 3,
+        "garden_level": 3,
+        "unique_species": 5,
+    },
+    "birdhouse": {
+        "item_key": "structure-birdhouse",
+        "name": "Birdhouse",
+        "icon": "fa-dove",
+        "description": "Support visiting birds and community monitoring. While placed, community milestone coin rewards are +10%.",
+        "effect": "+10% community milestone coins",
+        "cost": 500,
+        "player_level": 3,
+        "garden_level": 3,
+        "unique_species": 5,
+    },
+    "water-tank": {
+        "item_key": "structure-water-tank",
+        "name": "Water Tank",
+        "icon": "fa-droplet",
+        "description": "Store water for future garden expansion. While placed, garden upgrades cost 10% fewer coins.",
+        "effect": "Garden upgrades cost 10% fewer coins",
+        "cost": 450,
+        "player_level": 3,
+        "garden_level": 3,
+        "unique_species": 3,
+    },
+}
+
+SEED_PLANT_POOL = [
+    {"key": "kangaroo-paw", "name": "Kangaroo Paw", "icon": "fa-leaf", "rarity": "common", "kind": "plant"},
+    {"key": "paper-daisy", "name": "Paper Daisy", "icon": "fa-leaf", "rarity": "common", "kind": "plant"},
+    {"key": "pigface", "name": "Pigface", "icon": "fa-leaf", "rarity": "common", "kind": "plant"},
+    {"key": "fringe-lily", "name": "Fringe Lily", "icon": "fa-leaf", "rarity": "common", "kind": "plant"},
+    {"key": "blue-leschenaultia", "name": "Blue Leschenaultia", "icon": "fa-seedling", "rarity": "rare", "kind": "plant"},
+    {"key": "featherflower", "name": "Featherflower", "icon": "fa-seedling", "rarity": "rare", "kind": "plant"},
+    {"key": "cowslip-orchid", "name": "Cowslip Orchid", "icon": "fa-seedling", "rarity": "rare", "kind": "plant"},
+    {"key": "donkey-orchid", "name": "Donkey Orchid", "icon": "fa-seedling", "rarity": "rare", "kind": "plant"},
+    {"key": "qualup-bell", "name": "Qualup Bell", "icon": "fa-cannabis", "rarity": "epic", "kind": "plant"},
+    {"key": "wreath-flower", "name": "Wreath Flower", "icon": "fa-cannabis", "rarity": "epic", "kind": "plant"},
+    {"key": "spider-orchid", "name": "Spider Orchid", "icon": "fa-cannabis", "rarity": "epic", "kind": "plant"},
+    {"key": "pixie-mops", "name": "Pixie Mops", "icon": "fa-cannabis", "rarity": "epic", "kind": "plant"},
+    {"key": "rhizanthella-gardneri", "name": "Rhizanthella Gardneri", "icon": "fa-clover", "rarity": "legendary", "kind": "plant"},
+    {"key": "drakaea", "name": "Drakaea", "icon": "fa-clover", "rarity": "legendary", "kind": "plant"},
+    {"key": "queen-of-sheba", "name": "Queen of Sheba Orchid", "icon": "fa-clover", "rarity": "legendary", "kind": "plant"},
+    {"key": "custard-orchid", "name": "Custard Orchid", "icon": "fa-clover", "rarity": "legendary", "kind": "plant"},
+]
+
+STARTER_ITEMS = [
+    {
+        "key": "kangaroo-paw",
+        "name": "Kangaroo Paw",
+        "icon": "fa-leaf",
+        "rarity": "common",
+        "kind": "plant",
+    },
+    {
+        "key": "featherflower",
+        "name": "Featherflower",
+        "icon": "fa-seedling",
+        "rarity": "rare",
+        "kind": "plant",
+    },
+    {
+        "key": "pixie-mops",
+        "name": "Pixie Mops",
+        "icon": "fa-cannabis",
+        "rarity": "epic",
+        "kind": "plant",
+    },
+    {
+        "key": "custard-orchid",
+        "name": "Custard Orchid",
+        "icon": "fa-clover",
+        "rarity": "legendary",
+        "kind": "plant",
+    },
+]
+
+SEED_RARITY_XP = {
+    "common": 25,
+    "rare": 50,
+    "epic": 70,
+    "legendary": 100,
+}
+
+ACHIEVEMENTS = {
+    "first_plant": {"name": "First Steps", "description": "Grow your first plant", "icon": "fa-seedling", "points": 10, "max_progress": 1},
+    "plant_collector_10": {"name": "Plant Collector", "description": "Grow 10 plants", "icon": "fa-leaf", "points": 25, "max_progress": 10},
+    "plant_collector_50": {"name": "Botanist", "description": "Grow 50 plants", "icon": "fa-tree", "points": 50, "max_progress": 50},
+    "plant_collector_100": {"name": "Master Botanist", "description": "Grow 100 plants", "icon": "fa-crown", "points": 100, "max_progress": 100},
+    "rare_collector": {"name": "Rare Finder", "description": "Find your first rare plant", "icon": "fa-gem", "points": 30, "max_progress": 1},
+    "rare_collector_5": {"name": "Rare Collector", "description": "Find 5 rare plants", "icon": "fa-gem", "points": 50, "max_progress": 5},
+    "epic_collector": {"name": "Epic Seeker", "description": "Find your first epic plant", "icon": "fa-star", "points": 50, "max_progress": 1},
+    "epic_collector_3": {"name": "Epic Collector", "description": "Find 3 epic plants", "icon": "fa-star", "points": 75, "max_progress": 3},
+    "legendary_collector": {"name": "Legendary Hunter", "description": "Find your first legendary plant", "icon": "fa-crown", "points": 100, "max_progress": 1},
+    "legendary_collector_3": {"name": "Legendary Master", "description": "Find 3 legendary plants", "icon": "fa-crown", "points": 200, "max_progress": 3},
+    "score_500": {"name": "500 Score", "description": "Reach 500 total score", "icon": "fa-medal", "points": 50, "max_progress": 500},
+    "score_1000": {"name": "1000 Score", "description": "Reach 1000 total score", "icon": "fa-medal", "points": 100, "max_progress": 1000},
+    "score_5000": {"name": "5000 Score", "description": "Reach 5000 total score", "icon": "fa-trophy", "points": 200, "max_progress": 5000},
+    "snap_10": {"name": "Nature Photographer", "description": "Take 10 biodiversity snaps", "icon": "fa-camera", "points": 25, "max_progress": 10},
+    "snap_50": {"name": "Wildlife Photographer", "description": "Take 50 biodiversity snaps", "icon": "fa-camera", "points": 50, "max_progress": 50},
+    "gacha_10": {"name": "Seed Collector", "description": "Open 10 seed packets", "icon": "fa-gift", "points": 30, "max_progress": 10},
+    "gacha_50": {"name": "Seed Master", "description": "Open 50 seed packets", "icon": "fa-gift", "points": 60, "max_progress": 50},
+    "garden_full": {"name": "Full Garden", "description": "Fill all 16 garden slots", "icon": "fa-rainbow", "points": 50, "max_progress": 16},
+    "complete_collection": {"name": "Complete Collection", "description": "Unlock all plants", "icon": "fa-trophy", "points": 500, "max_progress": 16},
+}
+
+
 
 # Wildlife is no longer bought directly.
 # Building a habitat permanently unlocks its animal.
@@ -751,6 +913,31 @@ def init_db():
 
             CREATE INDEX IF NOT EXISTS idx_user_habitats_user
                 ON user_habitats(user_id, built_at);
+
+            CREATE TABLE IF NOT EXISTS user_structures (
+                user_id INTEGER NOT NULL,
+                structure_key TEXT NOT NULL,
+                built_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id, structure_key),
+                FOREIGN KEY (user_id)
+                    REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_user_structures_user
+                ON user_structures(user_id, built_at);
+
+            CREATE TABLE IF NOT EXISTS trusted_plant_unlocks (
+                user_id INTEGER NOT NULL,
+                item_key TEXT NOT NULL,
+                source TEXT NOT NULL DEFAULT 'game',
+                unlocked_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id, item_key),
+                FOREIGN KEY (user_id)
+                    REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_trusted_plant_unlocks_user
+                ON trusted_plant_unlocks(user_id, unlocked_at);
 
             CREATE TABLE IF NOT EXISTS friendships (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -1144,6 +1331,22 @@ def init_db():
             """
         )
 
+        db.execute(
+            """
+            INSERT OR IGNORE INTO trusted_plant_unlocks(
+                user_id,
+                item_key,
+                source
+            )
+            SELECT
+                user_id,
+                item_key,
+                'legacy'
+            FROM collection_items
+            WHERE kind = 'plant'
+            """
+        )
+
         special_columns = {
             row[1] for row in db.execute("PRAGMA table_info(special_quests)")
         }
@@ -1384,6 +1587,11 @@ def state_for_user(db, user_id):
                 "kind": row["kind"] or "plant",
             }
 
+    ensure_structure_items(
+        db,
+        user_id,
+    )
+
     ensure_habitat_animals(
         db,
         user_id,
@@ -1446,16 +1654,24 @@ def state_for_user(db, user_id):
         ),
         "gardenSlots": garden_slots,
         "collection": collection,
-        "garden": {
-            "level": garden_level,
-            "unlockedPlots": unlocked_plots,
-            "maxPlots": MAX_GARDEN_SLOTS,
-            "nextLevel": next_upgrade["level"] if next_upgrade else None,
-            "nextCost": next_upgrade["cost"] if next_upgrade else None,
-            "nextPlots": next_upgrade["plots"] if next_upgrade else None,
-        },
+        "garden":
+            garden_upgrade_details_for_user(
+                db,
+                user_id,
+                state["garden_level"],
+            ),
         "biodiversity": biodiversity_snapshot(db, user_id),
-        "habitats": habitat_snapshot(db, user_id),
+        "habitats":
+            habitat_snapshot(
+                db,
+                user_id,
+            ),
+
+        "gardenStrategy":
+            garden_strategy_snapshot(
+                db,
+                user_id,
+            ),
     }
 
 
@@ -1681,6 +1897,527 @@ def player_level_from_xp(
             break
 
     return level
+
+
+
+def active_garden_item_keys(
+    db,
+    user_id,
+):
+    keys = set()
+
+    for row in db.execute(
+        """
+        SELECT
+            item_key,
+            name
+        FROM plants
+        WHERE user_id = ?
+        """,
+        (user_id,),
+    ).fetchall():
+        key = (
+            row["item_key"]
+            or slugify(
+                row["name"]
+            )
+        )
+
+        if key:
+            keys.add(key)
+
+    return keys
+
+
+def built_structure_keys(
+    db,
+    user_id,
+):
+    return {
+        row["structure_key"]
+        for row in db.execute(
+            """
+            SELECT structure_key
+            FROM user_structures
+            WHERE user_id = ?
+            """,
+            (user_id,),
+        ).fetchall()
+    }
+
+
+def trusted_plant_keys(
+    db,
+    user_id,
+):
+    return {
+        row["item_key"]
+        for row in db.execute(
+            """
+            SELECT item_key
+            FROM trusted_plant_unlocks
+            WHERE user_id = ?
+            """,
+            (user_id,),
+        ).fetchall()
+    }
+
+
+def active_built_structure_item_keys(
+    db,
+    user_id,
+):
+    active = active_garden_item_keys(
+        db,
+        user_id,
+    )
+
+    built = built_structure_keys(
+        db,
+        user_id,
+    )
+
+    return {
+        STRUCTURES[key]["item_key"]
+        for key in built
+        if key in STRUCTURES
+        and STRUCTURES[key]["item_key"] in active
+    }
+
+
+def ensure_structure_items(
+    db,
+    user_id,
+):
+    built = built_structure_keys(
+        db,
+        user_id,
+    )
+
+    for structure_key in built:
+        config = STRUCTURES.get(
+            structure_key
+        )
+
+        if not config:
+            continue
+
+        db.execute(
+            """
+            INSERT OR IGNORE INTO collection_items(
+                user_id,
+                item_key,
+                name,
+                icon,
+                rarity,
+                kind
+            )
+            VALUES (?, ?, ?, ?, 'decor', 'decor')
+            """,
+            (
+                user_id,
+                config["item_key"],
+                config["name"],
+                config["icon"],
+            ),
+        )
+
+
+def seed_packet_cost(
+    db,
+    user_id,
+):
+    active_structures = active_built_structure_item_keys(
+        db,
+        user_id,
+    )
+
+    return (
+        50
+        if "structure-nursery" in active_structures
+        else 60
+    )
+
+
+def garden_reward_modifiers(
+    db,
+    user_id,
+    reward_type,
+):
+    active = active_garden_item_keys(
+        db,
+        user_id,
+    )
+
+    trusted_plants = trusted_plant_keys(
+        db,
+        user_id,
+    )
+
+    active_structures = active_built_structure_item_keys(
+        db,
+        user_id,
+    )
+
+    coin_percent = 0
+    xp_percent = 0
+    effects = []
+
+    if (
+        "kangaroo-paw" in active
+        and "kangaroo-paw" in trusted_plants
+    ):
+        coin_percent += 10
+        effects.append("Kangaroo Paw")
+
+    if (
+        "featherflower" in active
+        and "featherflower" in trusted_plants
+    ):
+        xp_percent += 10
+        effects.append("Featherflower")
+
+    if (
+        reward_type == "new_area"
+        and "spider-orchid" in active
+        and "spider-orchid" in trusted_plants
+    ):
+        coin_percent += 20
+        xp_percent += 20
+        effects.append("Spider Orchid")
+
+    if (
+        reward_type == "first_species"
+        and "queen-of-sheba" in active
+        and "queen-of-sheba" in trusted_plants
+    ):
+        coin_percent += 25
+        xp_percent += 25
+        effects.append("Queen of Sheba Orchid")
+
+    if "structure-research-station" in active_structures:
+        xp_percent += 10
+        effects.append("Research Station")
+
+    return {
+        "coin_percent": coin_percent,
+        "xp_percent": xp_percent,
+        "effects": effects,
+    }
+
+
+def community_coin_multiplier(
+    db,
+    user_id,
+):
+    active_structures = active_built_structure_item_keys(
+        db,
+        user_id,
+    )
+
+    return (
+        1.10
+        if "structure-birdhouse" in active_structures
+        else 1.0
+    )
+
+
+def garden_level_details(level):
+    garden_level = max(1, int(level or 1))
+    current_upgrade = next(
+        (
+            upgrade
+            for upgrade in GARDEN_UPGRADES
+            if upgrade["level"] == garden_level
+        ),
+        None,
+    )
+    next_upgrade = next(
+        (
+            upgrade
+            for upgrade in GARDEN_UPGRADES
+            if upgrade["level"] > garden_level
+        ),
+        None,
+    )
+
+    return {
+        "level": garden_level,
+        "unlockedPlots": (
+            current_upgrade["plots"]
+            if current_upgrade
+            else MAX_GARDEN_SLOTS
+        ),
+        "maxPlots": MAX_GARDEN_SLOTS,
+        "nextLevel": next_upgrade["level"] if next_upgrade else None,
+        "nextCost": next_upgrade["cost"] if next_upgrade else None,
+        "nextPlots": next_upgrade["plots"] if next_upgrade else None,
+    }
+
+
+def garden_upgrade_details_for_user(
+    db,
+    user_id,
+    level,
+):
+    details = dict(
+        garden_level_details(
+            level
+        )
+    )
+
+    base_cost = details.get(
+        "nextCost"
+    )
+
+    active_structures = active_built_structure_item_keys(
+        db,
+        user_id,
+    )
+
+    discount = (
+        10
+        if "structure-water-tank" in active_structures
+        else 0
+    )
+
+    effective_cost = base_cost
+
+    if (
+        base_cost is not None
+        and discount
+    ):
+        effective_cost = max(
+            1,
+            int(
+                math.floor(
+                    base_cost
+                    * (1 - discount / 100)
+                    + 0.5
+                )
+            ),
+        )
+
+    details["baseNextCost"] = base_cost
+    details["nextCost"] = effective_cost
+    details["discountPercent"] = discount
+
+    return details
+
+
+def garden_strategy_snapshot(
+    db,
+    user_id,
+):
+    ensure_structure_items(
+        db,
+        user_id,
+    )
+
+    state = db.execute(
+        """
+        SELECT
+            points,
+            score,
+            garden_level
+        FROM game_state
+        WHERE user_id = ?
+        """,
+        (user_id,),
+    ).fetchone()
+
+    coins = int(
+        state["points"]
+        if state
+        else 0
+    )
+
+    xp = int(
+        state["score"]
+        if state
+        else 0
+    )
+
+    garden_level = int(
+        state["garden_level"]
+        if state
+        else 1
+    )
+
+    player_level = player_level_from_xp(
+        xp
+    )
+
+    unique_species = int(
+        db.execute(
+            """
+            SELECT COUNT(DISTINCT taxon_key)
+            FROM plant_observations
+            WHERE user_id = ?
+            """,
+            (user_id,),
+        ).fetchone()[0]
+        or 0
+    )
+
+    active = active_garden_item_keys(
+        db,
+        user_id,
+    )
+
+    built = built_structure_keys(
+        db,
+        user_id,
+    )
+
+    trusted_plants = trusted_plant_keys(
+        db,
+        user_id,
+    )
+
+    active_structures = active_built_structure_item_keys(
+        db,
+        user_id,
+    )
+
+    collection_keys = {
+        row["item_key"]
+        for row in db.execute(
+            """
+            SELECT item_key
+            FROM collection_items
+            WHERE user_id = ?
+            """,
+            (user_id,),
+        ).fetchall()
+    }
+
+    passive_items = []
+    active_effects = []
+
+    for key, passive in PLANT_PASSIVES.items():
+        owned = (
+            key in collection_keys
+            and key in trusted_plants
+        )
+
+        placed = (
+            key in active
+            and key in trusted_plants
+        )
+
+        passive_items.append(
+            {
+                "key": key,
+                "name": passive["name"],
+                "icon": passive["icon"],
+                "effect": passive["effect"],
+                "owned": owned,
+                "placed": placed,
+            }
+        )
+
+        if placed:
+            active_effects.append(
+                {
+                    "source": passive["name"],
+                    "icon": passive["icon"],
+                    "effect": passive["effect"],
+                    "type": "plant",
+                }
+            )
+
+    structure_items = []
+
+    for structure_key, config in STRUCTURES.items():
+        is_built = structure_key in built
+        is_placed = (
+            is_built
+            and config["item_key"] in active_structures
+        )
+
+        player_met = (
+            player_level
+            >= config["player_level"]
+        )
+
+        garden_met = (
+            garden_level
+            >= config["garden_level"]
+        )
+
+        species_met = (
+            unique_species
+            >= config["unique_species"]
+        )
+
+        coins_met = (
+            coins
+            >= config["cost"]
+        )
+
+        structure_items.append(
+            {
+                "key": structure_key,
+                "itemKey": config["item_key"],
+                "name": config["name"],
+                "icon": config["icon"],
+                "description": config["description"],
+                "effect": config["effect"],
+                "cost": config["cost"],
+                "requiredPlayerLevel": config["player_level"],
+                "currentPlayerLevel": player_level,
+                "playerLevelMet": player_met,
+                "requiredGardenLevel": config["garden_level"],
+                "currentGardenLevel": garden_level,
+                "gardenLevelMet": garden_met,
+                "requiredUniqueSpecies": config["unique_species"],
+                "currentUniqueSpecies": unique_species,
+                "uniqueSpeciesMet": species_met,
+                "coinsMet": coins_met,
+                "built": is_built,
+                "placed": is_placed,
+                "canBuild": (
+                    not is_built
+                    and player_met
+                    and garden_met
+                    and species_met
+                    and coins_met
+                ),
+            }
+        )
+
+        if is_placed:
+            active_effects.append(
+                {
+                    "source": config["name"],
+                    "icon": config["icon"],
+                    "effect": config["effect"],
+                    "type": "structure",
+                }
+            )
+
+    return {
+        "builtCount": len(built),
+        "totalStructures": len(STRUCTURES),
+        "playerLevel": player_level,
+        "gardenLevel": garden_level,
+        "uniqueSpecies": unique_species,
+        "seedPacketCost": seed_packet_cost(db, user_id),
+        "gardenUpgradeDiscountPercent": (
+            10
+            if "structure-water-tank" in active_structures
+            else 0
+        ),
+        "communityCoinBonusPercent": (
+            10
+            if "structure-birdhouse" in active_structures
+            else 0
+        ),
+        "plantPassives": passive_items,
+        "structures": structure_items,
+        "activeEffects": active_effects,
+    }
 
 
 def ensure_habitat_animals(
@@ -3620,7 +4357,7 @@ def identify():
             else 1.0
         )
 
-        coin_reward = int(
+        streak_coin_reward = int(
             math.floor(
                 base_coins
                 * reward_multiplier
@@ -3628,12 +4365,50 @@ def identify():
             )
         )
 
-        xp_reward = int(
+        streak_xp_reward = int(
             math.floor(
                 base_xp
                 * reward_multiplier
                 + 0.5
             )
+        )
+
+        garden_modifiers = garden_reward_modifiers(
+            db,
+            uid,
+            reward_type,
+        )
+
+        coin_reward = int(
+            math.floor(
+                streak_coin_reward
+                * (
+                    1
+                    + garden_modifiers["coin_percent"] / 100
+                )
+                + 0.5
+            )
+        )
+
+        xp_reward = int(
+            math.floor(
+                streak_xp_reward
+                * (
+                    1
+                    + garden_modifiers["xp_percent"] / 100
+                )
+                + 0.5
+            )
+        )
+
+        garden_bonus_coins = (
+            coin_reward
+            - streak_coin_reward
+        )
+
+        garden_bonus_xp = (
+            xp_reward
+            - streak_xp_reward
         )
 
         # -----------------------------------------
@@ -3798,8 +4573,21 @@ def identify():
             "xp": xp_reward,
             "baseCoins": base_coins,
             "baseXp": base_xp,
-            "multiplier": reward_multiplier,
-            "newDailySpecies": new_daily_species,
+                    "multiplier":
+                        reward_multiplier,
+
+                    "gardenBonusCoins":
+                        garden_bonus_coins,
+
+                    "gardenBonusXp":
+                        garden_bonus_xp,
+
+                    "gardenEffects":
+                        garden_modifiers[
+                            "effects"
+                        ],
+
+                    "newDailySpecies": new_daily_species,
             "firstSpecies": first_species,
             "newArea": new_area,
             "nearestPreviousMetres": (
@@ -3836,21 +4624,192 @@ def list_quests():
         return jsonify({"quests": quest_snapshot(db, uid)})
 
 
+
+@app.post("/api/gacha/pull")
+def pull_seed_packet():
+    uid, error = login_required()
+
+    if error:
+        return error
+
+    with get_db() as db:
+        db.execute(
+            """
+            INSERT OR IGNORE INTO game_state(user_id)
+            VALUES (?)
+            """,
+            (uid,),
+        )
+
+        state = db.execute(
+            """
+            SELECT
+                points,
+                score
+            FROM game_state
+            WHERE user_id = ?
+            """,
+            (uid,),
+        ).fetchone()
+
+        coins = int(state["points"] or 0)
+        xp = int(state["score"] or 0)
+        player_level = player_level_from_xp(xp)
+
+        if player_level < 2:
+            return jsonify(
+                {
+                    "error": "Reach Player Level 2 before opening seed packets."
+                }
+            ), 403
+
+        cost = seed_packet_cost(
+            db,
+            uid,
+        )
+
+        if coins < cost:
+            return jsonify(
+                {
+                    "error": f"You need {cost} coins to open a seed packet.",
+                    "required": cost,
+                    "coins": coins,
+                }
+            ), 409
+
+        roll = secrets.randbelow(100)
+
+        if roll < 80:
+            rarity = "common"
+        elif roll < 90:
+            rarity = "rare"
+        elif roll < 98:
+            rarity = "epic"
+        else:
+            rarity = "legendary"
+
+        pool = [
+            item
+            for item in SEED_PLANT_POOL
+            if item["rarity"] == rarity
+        ]
+
+        plant = secrets.choice(pool)
+
+        already_unlocked = db.execute(
+            """
+            SELECT 1
+            FROM collection_items
+            WHERE
+                user_id = ?
+                AND item_key = ?
+            """,
+            (uid, plant["key"]),
+        ).fetchone() is not None
+
+        if not already_unlocked:
+            db.execute(
+                """
+                INSERT INTO collection_items(
+                    user_id,
+                    item_key,
+                    name,
+                    icon,
+                    rarity,
+                    kind
+                )
+                VALUES (?, ?, ?, ?, ?, 'plant')
+                """,
+                (
+                    uid,
+                    plant["key"],
+                    plant["name"],
+                    plant["icon"],
+                    plant["rarity"],
+                ),
+            )
+
+        db.execute(
+            """
+            INSERT OR IGNORE INTO trusted_plant_unlocks(
+                user_id,
+                item_key,
+                source
+            )
+            VALUES (?, ?, 'seed_packet')
+            """,
+            (uid, plant["key"]),
+        )
+
+        xp_reward = int(
+            SEED_RARITY_XP[rarity]
+        )
+
+        db.execute(
+            """
+            UPDATE game_state
+            SET
+                points = points - ?,
+                score = score + ?,
+                gacha_pulls = gacha_pulls + 1,
+                latest_name = ?,
+                latest_rarity = ?
+            WHERE user_id = ?
+            """,
+            (
+                cost,
+                xp_reward,
+                plant["name"],
+                plant["rarity"],
+                uid,
+            ),
+        )
+
+        quest_update = apply_quest_event(
+            db,
+            uid,
+            "gacha",
+        )
+
+        new_achievements = check_and_update_achievements(
+            db,
+            uid,
+        )
+
+        state_payload = state_for_user(
+            db,
+            uid,
+        )
+
+    return jsonify(
+        {
+            "plant": plant,
+            "rarity": rarity,
+            "cost": cost,
+            "xpReward": xp_reward,
+            "alreadyUnlocked": already_unlocked,
+            "questUpdate": quest_update,
+            "newAchievements": new_achievements,
+            "state": state_payload,
+        }
+    )
+
+
 @app.post("/api/quests/event")
 def quest_event():
     uid, error = login_required()
+
     if error:
         return error
-    data = request.get_json(silent=True) or {}
-    event_type = str(data.get("event", "")).strip().lower()
-    if event_type != "gacha":
-        return jsonify({"error": "Unsupported quest event."}), 400
-    with get_db() as db:
-        update = apply_quest_event(db, uid, event_type)
-    return jsonify({"questUpdate": update})
 
-
-
+    return jsonify(
+        {
+            "error": (
+                "Direct quest events are disabled. "
+                "Open the seed packet through the Seed store."
+            )
+        }
+    ), 410
 
 @app.post("/api/quests/daily/<quest_key>/claim")
 def claim_daily_quest(
@@ -4174,13 +5133,12 @@ def claim_weekly_quest(
     )
 
 
+
 @app.post("/api/quests/community/<int:milestone_target>/claim")
 def claim_community_milestone(
     milestone_target,
 ):
-    uid, error = (
-        login_required()
-    )
+    uid, error = login_required()
 
     if error:
         return error
@@ -4188,108 +5146,66 @@ def claim_community_milestone(
     milestone = next(
         (
             item
-            for item
-            in COMMUNITY_QUEST[
-                "milestones"
-            ]
-            if int(
-                item[
-                    "target"
-                ]
-            )
-            == milestone_target
+            for item in COMMUNITY_QUEST["milestones"]
+            if int(item["target"]) == milestone_target
         ),
         None,
     )
 
     if not milestone:
         return jsonify(
-            {
-                "error":
-                    (
-                        "Community milestone "
-                        "not found."
-                    )
-            }
+            {"error": "Community milestone not found."}
         ), 404
 
     with get_db() as db:
-
-        progress_row = (
-            db.execute(
-                """
-                SELECT progress
-                FROM community_quest_state
-                WHERE quest_key = ?
-                """,
-                (
-                    COMMUNITY_QUEST[
-                        "key"
-                    ],
-                ),
-            ).fetchone()
-        )
+        progress_row = db.execute(
+            """
+            SELECT progress
+            FROM community_quest_state
+            WHERE quest_key = ?
+            """,
+            (COMMUNITY_QUEST["key"],),
+        ).fetchone()
 
         progress = int(
-            progress_row[
-                "progress"
-            ]
+            progress_row["progress"]
             if progress_row
             else 0
         )
 
-        if (
-            progress
-            < milestone_target
-        ):
+        if progress < milestone_target:
             return jsonify(
                 {
-                    "error":
-                        (
-                            "That community milestone "
-                            "has not been reached yet."
-                        )
+                    "error": "That community milestone has not been reached yet."
                 }
             ), 400
 
-        contribution_row = (
-            db.execute(
-                """
-                SELECT contribution
-                FROM community_contributions
-                WHERE
-                    quest_key = ?
-                    AND user_id = ?
-                """,
-                (
-                    COMMUNITY_QUEST[
-                        "key"
-                    ],
-                    uid,
-                ),
-            ).fetchone()
-        )
+        contribution_row = db.execute(
+            """
+            SELECT contribution
+            FROM community_contributions
+            WHERE
+                quest_key = ?
+                AND user_id = ?
+            """,
+            (
+                COMMUNITY_QUEST["key"],
+                uid,
+            ),
+        ).fetchone()
 
         contribution = int(
-            contribution_row[
-                "contribution"
-            ]
+            contribution_row["contribution"]
             if contribution_row
             else 0
         )
 
-        if (
-            contribution
-            <= 0
-        ):
+        if contribution <= 0:
             return jsonify(
                 {
-                    "error":
-                        (
-                            "Make at least one biodiversity "
-                            "contribution before claiming "
-                            "community rewards."
-                        )
+                    "error": (
+                        "Make at least one biodiversity contribution before claiming community rewards."
+                    )
                 }
             ), 403
 
@@ -4303,9 +5219,7 @@ def claim_community_milestone(
                 AND user_id = ?
             """,
             (
-                COMMUNITY_QUEST[
-                    "key"
-                ],
+                COMMUNITY_QUEST["key"],
                 milestone_target,
                 uid,
             ),
@@ -4314,11 +5228,7 @@ def claim_community_milestone(
         if claimed:
             return jsonify(
                 {
-                    "error":
-                        (
-                            "You have already claimed "
-                            "this community milestone."
-                        )
+                    "error": "You have already claimed this community milestone."
                 }
             ), 409
 
@@ -4332,35 +5242,40 @@ def claim_community_milestone(
             VALUES (?, ?, ?)
             """,
             (
-                COMMUNITY_QUEST[
-                    "key"
-                ],
+                COMMUNITY_QUEST["key"],
                 milestone_target,
                 uid,
             ),
+        )
+
+        multiplier = community_coin_multiplier(
+            db,
+            uid,
+        )
+
+        coin_reward = int(
+            math.floor(
+                milestone["reward"]
+                * multiplier
+                + 0.5
+            )
+        )
+
+        xp_reward = int(
+            milestone["xp_reward"]
         )
 
         db.execute(
             """
             UPDATE game_state
             SET
-                points =
-                    points + ?,
-
-                score =
-                    score + ?
-
+                points = points + ?,
+                score = score + ?
             WHERE user_id = ?
             """,
             (
-                milestone[
-                    "reward"
-                ],
-
-                milestone[
-                    "xp_reward"
-                ],
-
+                coin_reward,
+                xp_reward,
                 uid,
             ),
         )
@@ -4373,44 +5288,20 @@ def claim_community_milestone(
             FROM game_state
             WHERE user_id = ?
             """,
-            (
-                uid,
-            ),
+            (uid,),
         ).fetchone()
 
     return jsonify(
         {
-            "target":
-                milestone_target,
-
-            "reward":
-                milestone[
-                    "reward"
-                ],
-
-            "xp_reward":
-                milestone[
-                    "xp_reward"
-                ],
-
-            "balance":
-                {
-                    "coins":
-                        int(
-                            balance[
-                                "points"
-                            ]
-                            or 0
-                        ),
-
-                    "xp":
-                        int(
-                            balance[
-                                "score"
-                            ]
-                            or 0
-                        ),
-                },
+            "target": milestone_target,
+            "reward": coin_reward,
+            "baseReward": milestone["reward"],
+            "xp_reward": xp_reward,
+            "birdhouseBonus": coin_reward - milestone["reward"],
+            "balance": {
+                "coins": int(balance["points"] or 0),
+                "xp": int(balance["score"] or 0),
+            },
         }
     )
 
@@ -4691,6 +5582,167 @@ def map_plants():
         },
     })
 
+
+
+
+@app.post("/api/structures/<structure_key>/build")
+def build_structure(
+    structure_key,
+):
+    uid, error = login_required()
+
+    if error:
+        return error
+
+    structure_key = str(
+        structure_key
+        or ""
+    ).strip().lower()
+
+    config = STRUCTURES.get(
+        structure_key
+    )
+
+    if not config:
+        return jsonify(
+            {
+                "error": "That garden structure does not exist."
+            }
+        ), 404
+
+    with get_db() as db:
+        db.execute(
+            """
+            INSERT OR IGNORE INTO game_state(user_id)
+            VALUES (?)
+            """,
+            (uid,),
+        )
+
+        existing = db.execute(
+            """
+            SELECT 1
+            FROM user_structures
+            WHERE
+                user_id = ?
+                AND structure_key = ?
+            """,
+            (uid, structure_key),
+        ).fetchone()
+
+        if existing:
+            return jsonify(
+                {
+                    "error": f"You have already built {config['name']}."
+                }
+            ), 409
+
+        state = db.execute(
+            """
+            SELECT
+                points,
+                score,
+                garden_level
+            FROM game_state
+            WHERE user_id = ?
+            """,
+            (uid,),
+        ).fetchone()
+
+        coins = int(state["points"] or 0)
+        xp = int(state["score"] or 0)
+        garden_level = int(state["garden_level"] or 1)
+        player_level = player_level_from_xp(xp)
+
+        unique_species = int(
+            db.execute(
+                """
+                SELECT COUNT(DISTINCT taxon_key)
+                FROM plant_observations
+                WHERE user_id = ?
+                """,
+                (uid,),
+            ).fetchone()[0]
+            or 0
+        )
+
+        missing = []
+
+        if player_level < config["player_level"]:
+            missing.append(
+                f"Player Level {config['player_level']}"
+            )
+
+        if garden_level < config["garden_level"]:
+            missing.append(
+                f"Garden Level {config['garden_level']}"
+            )
+
+        if unique_species < config["unique_species"]:
+            missing.append(
+                f"{config['unique_species']} different species discovered"
+            )
+
+        if missing:
+            return jsonify(
+                {
+                    "error": "Complete the structure requirements first: " + ", ".join(missing) + ".",
+                    "gardenStrategy": garden_strategy_snapshot(db, uid),
+                }
+            ), 409
+
+        cost = int(config["cost"])
+
+        if coins < cost:
+            return jsonify(
+                {
+                    "error": f"You need {cost} coins to build {config['name']}.",
+                    "required": cost,
+                    "coins": coins,
+                    "gardenStrategy": garden_strategy_snapshot(db, uid),
+                }
+            ), 409
+
+        db.execute(
+            """
+            UPDATE game_state
+            SET points = points - ?
+            WHERE user_id = ?
+            """,
+            (cost, uid),
+        )
+
+        db.execute(
+            """
+            INSERT INTO user_structures(
+                user_id,
+                structure_key
+            )
+            VALUES (?, ?)
+            """,
+            (uid, structure_key),
+        )
+
+        ensure_structure_items(
+            db,
+            uid,
+        )
+
+        state_payload = state_for_user(
+            db,
+            uid,
+        )
+
+    return jsonify(
+        {
+            "ok": True,
+            "message": (
+                f"{config['name']} built! Place it in an unlocked garden plot to activate {config['effect'].lower()}."
+            ),
+            "state": state_payload,
+            "gardenStrategy": state_payload["gardenStrategy"],
+        }
+    )
 
 
 @app.post("/api/habitats/<habitat_key>/build")
@@ -5011,63 +6063,104 @@ def build_habitat(
     )
 
 
+
 @app.post("/api/garden/upgrade")
 def upgrade_garden():
     uid, error = login_required()
+
     if error:
         return error
 
     with get_db() as db:
+        db.execute(
+            """
+            INSERT OR IGNORE INTO game_state(user_id)
+            VALUES (?)
+            """,
+            (uid,),
+        )
+
         state = db.execute(
-            "SELECT points, garden_level FROM game_state WHERE user_id = ?",
+            """
+            SELECT
+                points,
+                garden_level
+            FROM game_state
+            WHERE user_id = ?
+            """,
             (uid,),
         ).fetchone()
-        if not state:
-            db.execute("INSERT INTO game_state(user_id) VALUES (?)", (uid,))
-            state = db.execute(
-                "SELECT points, garden_level FROM game_state WHERE user_id = ?",
-                (uid,),
-            ).fetchone()
 
-        current_level = int(state["garden_level"] or 1)
-        upgrade = next(
-            (
-                item
-                for item in GARDEN_UPGRADES
-                if item["level"] == current_level + 1
-            ),
-            None,
+        current_level = max(
+            1,
+            int(state["garden_level"] or 1),
         )
-        if not upgrade:
-            return jsonify({"error": "Your garden is already fully expanded."}), 409
 
-        points = int(state["points"] or 0)
-        if points < upgrade["cost"]:
-            return jsonify({
-                "error": f"You need {upgrade['cost']} coins for the next garden upgrade.",
-                "required": upgrade["cost"],
-                "points": points,
-            }), 400
+        details = garden_upgrade_details_for_user(
+            db,
+            uid,
+            current_level,
+        )
+
+        if details["nextLevel"] is None:
+            return jsonify(
+                {
+                    "error": "Your garden is already fully expanded."
+                }
+            ), 409
+
+        cost = int(
+            details["nextCost"]
+            or 0
+        )
+
+        current_coins = int(
+            state["points"]
+            or 0
+        )
+
+        if current_coins < cost:
+            return jsonify(
+                {
+                    "error": f"You need {cost} coins to upgrade this garden.",
+                    "required": cost,
+                    "baseRequired": details.get("baseNextCost"),
+                    "discountPercent": details.get("discountPercent", 0),
+                    "coins": current_coins,
+                }
+            ), 409
+
+        new_level = details["nextLevel"]
+        new_coins = current_coins - cost
 
         db.execute(
             """
             UPDATE game_state
-            SET points = points - ?,
-                garden_level = ?,
-                unlocked_plots = ?
+            SET
+                points = ?,
+                garden_level = ?
             WHERE user_id = ?
             """,
-            (upgrade["cost"], upgrade["level"], upgrade["plots"], uid),
+            (
+                new_coins,
+                new_level,
+                uid,
+            ),
         )
-        saved_state = state_for_user(db, uid)
 
-    return jsonify({
-        "ok": True,
-        "points": saved_state["points"],
-        "garden": saved_state["garden"],
-        "state": saved_state,
-    })
+        state_payload = state_for_user(
+            db,
+            uid,
+        )
 
+    return jsonify(
+        {
+            "ok": True,
+            "points": new_coins,
+            "garden": state_payload["garden"],
+            "state": state_payload,
+        }
+    )
 
 @app.post("/api/state")
 def save_state():
@@ -5133,8 +6226,11 @@ def save_state():
             INSERT INTO game_state(user_id, points, score, latest_name, latest_rarity)
             VALUES (?, ?, ?, ?, ?)
             ON CONFLICT(user_id) DO UPDATE SET
-                points = excluded.points,
-                score = MAX(game_state.score, excluded.score),
+                points =
+                    game_state.points,
+
+                score =
+                    game_state.score,
                 latest_name = excluded.latest_name,
                 latest_rarity = excluded.latest_rarity
             """,

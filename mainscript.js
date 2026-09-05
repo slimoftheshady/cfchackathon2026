@@ -51,7 +51,11 @@
         { key: 'wombat', name: 'Wombat', icon: 'icons/wombat.svg', rarity: 'decor', kind: 'decor', cost: 120 },
         { key: 'emu', name: 'Emu', icon: 'icons/emu.svg', rarity: 'decor', kind: 'decor', cost: 100 },
         { key: 'kangaroo', name: 'Kangaroo', icon: 'icons/kangaroo.svg', rarity: 'decor', kind: 'decor', cost: 150 },
-        { key: 'cockatoo', name: 'Cockatoo', icon: 'icons/cockatoo.svg', rarity: 'decor', kind: 'decor', cost: 60 }
+        { key: 'cockatoo', name: 'Cockatoo', icon: 'icons/cockatoo.svg', rarity: 'decor', kind: 'decor', cost: 60 },
+        { key: 'structure-nursery', name: 'Nursery', icon: 'fa-house-chimney-window', rarity: 'decor', kind: 'decor', cost: 0 },
+        { key: 'structure-research-station', name: 'Research Station', icon: 'fa-microscope', rarity: 'decor', kind: 'decor', cost: 0 },
+        { key: 'structure-birdhouse', name: 'Birdhouse', icon: 'fa-dove', rarity: 'decor', kind: 'decor', cost: 0 },
+        { key: 'structure-water-tank', name: 'Water Tank', icon: 'fa-droplet', rarity: 'decor', kind: 'decor', cost: 0 }
     ];
 
     const RARITY_CONFIG = {
@@ -196,6 +200,20 @@
         items: []
     };
 
+    let gardenStrategy = {
+        builtCount: 0,
+        totalStructures: 4,
+        playerLevel: 1,
+        gardenLevel: 1,
+        uniqueSpecies: 0,
+        seedPacketCost: 60,
+        gardenUpgradeDiscountPercent: 0,
+        communityCoinBonusPercent: 0,
+        plantPassives: [],
+        structures: [],
+        activeEffects: []
+    };
+
     // =========================================================
     // LOGIN / UI STATE
     // =========================================================
@@ -307,6 +325,19 @@
 
     const habitatSpeciesSummary =
         $('habitatSpeciesSummary');
+
+    // Strategic garden
+    const gardenEffectsList =
+        $('gardenEffectsList');
+
+    const gardenPassiveList =
+        $('gardenPassiveList');
+
+    const structureGrid =
+        $('structureGrid');
+
+    const structureSummary =
+        $('structureSummary');
 
     // Garden progression
     const gardenLevelLabel = $('gardenLevelLabel');
@@ -912,6 +943,20 @@
             items: []
         };
 
+        gardenStrategy = {
+            builtCount: 0,
+            totalStructures: 4,
+            playerLevel: 1,
+            gardenLevel: 1,
+            uniqueSpecies: 0,
+            seedPacketCost: 60,
+            gardenUpgradeDiscountPercent: 0,
+            communityCoinBonusPercent: 0,
+            plantPassives: [],
+            structures: [],
+            activeEffects: []
+        };
+
         friendSearchResults.innerHTML =
             '';
 
@@ -1374,6 +1419,44 @@
                     items: []
                 };
 
+        gardenStrategy =
+            state.gardenStrategy
+            && typeof state.gardenStrategy === 'object'
+
+                ? {
+                    builtCount: Number(state.gardenStrategy.builtCount || 0),
+                    totalStructures: Number(state.gardenStrategy.totalStructures || 4),
+                    playerLevel: Number(state.gardenStrategy.playerLevel || 1),
+                    gardenLevel: Number(state.gardenStrategy.gardenLevel || 1),
+                    uniqueSpecies: Number(state.gardenStrategy.uniqueSpecies || 0),
+                    seedPacketCost: Number(state.gardenStrategy.seedPacketCost || 60),
+                    gardenUpgradeDiscountPercent: Number(state.gardenStrategy.gardenUpgradeDiscountPercent || 0),
+                    communityCoinBonusPercent: Number(state.gardenStrategy.communityCoinBonusPercent || 0),
+                    plantPassives: Array.isArray(state.gardenStrategy.plantPassives)
+                        ? state.gardenStrategy.plantPassives
+                        : [],
+                    structures: Array.isArray(state.gardenStrategy.structures)
+                        ? state.gardenStrategy.structures
+                        : [],
+                    activeEffects: Array.isArray(state.gardenStrategy.activeEffects)
+                        ? state.gardenStrategy.activeEffects
+                        : []
+                }
+
+                : {
+                    builtCount: 0,
+                    totalStructures: 4,
+                    playerLevel: 1,
+                    gardenLevel: 1,
+                    uniqueSpecies: 0,
+                    seedPacketCost: 60,
+                    gardenUpgradeDiscountPercent: 0,
+                    communityCoinBonusPercent: 0,
+                    plantPassives: [],
+                    structures: [],
+                    activeEffects: []
+                };
+
         collection =
             Array.isArray(
                 state.collection
@@ -1478,11 +1561,9 @@
         updateStats();
 
         renderProgression();
-
         renderBiodiversity();
-
+        renderGardenStrategy();
         renderNextGoal();
-
         renderStore();
 
         if (
@@ -3530,149 +3611,132 @@
         return 'common';
     }
 
+
     async function pullGacha() {
-        const player =
+        const progression =
             getPlayerProgression();
 
         if (
-            player.current.level
-            < 2
+            progression.current.level < 2
         ) {
             showToast(
-                'The Seed store unlocks at player Level 2.',
+                'Reach Player Level 2 to unlock the Seed store.',
                 'fa-lock'
             );
-
             return;
         }
+
+        const cost =
+            Number(
+                gardenStrategy.seedPacketCost
+                || 60
+            );
 
         if (
-            points < 60
+            points < cost
         ) {
             showToast(
-                'You need 60 coins to open a seed packet.',
+                `You need ${cost} coins to open a seed packet.`,
                 'fa-coins'
             );
-
             return;
         }
 
-        points -= 60;
-
-        const rarity =
-            getRandomRarity();
-
-        const pool =
-            PLANT_POOL.filter(
-                item =>
-                    item.rarity ===
-                    rarity
-            );
-
-        const plant =
-            pool[
-            Math.floor(
-                Math.random() *
-                pool.length
-            )
-            ];
-
-        const config =
-            RARITY_CONFIG[
-            rarity
-            ];
-
-        const alreadyUnlocked =
-            collection.some(
-                item =>
-                    item.key ===
-                    plant.key
-            );
-
-        // Only add it to the permanent collection once.
-        if (!alreadyUnlocked) {
-            collection.push({
-                ...plant
-            });
-        }
-
-        // Duplicate pulls still give score.
-        score +=
-            config.points;
-
-        latestPlant = {
-            name:
-                plant.name,
-
-            rarity:
-                plant.rarity
-        };
-
-        gachaResult.innerHTML = `
-            <div class="result-card rarity-${rarity}">
-
-                <div class="result-burst">
-                    ${config.emoji}
-                </div>
-
-                <div class="result-icon">
-                    ${renderIcon(plant.icon)}
-                </div>
-
-                <div class="result-kicker">
-                    ${alreadyUnlocked
-                ? 'You found another'
-                : 'New plant unlocked!'
-            }
-                </div>
-
-                <div class="result-name">
-                    ${escapeHtml(plant.name)}
-                </div>
-
-                <div class="result-rarity">
-                    ${config.label}
-                </div>
-
-                <div class="result-score">
-                    +${config.points} XP
-                </div>
-
-                <div class="result-note">
-                    ${alreadyUnlocked
-                ? 'Already in your collection — XP is still awarded.'
-                : 'Tap a garden plot on Home to place it.'
-            }
-                </div>
-
-            </div>
-        `;
+        gachaButton.disabled = true;
+        gachaButton.innerHTML =
+            '<i class="fas fa-spinner fa-spin"></i> Opening...';
 
         try {
-            const data = await api('/api/quests/event', {
-                method: 'POST',
-                body: JSON.stringify({ event: 'gacha' })
-            });
-            points += Number(data.questUpdate?.reward || 0);
-            if (data.questUpdate?.completed?.length) {
-                showToast(`Quest complete! +${data.questUpdate.reward} coins.`, 'fa-map-signs');
+            const data =
+                await api(
+                    '/api/gacha/pull',
+                    {
+                        method: 'POST'
+                    }
+                );
+
+            const plant =
+                data.plant;
+
+            const rarity =
+                data.rarity;
+
+            const config =
+                RARITY_CONFIG[rarity]
+                || RARITY_CONFIG.common;
+
+            const alreadyUnlocked =
+                Boolean(
+                    data.alreadyUnlocked
+                );
+
+            if (
+                data.state
+            ) {
+                loadState(
+                    data.state
+                );
             }
+
+            gachaResult.innerHTML = `
+                <div class="result-card rarity-${rarity}">
+                    <div class="result-burst">
+                        ${config.emoji}
+                    </div>
+
+                    <div class="result-icon">
+                        ${renderIcon(plant.icon)}
+                    </div>
+
+                    <div class="result-kicker">
+                        ${alreadyUnlocked
+                            ? 'You found another'
+                            : 'New plant unlocked!'
+                        }
+                    </div>
+
+                    <div class="result-name">
+                        ${escapeHtml(plant.name)}
+                    </div>
+
+                    <div class="result-rarity">
+                        ${config.label}
+                    </div>
+
+                    <div class="result-score">
+                        +${Number(data.xpReward || 0)} XP
+                    </div>
+
+                    <div class="result-note">
+                        ${alreadyUnlocked
+                            ? 'Already in your collection — XP still awarded.'
+                            : 'Tap a garden plot on Home to place it.'
+                        }
+                    </div>
+                </div>
+            `;
+
+            await loadQuests();
+            await loadAchievements();
+
+            showToast(
+                alreadyUnlocked
+                    ? `${plant.name} was already unlocked — +${Number(data.xpReward || 0)} XP.`
+                    : `${plant.name} added to your collection!`,
+                'fa-gift'
+            );
+
         } catch (error) {
-            console.error('Could not update quest progress:', error);
+            showToast(
+                error.message,
+                'fa-triangle-exclamation'
+            );
+
+        } finally {
+            gachaButton.disabled = false;
+            gachaButton.innerHTML =
+                '<i class="fas fa-gift"></i> Open seed packet';
         }
-
-        renderEverything();
-
-        scheduleSave();
-        await loadQuests();
-
-        showToast(
-            alreadyUnlocked
-                ? `${plant.name} was already unlocked — +${config.points} XP.`
-                : `${plant.name} added to your collection!`,
-
-            'fa-gift'
-        );
     }
 
     // =========================================================
@@ -4253,6 +4317,322 @@
     // =========================================================
     // STORE
     // =========================================================
+
+
+
+    function strategyRequirement(
+        met,
+        icon,
+        text
+    ) {
+        return `
+            <span class="strategy-requirement ${met ? 'met' : ''}">
+                <i class="fas ${met ? 'fa-circle-check' : icon}"></i>
+                ${escapeHtml(text)}
+            </span>
+        `;
+    }
+
+
+    function renderGardenStrategy() {
+
+        if (
+            structureSummary
+        ) {
+            structureSummary.textContent =
+                `${Number(gardenStrategy.builtCount || 0)} / ${Number(gardenStrategy.totalStructures || 4)} built`;
+        }
+
+        const gachaPrice =
+            document.querySelector(
+                '.gacha-price'
+            );
+
+        if (
+            gachaPrice
+        ) {
+            const cost =
+                Number(
+                    gardenStrategy.seedPacketCost
+                    || 60
+                );
+
+            gachaPrice.innerHTML =
+                `<i class="fas fa-coins"></i> ${cost} coins · unlocks Level 2${cost < 60 ? ' · Nursery active' : ''}`;
+        }
+
+        if (
+            gardenEffectsList
+        ) {
+            const effects =
+                Array.isArray(
+                    gardenStrategy.activeEffects
+                )
+                    ? gardenStrategy.activeEffects
+                    : [];
+
+            gardenEffectsList.innerHTML =
+                effects.length
+                    ? effects.map(
+                        effect => `
+                            <div class="active-effect-chip">
+                                <i class="fas ${escapeClass(effect.icon)}"></i>
+                                <span>
+                                    <strong>${escapeHtml(effect.source)}</strong>
+                                    ${escapeHtml(effect.effect)}
+                                </span>
+                            </div>
+                        `
+                    ).join('')
+                    : `
+                        <div class="strategy-empty-effect">
+                            <i class="fas fa-circle-info"></i>
+                            Place a passive plant or built structure in the garden to activate an effect.
+                        </div>
+                    `;
+        }
+
+        if (
+            gardenPassiveList
+        ) {
+            const passives =
+                Array.isArray(
+                    gardenStrategy.plantPassives
+                )
+                    ? gardenStrategy.plantPassives
+                    : [];
+
+            gardenPassiveList.innerHTML =
+                passives.map(
+                    passive => {
+                        let status = 'Not owned';
+
+                        if (
+                            passive.placed
+                        ) {
+                            status = 'Active';
+
+                        } else if (
+                            passive.owned
+                        ) {
+                            status = 'Owned · place it';
+                        }
+
+                        return `
+                            <div class="passive-row ${passive.placed ? 'active' : ''}">
+                                <div class="passive-row-icon">
+                                    <i class="fas ${escapeClass(passive.icon)}"></i>
+                                </div>
+
+                                <div class="passive-row-copy">
+                                    <strong>${escapeHtml(passive.name)}</strong>
+                                    <span>${escapeHtml(passive.effect)}</span>
+                                </div>
+
+                                <small>${escapeHtml(status)}</small>
+                            </div>
+                        `;
+                    }
+                ).join('');
+        }
+
+        if (
+            structureGrid
+        ) {
+            const structures =
+                Array.isArray(
+                    gardenStrategy.structures
+                )
+                    ? gardenStrategy.structures
+                    : [];
+
+            structureGrid.innerHTML =
+                structures.map(
+                    structure => {
+                        const built = Boolean(structure.built);
+                        const placed = Boolean(structure.placed);
+                        const canBuild = Boolean(structure.canBuild);
+
+                        let actionLabel = '';
+
+                        if (
+                            placed
+                        ) {
+                            actionLabel = 'Active in garden';
+
+                        } else if (
+                            built
+                        ) {
+                            actionLabel = 'Built · place from Collection';
+
+                        } else if (
+                            canBuild
+                        ) {
+                            actionLabel = `Build · ${Number(structure.cost).toLocaleString()} coins`;
+
+                        } else {
+                            actionLabel = 'Requirements locked';
+                        }
+
+                        return `
+                            <article class="structure-card ${placed ? 'active' : built ? 'built' : canBuild ? 'ready' : 'locked'}">
+
+                                <div class="structure-card-head">
+                                    <div class="structure-icon">
+                                        <i class="fas ${escapeClass(structure.icon)}"></i>
+                                    </div>
+
+                                    <div>
+                                        <span class="eyebrow">
+                                            ${placed ? 'ACTIVE STRUCTURE' : built ? 'BUILT' : 'GARDEN STRUCTURE'}
+                                        </span>
+                                        <h3>${escapeHtml(structure.name)}</h3>
+                                    </div>
+                                </div>
+
+                                <p>${escapeHtml(structure.description)}</p>
+
+                                <div class="structure-effect">
+                                    <i class="fas fa-bolt"></i>
+                                    ${escapeHtml(structure.effect)}
+                                </div>
+
+                                <div class="structure-requirements">
+                                    ${strategyRequirement(
+                                        structure.playerLevelMet,
+                                        'fa-lock',
+                                        `Player Level ${structure.requiredPlayerLevel}`
+                                    )}
+
+                                    ${strategyRequirement(
+                                        structure.gardenLevelMet,
+                                        'fa-seedling',
+                                        `Garden Level ${structure.requiredGardenLevel}`
+                                    )}
+
+                                    ${structure.requiredUniqueSpecies > 0
+                                        ? strategyRequirement(
+                                            structure.uniqueSpeciesMet,
+                                            'fa-leaf',
+                                            `${structure.requiredUniqueSpecies} species discovered`
+                                        )
+                                        : ''}
+                                </div>
+
+                                <button
+                                    class="${canBuild ? 'primary-btn' : 'soft-btn'} structure-build-btn"
+                                    type="button"
+                                    data-structure-key="${escapeHtml(structure.key)}"
+                                    ${built || !canBuild ? 'disabled' : ''}
+                                >
+                                    <i class="fas ${placed ? 'fa-bolt' : built ? 'fa-check' : canBuild ? 'fa-hammer' : 'fa-lock'}"></i>
+                                    ${escapeHtml(actionLabel)}
+                                </button>
+
+                            </article>
+                        `;
+                    }
+                ).join('');
+        }
+    }
+
+
+    async function buildStructure(
+        structureKey
+    ) {
+        const structure =
+            (gardenStrategy.structures || [])
+                .find(
+                    item =>
+                        item.key === structureKey
+                );
+
+        if (
+            !structure
+        ) {
+            showToast(
+                'That structure could not be found.',
+                'fa-triangle-exclamation'
+            );
+            return;
+        }
+
+        if (
+            structure.built
+        ) {
+            showToast(
+                `${structure.name} is already built. Place it from Collection to activate it.`,
+                'fa-check'
+            );
+            return;
+        }
+
+        if (
+            !structure.canBuild
+        ) {
+            if (
+                !structure.playerLevelMet
+            ) {
+                showToast(
+                    `Reach Player Level ${structure.requiredPlayerLevel} first.`,
+                    'fa-lock'
+                );
+
+            } else if (
+                !structure.gardenLevelMet
+            ) {
+                showToast(
+                    `Upgrade your garden to Level ${structure.requiredGardenLevel} first.`,
+                    'fa-seedling'
+                );
+
+            } else if (
+                !structure.uniqueSpeciesMet
+            ) {
+                showToast(
+                    `Discover ${structure.requiredUniqueSpecies} different species first.`,
+                    'fa-leaf'
+                );
+
+            } else {
+                showToast(
+                    `You need ${structure.cost} coins to build ${structure.name}.`,
+                    'fa-coins'
+                );
+            }
+
+            return;
+        }
+
+        try {
+            const data =
+                await api(
+                    `/api/structures/${encodeURIComponent(structureKey)}/build`,
+                    {
+                        method: 'POST'
+                    }
+                );
+
+            if (
+                data.state
+            ) {
+                loadState(
+                    data.state
+                );
+            }
+
+            showToast(
+                data.message,
+                'fa-hammer'
+            );
+
+        } catch (error) {
+            showToast(
+                error.message,
+                'fa-triangle-exclamation'
+            );
+        }
+    }
 
 
     function habitatRequirementMarkup(
@@ -7140,6 +7520,32 @@
                     renderAchievements();
                 });
             });
+
+        // Strategic garden structures
+        if (
+            structureGrid
+        ) {
+            structureGrid.addEventListener(
+                'click',
+                event => {
+                    const button =
+                        event.target.closest(
+                            '.structure-build-btn'
+                        );
+
+                    if (
+                        !button
+                        || button.disabled
+                    ) {
+                        return;
+                    }
+
+                    buildStructure(
+                        button.dataset.structureKey
+                    );
+                }
+            );
+        }
 
         // Wildlife habitats
         if (
