@@ -2004,6 +2004,20 @@ button {
     background: var(--soft);
 }
 
+.map-surface {
+    overflow: hidden;
+    border: var(--border);
+    border-radius: 22px;
+    background: white;
+    box-shadow: var(--shadow-small);
+}
+
+.map-surface img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
 .wiki-details {
     flex: 1;
     min-width: 0;
