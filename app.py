@@ -293,6 +293,344 @@ SPECIAL_QUEST_COIN_REWARD = 50
 SPECIAL_QUEST_XP_REWARD = 30
 
 
+# Wildlife is no longer bought directly.
+# Building a habitat permanently unlocks its animal.
+HABITATS = {
+    "echidna": {
+        "name":
+            "Echidna Refuge",
+
+        "animal_name":
+            "Echidna",
+
+        "animal_icon":
+            "icons/echidna.svg",
+
+        "description":
+            (
+                "Create sheltered ground habitat with "
+                "leaf litter and low vegetation for "
+                "an echidna to visit."
+            ),
+
+        "cost":
+            500,
+
+        "player_level":
+            3,
+
+        "garden_level":
+            3,
+
+        "unique_species":
+            3,
+    },
+
+    "cockatoo": {
+        "name":
+            "Cockatoo Canopy",
+
+        "animal_name":
+            "Cockatoo",
+
+        "animal_icon":
+            "icons/cockatoo.svg",
+
+        "description":
+            (
+                "Establish a protected canopy habitat "
+                "with enough plant diversity to support "
+                "visiting woodland birds."
+            ),
+
+        "cost":
+            450,
+
+        "player_level":
+            3,
+
+        "garden_level":
+            3,
+
+        "unique_species":
+            5,
+    },
+
+    "emu": {
+        "name":
+            "Emu Grassland",
+
+        "animal_name":
+            "Emu",
+
+        "animal_icon":
+            "icons/emu.svg",
+
+        "description":
+            (
+                "Open a larger grassland habitat with "
+                "space for a roaming emu."
+            ),
+
+        "cost":
+            650,
+
+        "player_level":
+            4,
+
+        "garden_level":
+            4,
+
+        "unique_species":
+            8,
+    },
+
+    "kangaroo": {
+        "name":
+            "Kangaroo Woodland",
+
+        "animal_name":
+            "Kangaroo",
+
+        "animal_icon":
+            "icons/kangaroo.svg",
+
+        "description":
+            (
+                "Build a woodland corridor with enough "
+                "plant diversity and open ground for "
+                "a kangaroo."
+            ),
+
+        "cost":
+            800,
+
+        "player_level":
+            4,
+
+        "garden_level":
+            4,
+
+        "unique_species":
+            10,
+    },
+
+    "wombat": {
+        "name":
+            "Wombat Burrow",
+
+        "animal_name":
+            "Wombat",
+
+        "animal_icon":
+            "icons/wombat.svg",
+
+        "description":
+            (
+                "Create the game's most advanced ground "
+                "habitat, with enough space and vegetation "
+                "for a protected burrow."
+            ),
+
+        "cost":
+            900,
+
+        "player_level":
+            5,
+
+        "garden_level":
+            5,
+
+        "unique_species":
+            12,
+    },
+}
+
+
+# Must match the player-level thresholds used by mainscript.js.
+PLAYER_LEVEL_XP_THRESHOLDS = [
+    (1, 0),
+    (2, 100),
+    (3, 200),
+    (4, 350),
+    (5, 550),
+    (6, 800),
+    (7, 1100),
+    (8, 1450),
+    (9, 1850),
+    (10, 2300),
+]
+
+
+# Wildlife is no longer bought directly.
+# Building a habitat permanently unlocks its animal.
+HABITATS = {
+    "echidna": {
+        "name":
+            "Echidna Refuge",
+
+        "animal_name":
+            "Echidna",
+
+        "animal_icon":
+            "icons/echidna.svg",
+
+        "description":
+            (
+                "Create sheltered ground habitat with "
+                "leaf litter and low vegetation for "
+                "an echidna to visit."
+            ),
+
+        "cost":
+            500,
+
+        "player_level":
+            3,
+
+        "garden_level":
+            3,
+
+        "unique_species":
+            3,
+    },
+
+    "cockatoo": {
+        "name":
+            "Cockatoo Canopy",
+
+        "animal_name":
+            "Cockatoo",
+
+        "animal_icon":
+            "icons/cockatoo.svg",
+
+        "description":
+            (
+                "Establish a protected canopy habitat "
+                "with enough plant diversity to support "
+                "visiting woodland birds."
+            ),
+
+        "cost":
+            450,
+
+        "player_level":
+            3,
+
+        "garden_level":
+            3,
+
+        "unique_species":
+            5,
+    },
+
+    "emu": {
+        "name":
+            "Emu Grassland",
+
+        "animal_name":
+            "Emu",
+
+        "animal_icon":
+            "icons/emu.svg",
+
+        "description":
+            (
+                "Open a larger grassland habitat with "
+                "space for a roaming emu."
+            ),
+
+        "cost":
+            650,
+
+        "player_level":
+            4,
+
+        "garden_level":
+            4,
+
+        "unique_species":
+            8,
+    },
+
+    "kangaroo": {
+        "name":
+            "Kangaroo Woodland",
+
+        "animal_name":
+            "Kangaroo",
+
+        "animal_icon":
+            "icons/kangaroo.svg",
+
+        "description":
+            (
+                "Build a woodland corridor with enough "
+                "plant diversity and open ground for "
+                "a kangaroo."
+            ),
+
+        "cost":
+            800,
+
+        "player_level":
+            4,
+
+        "garden_level":
+            4,
+
+        "unique_species":
+            10,
+    },
+
+    "wombat": {
+        "name":
+            "Wombat Burrow",
+
+        "animal_name":
+            "Wombat",
+
+        "animal_icon":
+            "icons/wombat.svg",
+
+        "description":
+            (
+                "Create the game's most advanced ground "
+                "habitat, with enough space and vegetation "
+                "for a protected burrow."
+            ),
+
+        "cost":
+            900,
+
+        "player_level":
+            5,
+
+        "garden_level":
+            5,
+
+        "unique_species":
+            12,
+    },
+}
+
+
+# Must match the player-level thresholds used by mainscript.js.
+PLAYER_LEVEL_XP_THRESHOLDS = [
+    (1, 0),
+    (2, 100),
+    (3, 200),
+    (4, 350),
+    (5, 550),
+    (6, 800),
+    (7, 1100),
+    (8, 1450),
+    (9, 1850),
+    (10, 2300),
+]
+
+
 def get_db():
     con = sqlite3.connect(GAME_DB)
     con.row_factory = sqlite3.Row
@@ -396,6 +734,23 @@ def init_db():
 
             CREATE INDEX IF NOT EXISTS idx_biodiversity_daily_user_date
                 ON biodiversity_daily_species(user_id, streak_date);
+
+            CREATE TABLE IF NOT EXISTS user_habitats (
+                user_id INTEGER NOT NULL,
+                habitat_key TEXT NOT NULL,
+                built_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+                PRIMARY KEY (
+                    user_id,
+                    habitat_key
+                ),
+
+                FOREIGN KEY (user_id)
+                    REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_user_habitats_user
+                ON user_habitats(user_id, built_at);
 
             CREATE TABLE IF NOT EXISTS friendships (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -743,6 +1098,52 @@ def init_db():
             ),
         )
 
+        # Existing users may already have purchased animals
+        # under the old Wildlife shop. Treat those animals as
+        # habitats already completed so no progress is lost.
+        db.execute(
+            """
+            INSERT OR IGNORE INTO user_habitats(
+                user_id,
+                habitat_key
+            )
+            SELECT
+                user_id,
+                item_key
+            FROM collection_items
+            WHERE item_key IN (
+                'echidna',
+                'cockatoo',
+                'emu',
+                'kangaroo',
+                'wombat'
+            )
+            """
+        )
+
+        # Existing users may already have purchased animals
+        # under the old Wildlife shop. Treat those animals as
+        # habitats already completed so no progress is lost.
+        db.execute(
+            """
+            INSERT OR IGNORE INTO user_habitats(
+                user_id,
+                habitat_key
+            )
+            SELECT
+                user_id,
+                item_key
+            FROM collection_items
+            WHERE item_key IN (
+                'echidna',
+                'cockatoo',
+                'emu',
+                'kangaroo',
+                'wombat'
+            )
+            """
+        )
+
         special_columns = {
             row[1] for row in db.execute("PRAGMA table_info(special_quests)")
         }
@@ -983,6 +1384,16 @@ def state_for_user(db, user_id):
                 "kind": row["kind"] or "plant",
             }
 
+    ensure_habitat_animals(
+        db,
+        user_id,
+    )
+
+    ensure_habitat_animals(
+        db,
+        user_id,
+    )
+
     collection = [
         {
             "key": row["item_key"],
@@ -1044,6 +1455,7 @@ def state_for_user(db, user_id):
             "nextPlots": next_upgrade["plots"] if next_upgrade else None,
         },
         "biodiversity": biodiversity_snapshot(db, user_id),
+        "habitats": habitat_snapshot(db, user_id),
     }
 
 
@@ -1236,6 +1648,692 @@ def biodiversity_snapshot(
             NEW_AREA_RADIUS_METRES,
     }
 
+
+
+
+def player_level_from_xp(
+    xp,
+):
+    xp = max(
+        0,
+        int(
+            xp
+            or 0
+        ),
+    )
+
+    level = 1
+
+    for (
+        candidate_level,
+        required_xp,
+    ) in PLAYER_LEVEL_XP_THRESHOLDS:
+
+        if (
+            xp
+            >= required_xp
+        ):
+            level = (
+                candidate_level
+            )
+
+        else:
+            break
+
+    return level
+
+
+def ensure_habitat_animals(
+    db,
+    user_id,
+):
+    """
+    Any completed habitat permanently owns its animal.
+
+    This also protects habitat animals from disappearing if
+    an older browser state does not include them when saving.
+    """
+
+    built_rows = db.execute(
+        """
+        SELECT habitat_key
+        FROM user_habitats
+        WHERE user_id = ?
+        """,
+        (
+            user_id,
+        ),
+    ).fetchall()
+
+    for row in built_rows:
+
+        habitat_key = (
+            row[
+                "habitat_key"
+            ]
+        )
+
+        config = (
+            HABITATS.get(
+                habitat_key
+            )
+        )
+
+        if not config:
+            continue
+
+        db.execute(
+            """
+            INSERT OR IGNORE INTO collection_items(
+                user_id,
+                item_key,
+                name,
+                icon,
+                rarity,
+                kind
+            )
+            VALUES (?, ?, ?, ?, 'decor', 'decor')
+            """,
+            (
+                user_id,
+                habitat_key,
+                config[
+                    "animal_name"
+                ],
+                config[
+                    "animal_icon"
+                ],
+            ),
+        )
+
+
+def habitat_snapshot(
+    db,
+    user_id,
+):
+    state = db.execute(
+        """
+        SELECT
+            points,
+            score,
+            garden_level
+        FROM game_state
+        WHERE user_id = ?
+        """,
+        (
+            user_id,
+        ),
+    ).fetchone()
+
+    coins = int(
+        state[
+            "points"
+        ]
+        if state
+        else 0
+    )
+
+    xp = int(
+        state[
+            "score"
+        ]
+        if state
+        else 0
+    )
+
+    garden_level = int(
+        state[
+            "garden_level"
+        ]
+        if state
+        else 1
+    )
+
+    player_level = (
+        player_level_from_xp(
+            xp
+        )
+    )
+
+    unique_species = db.execute(
+        """
+        SELECT COUNT(
+            DISTINCT taxon_key
+        )
+        FROM plant_observations
+        WHERE user_id = ?
+        """,
+        (
+            user_id,
+        ),
+    ).fetchone()[0]
+
+    unique_species = int(
+        unique_species
+        or 0
+    )
+
+    built_keys = {
+        row[
+            "habitat_key"
+        ]
+
+        for row
+        in db.execute(
+            """
+            SELECT habitat_key
+            FROM user_habitats
+            WHERE user_id = ?
+            """,
+            (
+                user_id,
+            ),
+        ).fetchall()
+    }
+
+    items = []
+
+    for (
+        key,
+        config,
+    ) in HABITATS.items():
+
+        built = (
+            key
+            in built_keys
+        )
+
+        player_level_met = (
+            player_level
+            >= config[
+                "player_level"
+            ]
+        )
+
+        garden_level_met = (
+            garden_level
+            >= config[
+                "garden_level"
+            ]
+        )
+
+        unique_species_met = (
+            unique_species
+            >= config[
+                "unique_species"
+            ]
+        )
+
+        coins_met = (
+            coins
+            >= config[
+                "cost"
+            ]
+        )
+
+        animal_owned = db.execute(
+            """
+            SELECT 1
+            FROM collection_items
+            WHERE
+                user_id = ?
+                AND item_key = ?
+            """,
+            (
+                user_id,
+                key,
+            ),
+        ).fetchone() is not None
+
+        items.append(
+            {
+                "key":
+                    key,
+
+                "name":
+                    config[
+                        "name"
+                    ],
+
+                "animalName":
+                    config[
+                        "animal_name"
+                    ],
+
+                "animalIcon":
+                    config[
+                        "animal_icon"
+                    ],
+
+                "description":
+                    config[
+                        "description"
+                    ],
+
+                "cost":
+                    config[
+                        "cost"
+                    ],
+
+                "requiredPlayerLevel":
+                    config[
+                        "player_level"
+                    ],
+
+                "currentPlayerLevel":
+                    player_level,
+
+                "playerLevelMet":
+                    player_level_met,
+
+                "requiredGardenLevel":
+                    config[
+                        "garden_level"
+                    ],
+
+                "currentGardenLevel":
+                    garden_level,
+
+                "gardenLevelMet":
+                    garden_level_met,
+
+                "requiredUniqueSpecies":
+                    config[
+                        "unique_species"
+                    ],
+
+                "currentUniqueSpecies":
+                    unique_species,
+
+                "uniqueSpeciesMet":
+                    unique_species_met,
+
+                "coinsMet":
+                    coins_met,
+
+                "built":
+                    built,
+
+                "animalOwned":
+                    animal_owned,
+
+                "canBuild":
+                    (
+                        not built
+                        and player_level_met
+                        and garden_level_met
+                        and unique_species_met
+                        and coins_met
+                    ),
+            }
+        )
+
+    return {
+        "builtCount":
+            len(
+                built_keys
+            ),
+
+        "total":
+            len(
+                HABITATS
+            ),
+
+        "uniqueSpecies":
+            unique_species,
+
+        "playerLevel":
+            player_level,
+
+        "gardenLevel":
+            garden_level,
+
+        "items":
+            items,
+    }
+
+
+
+def player_level_from_xp(
+    xp,
+):
+    xp = max(
+        0,
+        int(
+            xp
+            or 0
+        ),
+    )
+
+    level = 1
+
+    for (
+        candidate_level,
+        required_xp,
+    ) in PLAYER_LEVEL_XP_THRESHOLDS:
+
+        if (
+            xp
+            >= required_xp
+        ):
+            level = (
+                candidate_level
+            )
+
+        else:
+            break
+
+    return level
+
+
+def ensure_habitat_animals(
+    db,
+    user_id,
+):
+    """
+    Any completed habitat permanently owns its animal.
+
+    This also protects habitat animals from disappearing if
+    an older browser state does not include them when saving.
+    """
+
+    built_rows = db.execute(
+        """
+        SELECT habitat_key
+        FROM user_habitats
+        WHERE user_id = ?
+        """,
+        (
+            user_id,
+        ),
+    ).fetchall()
+
+    for row in built_rows:
+
+        habitat_key = (
+            row[
+                "habitat_key"
+            ]
+        )
+
+        config = (
+            HABITATS.get(
+                habitat_key
+            )
+        )
+
+        if not config:
+            continue
+
+        db.execute(
+            """
+            INSERT OR IGNORE INTO collection_items(
+                user_id,
+                item_key,
+                name,
+                icon,
+                rarity,
+                kind
+            )
+            VALUES (?, ?, ?, ?, 'decor', 'decor')
+            """,
+            (
+                user_id,
+                habitat_key,
+                config[
+                    "animal_name"
+                ],
+                config[
+                    "animal_icon"
+                ],
+            ),
+        )
+
+
+def habitat_snapshot(
+    db,
+    user_id,
+):
+    state = db.execute(
+        """
+        SELECT
+            points,
+            score,
+            garden_level
+        FROM game_state
+        WHERE user_id = ?
+        """,
+        (
+            user_id,
+        ),
+    ).fetchone()
+
+    coins = int(
+        state[
+            "points"
+        ]
+        if state
+        else 0
+    )
+
+    xp = int(
+        state[
+            "score"
+        ]
+        if state
+        else 0
+    )
+
+    garden_level = int(
+        state[
+            "garden_level"
+        ]
+        if state
+        else 1
+    )
+
+    player_level = (
+        player_level_from_xp(
+            xp
+        )
+    )
+
+    unique_species = db.execute(
+        """
+        SELECT COUNT(
+            DISTINCT taxon_key
+        )
+        FROM plant_observations
+        WHERE user_id = ?
+        """,
+        (
+            user_id,
+        ),
+    ).fetchone()[0]
+
+    unique_species = int(
+        unique_species
+        or 0
+    )
+
+    built_keys = {
+        row[
+            "habitat_key"
+        ]
+
+        for row
+        in db.execute(
+            """
+            SELECT habitat_key
+            FROM user_habitats
+            WHERE user_id = ?
+            """,
+            (
+                user_id,
+            ),
+        ).fetchall()
+    }
+
+    items = []
+
+    for (
+        key,
+        config,
+    ) in HABITATS.items():
+
+        built = (
+            key
+            in built_keys
+        )
+
+        player_level_met = (
+            player_level
+            >= config[
+                "player_level"
+            ]
+        )
+
+        garden_level_met = (
+            garden_level
+            >= config[
+                "garden_level"
+            ]
+        )
+
+        unique_species_met = (
+            unique_species
+            >= config[
+                "unique_species"
+            ]
+        )
+
+        coins_met = (
+            coins
+            >= config[
+                "cost"
+            ]
+        )
+
+        animal_owned = db.execute(
+            """
+            SELECT 1
+            FROM collection_items
+            WHERE
+                user_id = ?
+                AND item_key = ?
+            """,
+            (
+                user_id,
+                key,
+            ),
+        ).fetchone() is not None
+
+        items.append(
+            {
+                "key":
+                    key,
+
+                "name":
+                    config[
+                        "name"
+                    ],
+
+                "animalName":
+                    config[
+                        "animal_name"
+                    ],
+
+                "animalIcon":
+                    config[
+                        "animal_icon"
+                    ],
+
+                "description":
+                    config[
+                        "description"
+                    ],
+
+                "cost":
+                    config[
+                        "cost"
+                    ],
+
+                "requiredPlayerLevel":
+                    config[
+                        "player_level"
+                    ],
+
+                "currentPlayerLevel":
+                    player_level,
+
+                "playerLevelMet":
+                    player_level_met,
+
+                "requiredGardenLevel":
+                    config[
+                        "garden_level"
+                    ],
+
+                "currentGardenLevel":
+                    garden_level,
+
+                "gardenLevelMet":
+                    garden_level_met,
+
+                "requiredUniqueSpecies":
+                    config[
+                        "unique_species"
+                    ],
+
+                "currentUniqueSpecies":
+                    unique_species,
+
+                "uniqueSpeciesMet":
+                    unique_species_met,
+
+                "coinsMet":
+                    coins_met,
+
+                "built":
+                    built,
+
+                "animalOwned":
+                    animal_owned,
+
+                "canBuild":
+                    (
+                        not built
+                        and player_level_met
+                        and garden_level_met
+                        and unique_species_met
+                        and coins_met
+                    ),
+            }
+        )
+
+    return {
+        "builtCount":
+            len(
+                built_keys
+            ),
+
+        "total":
+            len(
+                HABITATS
+            ),
+
+        "uniqueSpecies":
+            unique_species,
+
+        "playerLevel":
+            player_level,
+
+        "gardenLevel":
+            garden_level,
+
+        "items":
+            items,
+    }
 
 
 def week_bounds():
@@ -3592,6 +4690,325 @@ def map_plants():
             "radius_metres": OBSERVATION_RADIUS_METRES,
         },
     })
+
+
+
+@app.post("/api/habitats/<habitat_key>/build")
+def build_habitat(
+    habitat_key,
+):
+    uid, error = (
+        login_required()
+    )
+
+    if error:
+        return error
+
+    habitat_key = str(
+        habitat_key
+        or ""
+    ).strip().lower()
+
+    config = (
+        HABITATS.get(
+            habitat_key
+        )
+    )
+
+    if not config:
+        return jsonify(
+            {
+                "error":
+                    "That wildlife habitat does not exist."
+            }
+        ), 404
+
+    with get_db() as db:
+
+        db.execute(
+            """
+            INSERT OR IGNORE INTO game_state(
+                user_id
+            )
+            VALUES (?)
+            """,
+            (
+                uid,
+            ),
+        )
+
+        already_built = db.execute(
+            """
+            SELECT 1
+            FROM user_habitats
+            WHERE
+                user_id = ?
+                AND habitat_key = ?
+            """,
+            (
+                uid,
+                habitat_key,
+            ),
+        ).fetchone()
+
+        if already_built:
+            return jsonify(
+                {
+                    "error":
+                        (
+                            "You have already built "
+                            f"{config['name']}."
+                        )
+                }
+            ), 409
+
+        state = db.execute(
+            """
+            SELECT
+                points,
+                score,
+                garden_level
+            FROM game_state
+            WHERE user_id = ?
+            """,
+            (
+                uid,
+            ),
+        ).fetchone()
+
+        coins = int(
+            state[
+                "points"
+            ]
+            or 0
+        )
+
+        xp = int(
+            state[
+                "score"
+            ]
+            or 0
+        )
+
+        garden_level = int(
+            state[
+                "garden_level"
+            ]
+            or 1
+        )
+
+        player_level = (
+            player_level_from_xp(
+                xp
+            )
+        )
+
+        unique_species = db.execute(
+            """
+            SELECT COUNT(
+                DISTINCT taxon_key
+            )
+            FROM plant_observations
+            WHERE user_id = ?
+            """,
+            (
+                uid,
+            ),
+        ).fetchone()[0]
+
+        unique_species = int(
+            unique_species
+            or 0
+        )
+
+        missing = []
+
+        if (
+            player_level
+            < config[
+                "player_level"
+            ]
+        ):
+            missing.append(
+                (
+                    "Player Level "
+                    f"{config['player_level']}"
+                )
+            )
+
+        if (
+            garden_level
+            < config[
+                "garden_level"
+            ]
+        ):
+            missing.append(
+                (
+                    "Garden Level "
+                    f"{config['garden_level']}"
+                )
+            )
+
+        if (
+            unique_species
+            < config[
+                "unique_species"
+            ]
+        ):
+            missing.append(
+                (
+                    f"{config['unique_species']} "
+                    "different species discovered"
+                )
+            )
+
+        if missing:
+            return jsonify(
+                {
+                    "error":
+                        (
+                            "Complete the habitat "
+                            "requirements first: "
+                            + ", ".join(
+                                missing
+                            )
+                            + "."
+                        ),
+
+                    "habitats":
+                        habitat_snapshot(
+                            db,
+                            uid,
+                        ),
+                }
+            ), 409
+
+        cost = int(
+            config[
+                "cost"
+            ]
+        )
+
+        if (
+            coins
+            < cost
+        ):
+            return jsonify(
+                {
+                    "error":
+                        (
+                            f"You need {cost} coins "
+                            f"to build {config['name']}."
+                        ),
+
+                    "required":
+                        cost,
+
+                    "coins":
+                        coins,
+
+                    "habitats":
+                        habitat_snapshot(
+                            db,
+                            uid,
+                        ),
+                }
+            ), 409
+
+        db.execute(
+            """
+            UPDATE game_state
+            SET points =
+                points - ?
+            WHERE user_id = ?
+            """,
+            (
+                cost,
+                uid,
+            ),
+        )
+
+        db.execute(
+            """
+            INSERT INTO user_habitats(
+                user_id,
+                habitat_key
+            )
+            VALUES (?, ?)
+            """,
+            (
+                uid,
+                habitat_key,
+            ),
+        )
+
+        db.execute(
+            """
+            INSERT OR IGNORE INTO collection_items(
+                user_id,
+                item_key,
+                name,
+                icon,
+                rarity,
+                kind
+            )
+            VALUES (?, ?, ?, ?, 'decor', 'decor')
+            """,
+            (
+                uid,
+                habitat_key,
+                config[
+                    "animal_name"
+                ],
+                config[
+                    "animal_icon"
+                ],
+            ),
+        )
+
+        state = (
+            state_for_user(
+                db,
+                uid,
+            )
+        )
+
+    return jsonify(
+        {
+            "ok":
+                True,
+
+            "message":
+                (
+                    f"{config['name']} built. "
+                    f"{config['animal_name']} unlocked!"
+                ),
+
+            "animal":
+                {
+                    "key":
+                        habitat_key,
+
+                    "name":
+                        config[
+                            "animal_name"
+                        ],
+
+                    "icon":
+                        config[
+                            "animal_icon"
+                        ],
+                },
+
+            "state":
+                state,
+
+            "habitats":
+                state[
+                    "habitats"
+                ],
+        }
+    )
 
 
 @app.post("/api/garden/upgrade")

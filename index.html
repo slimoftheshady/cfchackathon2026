@@ -402,41 +402,67 @@
                 </div>
             </section>
 
+
+
+
+
+
             <!-- STORE -->
             <section id="storeView" class="view-page">
+
                 <div class="page-heading">
-                    <div class="eyebrow">ANIMALS & WILDLIFE</div>
-                    <h1>Wildlife watch</h1>
-                    <p>Notice the yongar, waitj, koomal and woodland birds sharing the landscape, then create safe habitats for them to thrive.</p>
+                    <div class="eyebrow">
+                        ANIMALS & WILDLIFE
+                    </div>
+
+                    <h1>Wildlife habitats</h1>
+
+                    <p>
+                        Discover plants, expand your garden and
+                        construct suitable habitat before wildlife
+                        can move into your patch.
+                    </p>
                 </div>
 
-                <div class="store-grid" id="storeGrid">
-                    <button class="store-item" data-key="echidna" data-name="Echidna" data-icon="icons/echidna.svg"
-                        data-cost="80" type="button">
-                        <span class="store-icon"><img src="icons/echidna.svg" class="icon-img" alt=""></span><span
-                            class="label">Echidna</span><span class="cost">80 ★</span>
-                    </button>
-                    <button class="store-item" data-key="wombat" data-name="Wombat" data-icon="icons/wombat.svg"
-                        data-cost="120" type="button">
-                        <span class="store-icon"><img src="icons/wombat.svg" class="icon-img" alt=""></span><span
-                            class="label">Wombat</span><span class="cost">120 ★</span>
-                    </button>
-                    <button class="store-item" data-key="emu" data-name="Emu" data-icon="icons/emu.svg" data-cost="100"
-                        type="button">
-                        <span class="store-icon"><img src="icons/emu.svg" class="icon-img" alt=""></span><span
-                            class="label">Emu</span><span class="cost">100 ★</span>
-                    </button>
-                    <button class="store-item" data-key="kangaroo" data-name="Kangaroo" data-icon="icons/kangaroo.svg"
-                        data-cost="150" type="button">
-                        <span class="store-icon"><img src="icons/kangaroo.svg" class="icon-img" alt=""></span><span
-                            class="label">Kangaroo</span><span class="cost">150 ★</span>
-                    </button>
-                    <button class="store-item" data-key="cockatoo" data-name="Cockatoo" data-icon="icons/cockatoo.svg"
-                        data-cost="60" type="button">
-                        <span class="store-icon"><img src="icons/cockatoo.svg" class="icon-img" alt=""></span><span
-                            class="label">Cockatoo</span><span class="cost">60 ★</span>
-                    </button>
+                <div class="habitat-overview card-surface">
+
+                    <div>
+                        <span class="eyebrow">
+                            HABITAT PROGRESS
+                        </span>
+
+                        <strong id="habitatSummary">
+                            0 / 5 habitats built
+                        </strong>
+
+                        <span id="habitatSpeciesSummary">
+                            0 different species discovered
+                        </span>
+                    </div>
+
+                    <div class="habitat-overview-icon">
+                        <i class="fas fa-paw"></i>
+                    </div>
+
                 </div>
+
+                <div class="habitat-rule-note">
+
+                    <i class="fas fa-circle-info"></i>
+
+                    <span>
+                        Building a habitat automatically unlocks
+                        its animal. You can then place that animal
+                        in an unlocked garden plot from Collection.
+                    </span>
+
+                </div>
+
+                <div
+                    class="habitat-grid"
+                    id="habitatGrid"
+                ></div>
+
             </section>
 
             <!-- GACHA -->

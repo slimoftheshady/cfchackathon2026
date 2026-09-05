@@ -187,6 +187,15 @@
         newAreaRadiusMetres: 250
     };
 
+    let habitats = {
+        builtCount: 0,
+        total: 5,
+        uniqueSpecies: 0,
+        playerLevel: 1,
+        gardenLevel: 1,
+        items: []
+    };
+
     // =========================================================
     // LOGIN / UI STATE
     // =========================================================
@@ -288,6 +297,16 @@
 
     const nextGoalButton =
         $('nextGoalButton');
+
+    // Wildlife habitats
+    const habitatGrid =
+        $('habitatGrid');
+
+    const habitatSummary =
+        $('habitatSummary');
+
+    const habitatSpeciesSummary =
+        $('habitatSpeciesSummary');
 
     // Garden progression
     const gardenLevelLabel = $('gardenLevelLabel');
@@ -884,13 +903,13 @@
             nextPlots: 6
         };
 
-        biodiversity = {
-            todayUnique: 0,
-            totalUnique: 0,
-            multiplier: 1,
-            nextTarget: 3,
-            nextMultiplier: 1.25,
-            newAreaRadiusMetres: 250
+        habitats = {
+            builtCount: 0,
+            total: 5,
+            uniqueSpecies: 0,
+            playerLevel: 1,
+            gardenLevel: 1,
+            items: []
         };
 
         friendSearchResults.innerHTML =
@@ -1093,6 +1112,266 @@
                     nextTarget: 3,
                     nextMultiplier: 1.25,
                     newAreaRadiusMetres: 250
+                };
+
+        habitats =
+            state.habitats
+            && typeof state.habitats === 'object'
+
+                ? {
+                    builtCount:
+                        Number(
+                            state.habitats.builtCount
+                            || 0
+                        ),
+
+                    total:
+                        Number(
+                            state.habitats.total
+                            || 5
+                        ),
+
+                    uniqueSpecies:
+                        Number(
+                            state.habitats.uniqueSpecies
+                            || 0
+                        ),
+
+                    playerLevel:
+                        Number(
+                            state.habitats.playerLevel
+                            || 1
+                        ),
+
+                    gardenLevel:
+                        Number(
+                            state.habitats.gardenLevel
+                            || 1
+                        ),
+
+                    items:
+                        Array.isArray(
+                            state.habitats.items
+                        )
+                            ? state.habitats.items
+                            : []
+                }
+
+                : {
+                    builtCount: 0,
+                    total: 5,
+                    uniqueSpecies: 0,
+                    playerLevel: 1,
+                    gardenLevel: 1,
+                    items: []
+                };
+
+        habitats =
+            state.habitats
+            && typeof state.habitats === 'object'
+
+                ? {
+                    builtCount:
+                        Number(
+                            state.habitats.builtCount
+                            || 0
+                        ),
+
+                    total:
+                        Number(
+                            state.habitats.total
+                            || 5
+                        ),
+
+                    uniqueSpecies:
+                        Number(
+                            state.habitats.uniqueSpecies
+                            || 0
+                        ),
+
+                    playerLevel:
+                        Number(
+                            state.habitats.playerLevel
+                            || 1
+                        ),
+
+                    gardenLevel:
+                        Number(
+                            state.habitats.gardenLevel
+                            || 1
+                        ),
+
+                    items:
+                        Array.isArray(
+                            state.habitats.items
+                        )
+                            ? state.habitats.items
+                            : []
+                }
+
+                : {
+                    builtCount: 0,
+                    total: 5,
+                    uniqueSpecies: 0,
+                    playerLevel: 1,
+                    gardenLevel: 1,
+                    items: []
+                };
+
+        habitats =
+            state.habitats
+            && typeof state.habitats === 'object'
+
+                ? {
+                    builtCount:
+                        Number(
+                            state.habitats.builtCount
+                            || 0
+                        ),
+
+                    total:
+                        Number(
+                            state.habitats.total
+                            || 5
+                        ),
+
+                    uniqueSpecies:
+                        Number(
+                            state.habitats.uniqueSpecies
+                            || 0
+                        ),
+
+                    playerLevel:
+                        Number(
+                            state.habitats.playerLevel
+                            || 1
+                        ),
+
+                    gardenLevel:
+                        Number(
+                            state.habitats.gardenLevel
+                            || 1
+                        ),
+
+                    items:
+                        Array.isArray(
+                            state.habitats.items
+                        )
+                            ? state.habitats.items
+                            : []
+                }
+
+                : {
+                    builtCount: 0,
+                    total: 5,
+                    uniqueSpecies: 0,
+                    playerLevel: 1,
+                    gardenLevel: 1,
+                    items: []
+                };
+
+        habitats =
+            state.habitats
+            && typeof state.habitats === 'object'
+
+                ? {
+                    builtCount:
+                        Number(
+                            state.habitats.builtCount
+                            || 0
+                        ),
+
+                    total:
+                        Number(
+                            state.habitats.total
+                            || 5
+                        ),
+
+                    uniqueSpecies:
+                        Number(
+                            state.habitats.uniqueSpecies
+                            || 0
+                        ),
+
+                    playerLevel:
+                        Number(
+                            state.habitats.playerLevel
+                            || 1
+                        ),
+
+                    gardenLevel:
+                        Number(
+                            state.habitats.gardenLevel
+                            || 1
+                        ),
+
+                    items:
+                        Array.isArray(
+                            state.habitats.items
+                        )
+                            ? state.habitats.items
+                            : []
+                }
+
+                : {
+                    builtCount: 0,
+                    total: 5,
+                    uniqueSpecies: 0,
+                    playerLevel: 1,
+                    gardenLevel: 1,
+                    items: []
+                };
+
+        habitats =
+            state.habitats
+            && typeof state.habitats === 'object'
+
+                ? {
+                    builtCount:
+                        Number(
+                            state.habitats.builtCount
+                            || 0
+                        ),
+
+                    total:
+                        Number(
+                            state.habitats.total
+                            || 5
+                        ),
+
+                    uniqueSpecies:
+                        Number(
+                            state.habitats.uniqueSpecies
+                            || 0
+                        ),
+
+                    playerLevel:
+                        Number(
+                            state.habitats.playerLevel
+                            || 1
+                        ),
+
+                    gardenLevel:
+                        Number(
+                            state.habitats.gardenLevel
+                            || 1
+                        ),
+
+                    items:
+                        Array.isArray(
+                            state.habitats.items
+                        )
+                            ? state.habitats.items
+                            : []
+                }
+
+                : {
+                    builtCount: 0,
+                    total: 5,
+                    uniqueSpecies: 0,
+                    playerLevel: 1,
+                    gardenLevel: 1,
+                    items: []
                 };
 
         collection =
@@ -3975,133 +4254,634 @@
     // STORE
     // =========================================================
 
-    function renderStore() {
-        const player =
-            getPlayerProgression();
 
-        const wildlifeUnlocked =
-            player.current.level
-            >= 3;
+    function habitatRequirementMarkup(
+        met,
+        icon,
+        text
+    ) {
+        return `
+            <div
+                class="habitat-requirement ${
+                    met
+                        ? 'met'
+                        : ''
+                }"
+            >
+                <i class="fas ${
+                    met
+                        ? 'fa-circle-check'
+                        : icon
+                }"></i>
 
-        document
-            .querySelectorAll(
-                '.store-item'
-            )
-            .forEach(
-                button => {
-
-                    const owned =
-                        collection.some(
-                            item =>
-                                item.key ===
-                                button.dataset.key
-                        );
-
-                    button.classList.toggle(
-                        'owned',
-                        owned
-                    );
-
-                    const cost =
-                        button.querySelector(
-                            '.cost'
-                        );
-
-                    button.disabled =
-                        !owned
-                        && !wildlifeUnlocked;
-
-                    button.classList.toggle(
-                        'level-locked',
-                        !owned
-                        && !wildlifeUnlocked
-                    );
-
-                    cost.textContent =
-                        owned
-                            ? 'Owned ✓'
-                            : wildlifeUnlocked
-                                ? `${button.dataset.cost} coins`
-                                : 'Unlocks Level 3';
-                }
-            );
+                <span>
+                    ${escapeHtml(text)}
+                </span>
+            </div>
+        `;
     }
 
-    function buyDecor(button) {
-        const player =
-            getPlayerProgression();
 
-        if (
-            player.current.level
-            < 3
-        ) {
-            showToast(
-                'Wildlife unlocks at player Level 3.',
-                'fa-lock'
-            );
+    function getNextHabitatGoal() {
 
-            return;
-        }
-
-        const key =
-            button.dataset.key;
-
-        if (
-            collection.some(
-                item =>
-                    item.key === key
+        const items =
+            Array.isArray(
+                habitats.items
             )
-        ) {
-            showToast(
-                'You already own this decoration.',
-                'fa-heart'
-            );
+                ? habitats.items
+                : [];
 
-            return;
-        }
+        return (
+            items.find(
+                item =>
+                    !item.built
+                    && item.playerLevelMet
+                    && item.gardenLevelMet
+                    && item.uniqueSpeciesMet
+            )
+            || null
+        );
+    }
 
-        const cost =
-            Number(
-                button.dataset.cost
-            );
+
+
+    function habitatRequirementMarkup(
+        met,
+        icon,
+        text
+    ) {
+        return `
+            <div
+                class="habitat-requirement ${
+                    met
+                        ? 'met'
+                        : ''
+                }"
+            >
+                <i class="fas ${
+                    met
+                        ? 'fa-circle-check'
+                        : icon
+                }"></i>
+
+                <span>
+                    ${escapeHtml(text)}
+                </span>
+            </div>
+        `;
+    }
+
+
+    function getNextHabitatGoal() {
+
+        const items =
+            Array.isArray(
+                habitats.items
+            )
+                ? habitats.items
+                : [];
+
+        return (
+            items.find(
+                item =>
+                    !item.built
+                    && item.playerLevelMet
+                    && item.gardenLevelMet
+                    && item.uniqueSpeciesMet
+            )
+            || null
+        );
+    }
+
+
+
+    function habitatRequirementMarkup(
+        met,
+        icon,
+        text
+    ) {
+        return `
+            <div
+                class="habitat-requirement ${
+                    met
+                        ? 'met'
+                        : ''
+                }"
+            >
+                <i class="fas ${
+                    met
+                        ? 'fa-circle-check'
+                        : icon
+                }"></i>
+
+                <span>
+                    ${escapeHtml(text)}
+                </span>
+            </div>
+        `;
+    }
+
+
+    function getNextHabitatGoal() {
+
+        const items =
+            Array.isArray(
+                habitats.items
+            )
+                ? habitats.items
+                : [];
+
+        return (
+            items.find(
+                item =>
+                    !item.built
+                    && item.playerLevelMet
+                    && item.gardenLevelMet
+                    && item.uniqueSpeciesMet
+            )
+            || null
+        );
+    }
+
+
+
+    function habitatRequirementMarkup(
+        met,
+        icon,
+        text
+    ) {
+        return `
+            <div
+                class="habitat-requirement ${
+                    met
+                        ? 'met'
+                        : ''
+                }"
+            >
+                <i class="fas ${
+                    met
+                        ? 'fa-circle-check'
+                        : icon
+                }"></i>
+
+                <span>
+                    ${escapeHtml(text)}
+                </span>
+            </div>
+        `;
+    }
+
+
+    function getNextHabitatGoal() {
+
+        const items =
+            Array.isArray(
+                habitats.items
+            )
+                ? habitats.items
+                : [];
+
+        return (
+            items.find(
+                item =>
+                    !item.built
+                    && item.playerLevelMet
+                    && item.gardenLevelMet
+                    && item.uniqueSpeciesMet
+            )
+            || null
+        );
+    }
+
+
+    function renderStore() {
 
         if (
-            points < cost
+            !habitatGrid
+        ) {
+            return;
+        }
+
+        const items =
+            Array.isArray(
+                habitats.items
+            )
+                ? habitats.items
+                : [];
+
+        if (
+            habitatSummary
+        ) {
+            habitatSummary
+                .textContent =
+                `${Number(
+                    habitats.builtCount
+                    || 0
+                )} / ${Number(
+                    habitats.total
+                    || items.length
+                    || 5
+                )} habitats built`;
+        }
+
+        if (
+            habitatSpeciesSummary
+        ) {
+            const species =
+                Number(
+                    habitats.uniqueSpecies
+                    || 0
+                );
+
+            habitatSpeciesSummary
+                .textContent =
+                `${species} different ${
+                    species === 1
+                        ? 'species'
+                        : 'species'
+                } discovered`;
+        }
+
+        if (
+            !items.length
+        ) {
+            habitatGrid.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-paw"></i>
+                    <strong>Habitat data unavailable</strong>
+                    <span>
+                        Refresh the page after restarting Flask.
+                    </span>
+                </div>
+            `;
+
+            return;
+        }
+
+        habitatGrid.innerHTML =
+            items
+                .map(
+                    item => {
+
+                        const built =
+                            Boolean(
+                                item.built
+                            );
+
+                        const canBuild =
+                            Boolean(
+                                item.canBuild
+                            );
+
+                        const missingCoins =
+                            Math.max(
+                                0,
+                                Number(
+                                    item.cost
+                                    || 0
+                                )
+                                - points
+                            );
+
+                        let statusText =
+                            '';
+
+                        if (
+                            built
+                        ) {
+                            statusText =
+                                `${item.animalName} unlocked`;
+
+                        } else if (
+                            !item.playerLevelMet
+                        ) {
+                            statusText =
+                                `Reach Player Level ${item.requiredPlayerLevel}`;
+
+                        } else if (
+                            !item.gardenLevelMet
+                        ) {
+                            statusText =
+                                `Upgrade Garden to Level ${item.requiredGardenLevel}`;
+
+                        } else if (
+                            !item.uniqueSpeciesMet
+                        ) {
+                            const remaining =
+                                Math.max(
+                                    0,
+                                    Number(
+                                        item.requiredUniqueSpecies
+                                    )
+                                    - Number(
+                                        item.currentUniqueSpecies
+                                        || 0
+                                    )
+                                );
+
+                            statusText =
+                                `Discover ${remaining} more ${
+                                    remaining === 1
+                                        ? 'species'
+                                        : 'species'
+                                }`;
+
+                        } else if (
+                            missingCoins > 0
+                        ) {
+                            statusText =
+                                `Earn ${missingCoins} more coins`;
+
+                        } else {
+                            statusText =
+                                'Ready to build';
+                        }
+
+                        return `
+                            <article
+                                class="habitat-card ${
+                                    built
+                                        ? 'built'
+                                        : canBuild
+                                            ? 'ready'
+                                            : 'locked'
+                                }"
+                            >
+
+                                <div class="habitat-card-head">
+
+                                    <div class="habitat-animal-icon">
+                                        <img
+                                            src="${escapeHtml(item.animalIcon)}"
+                                            alt=""
+                                        >
+                                    </div>
+
+                                    <div class="habitat-card-heading">
+
+                                        <span class="eyebrow">
+                                            ${
+                                                built
+                                                    ? 'HABITAT COMPLETE'
+                                                    : 'WILDLIFE HABITAT'
+                                            }
+                                        </span>
+
+                                        <h2>
+                                            ${escapeHtml(item.name)}
+                                        </h2>
+
+                                        <span class="habitat-animal-name">
+                                            <i class="fas fa-paw"></i>
+                                            ${escapeHtml(item.animalName)}
+                                        </span>
+
+                                    </div>
+
+                                    ${
+                                        built
+                                            ? `
+                                                <div class="habitat-built-badge">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                            `
+                                            : ''
+                                    }
+
+                                </div>
+
+                                <p class="habitat-description">
+                                    ${escapeHtml(item.description)}
+                                </p>
+
+                                <div class="habitat-requirements">
+
+                                    ${
+                                        habitatRequirementMarkup(
+                                            item.playerLevelMet,
+                                            'fa-lock',
+                                            `Player Level ${item.requiredPlayerLevel} · currently ${item.currentPlayerLevel}`
+                                        )
+                                    }
+
+                                    ${
+                                        habitatRequirementMarkup(
+                                            item.gardenLevelMet,
+                                            'fa-seedling',
+                                            `Garden Level ${item.requiredGardenLevel} · currently ${item.currentGardenLevel}`
+                                        )
+                                    }
+
+                                    ${
+                                        habitatRequirementMarkup(
+                                            item.uniqueSpeciesMet,
+                                            'fa-leaf',
+                                            `${item.requiredUniqueSpecies} different species · currently ${item.currentUniqueSpecies}`
+                                        )
+                                    }
+
+                                    ${
+                                        habitatRequirementMarkup(
+                                            item.coinsMet || built,
+                                            'fa-coins',
+                                            `${Number(item.cost).toLocaleString()} coins`
+                                        )
+                                    }
+
+                                </div>
+
+                                <div class="habitat-card-footer">
+
+                                    <div class="habitat-status">
+                                        ${
+                                            built
+                                                ? '<i class="fas fa-circle-check"></i>'
+                                                : canBuild
+                                                    ? '<i class="fas fa-hammer"></i>'
+                                                    : '<i class="fas fa-lock"></i>'
+                                        }
+
+                                        <span>
+                                            ${escapeHtml(statusText)}
+                                        </span>
+                                    </div>
+
+                                    <button
+                                        class="${
+                                            canBuild
+                                                ? 'primary-btn'
+                                                : 'soft-btn'
+                                        } habitat-build-btn"
+                                        type="button"
+                                        data-habitat-key="${escapeHtml(item.key)}"
+                                        ${
+                                            built || !canBuild
+                                                ? 'disabled'
+                                                : ''
+                                        }
+                                    >
+                                        ${
+                                            built
+                                                ? '<i class="fas fa-check"></i> Built'
+                                                : `<i class="fas fa-hammer"></i> Build · ${Number(item.cost).toLocaleString()} coins`
+                                        }
+                                    </button>
+
+                                </div>
+
+                            </article>
+                        `;
+                    }
+                )
+                .join('');
+    }
+
+
+    async function buildHabitat(
+        habitatKey
+    ) {
+
+        const habitat =
+            (
+                habitats.items
+                || []
+            )
+                .find(
+                    item =>
+                        item.key ===
+                        habitatKey
+                );
+
+        if (
+            !habitat
         ) {
             showToast(
-                `You need ${cost} coins for this wildlife unlock.`,
-                'fa-coins'
+                'That habitat could not be found.',
+                'fa-triangle-exclamation'
             );
 
             return;
         }
 
-        points -= cost;
+        if (
+            habitat.built
+        ) {
+            showToast(
+                `${habitat.name} is already complete.`,
+                'fa-circle-check'
+            );
 
-        collection.push({
-            key,
+            return;
+        }
 
-            name:
-                button.dataset.name,
+        if (
+            !habitat.canBuild
+        ) {
+            if (
+                !habitat.playerLevelMet
+            ) {
+                showToast(
+                    `Reach Player Level ${habitat.requiredPlayerLevel} first.`,
+                    'fa-lock'
+                );
 
-            icon:
-                button.dataset.icon,
+            } else if (
+                !habitat.gardenLevelMet
+            ) {
+                showToast(
+                    `Upgrade your garden to Level ${habitat.requiredGardenLevel} first.`,
+                    'fa-seedling'
+                );
 
-            rarity:
-                'decor',
+            } else if (
+                !habitat.uniqueSpeciesMet
+            ) {
+                showToast(
+                    `Discover ${habitat.requiredUniqueSpecies} different species before building this habitat.`,
+                    'fa-leaf'
+                );
 
-            kind:
-                'decor'
-        });
+            } else {
+                showToast(
+                    `You need ${habitat.cost} coins to build ${habitat.name}.`,
+                    'fa-coins'
+                );
+            }
 
-        renderEverything();
+            return;
+        }
 
-        scheduleSave();
+        const button =
+            habitatGrid
+                ?.querySelector(
+                    `[data-habitat-key="${CSS.escape(habitatKey)}"]`
+                );
 
-        showToast(
-            `${button.dataset.name} unlocked! Place it from any garden plot.`,
-            'fa-heart'
-        );
+        if (
+            button
+        ) {
+            button.disabled =
+                true;
+
+            button.innerHTML =
+                '<i class="fas fa-spinner fa-spin"></i> Building...';
+        }
+
+        try {
+            const data =
+                await api(
+                    `/api/habitats/${encodeURIComponent(habitatKey)}/build`,
+                    {
+                        method:
+                            'POST'
+                    }
+                );
+
+            if (
+                data.state
+            ) {
+                loadState(
+                    data.state
+                );
+            }
+
+            showToast(
+                data.message
+                || `${habitat.animalName} unlocked!`,
+                'fa-paw'
+            );
+
+            await loadAchievements();
+
+        } catch (error) {
+
+            showToast(
+                error.message,
+                'fa-triangle-exclamation'
+            );
+
+            if (
+                currentUser
+            ) {
+                try {
+                    const data =
+                        await api(
+                            '/api/state'
+                        );
+
+                    if (
+                        data.state
+                    ) {
+                        loadState(
+                            data.state
+                        );
+                    }
+
+                } catch (_) {
+                    // Keep the current screen if refresh fails.
+                }
+            }
+        }
     }
 
     // =========================================================
@@ -6299,6 +7079,36 @@
 
                     if (
                         action
+                        && action.startsWith(
+                            'habitat:'
+                        )
+                    ) {
+                        buildHabitat(
+                            action.slice(
+                                'habitat:'.length
+                            )
+                        );
+
+                        return;
+                    }
+
+                    if (
+                        action
+                        && action.startsWith(
+                            'habitat:'
+                        )
+                    ) {
+                        buildHabitat(
+                            action.slice(
+                                'habitat:'.length
+                            )
+                        );
+
+                        return;
+                    }
+
+                    if (
+                        action
                         === 'upgrade'
                     ) {
                         upgradeGarden();
@@ -6331,21 +7141,34 @@
                 });
             });
 
-        // Store
-        document
-            .querySelectorAll(
-                '.store-item'
-            )
-            .forEach(
-                button =>
-                    button.addEventListener(
-                        'click',
-                        () =>
-                            buyDecor(
-                                button
-                            )
-                    )
+        // Wildlife habitats
+        if (
+            habitatGrid
+        ) {
+            habitatGrid.addEventListener(
+                'click',
+                event => {
+
+                    const button =
+                        event.target.closest(
+                            '.habitat-build-btn'
+                        );
+
+                    if (
+                        !button
+                        || button.disabled
+                    ) {
+                        return;
+                    }
+
+                    buildHabitat(
+                        button
+                            .dataset
+                            .habitatKey
+                    );
+                }
             );
+        }
     }
 
     // =========================================================
