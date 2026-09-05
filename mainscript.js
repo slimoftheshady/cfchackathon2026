@@ -18,6 +18,35 @@
       { key: 'custard-orchid', name: 'Custard Orchid', icon: 'fa-clover', rarity: 'legendary', kind: 'plant' }
   ];
 
+    const PLANT_INFO = {
+        'kangaroo-paw': 'Western Australia\u2019s floral emblem. Its velvety, paw-shaped flowers are a favourite feeding stop for honeyeaters and other nectar-loving birds.',
+        'paper-daisy': 'A papery-petalled everlasting that carpets the bush in white, pink and yellow after good rains, holding its colour long after picking.',
+        'pigface': 'A hardy, succulent groundcover found on coastal dunes, with bright pink-purple daisy-like flowers that open wide in the sun.',
+        'fringe-lily': 'A delicate woodland wildflower with fine, fringed purple-blue petals that tremble in the slightest breeze.',
+        'blue-leschenaultia': 'One of the most vividly blue wildflowers in the southwest, often stopping bushwalkers in their tracks each spring.',
+        'featherflower': 'Named for its soft, feathery clusters of blooms, this heathland shrub is a standout in WA\u2019s wildflower displays.',
+        'cowslip-orchid': 'A cheerful yellow-green ground orchid with maroon markings, among the first orchids to appear each spring.',
+        'donkey-orchid': 'Named for its two upright, donkey-ear-like petals, this ground orchid is a common and welcome sign that spring has arrived.',
+        'qualup-bell': 'A striking bell-shaped flower found only in a small pocket of the southwest, prized by collectors for its rarity.',
+        'wreath-flower': 'Grows in a near-perfect ring of pink and white blossom around a bare centre, a wildflower found almost nowhere else on Earth.',
+        'spider-orchid': 'An orchid with long, spindly petals that mimic an insect, luring in the very pollinators it needs to reproduce.',
+        'pixie-mops': 'A shrub topped with fluffy, mop-like flower heads in soft pink and cream, adding texture to sandplain heathland.',
+        'rhizanthella-gardneri': 'The Western Underground Orchid spends its entire life beneath the soil and never sees daylight \u2014 one of the rarest plants on Earth.',
+        'drakaea': 'The Hammer Orchid disguises itself as a female wasp, tricking male wasps into pollinating it as they attempt to mate.',
+        'queen-of-sheba': 'Widely considered one of the most beautifully patterned orchids in the world, its rarity makes every sighting a treasured find.',
+        'custard-orchid': 'A softly coloured, custard-hued orchid tucked away in sheltered bushland, rarely seen and highly sought after.'
+    };
+
+    function plantImagePath(
+        name
+    ) {
+        return `images/${
+            String(name ?? '')
+                .toLowerCase()
+                .replace(/\s+/g, '')
+        }.jpg`;
+    }
+
     const DECOR_POOL = [
         { key: 'echidna', name: 'Echidna', icon: 'icons/echidna.svg', rarity: 'decor', kind: 'decor', cost: 80 },
         { key: 'wombat', name: 'Wombat', icon: 'icons/wombat.svg', rarity: 'decor', kind: 'decor', cost: 120 },
@@ -162,6 +191,7 @@
     const pickerTitle = $('pickerTitle');
     const pickerSlotNumber = $('pickerSlotNumber');
     const collectionGrid = $('collectionGrid');
+    const wikiList = $('wikiList');
     const clearPlotButton = $('clearPlotButton');
 
     // Navigation
@@ -771,6 +801,33 @@
 
         selectedSlot =
             null;
+    }
+
+    function renderWiki() {
+        wikiList.innerHTML = PLANT_POOL.map(
+            plant => `
+                <div class="wiki-card">
+                    <img
+                        class="wiki-image"
+                        src="${escapeHtml(plantImagePath(plant.name))}"
+                        alt="${escapeHtml(plant.name)}"
+                        loading="lazy"
+                    >
+
+                    <div class="wiki-details">
+                        <div class="wiki-details-top">
+                            <span class="wiki-name">${escapeHtml(plant.name)}</span>
+                            <span class="wiki-rarity rarity-${escapeClass(plant.rarity)}">
+                                ${escapeHtml(RARITY_CONFIG[plant.rarity].label)}
+                            </span>
+                        </div>
+                        <p class="wiki-description">
+                            ${escapeHtml(PLANT_INFO[plant.key] || '')}
+                        </p>
+                    </div>
+                </div>
+            `
+        ).join('');
     }
 
     function renderCollectionPicker() {
@@ -2863,6 +2920,8 @@
     setAuthMode(
         'login'
     );
+
+    renderWiki();
 
     bindEvents();
 
