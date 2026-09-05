@@ -31,6 +31,50 @@ MAX_GARDEN_SLOTS = 16
 MAX_COLLECTION_ITEMS = 40
 OBSERVATION_RADIUS_METRES = 30
 MAX_SAME_PLANT_PER_LOCATION = 3
+
+# A sighting of the same species at least this far from every
+# previous sighting counts as finding that species in a new area.
+NEW_AREA_RADIUS_METRES = 250
+
+# A sighting of the same species at least this far from every
+# previous sighting counts as finding that species in a new area.
+NEW_AREA_RADIUS_METRES = 250
+
+# A sighting of the same species at least this far from every
+# previous sighting counts as finding that species in a new area.
+NEW_AREA_RADIUS_METRES = 250
+
+# A sighting of the same species at least this far from every
+# previous sighting counts as finding that species in a new area.
+NEW_AREA_RADIUS_METRES = 250
+
+# A sighting of the same species at least this far from every
+# previous sighting counts as finding that species in a new area.
+NEW_AREA_RADIUS_METRES = 250
+
+# A sighting of the same species at least this far from every
+# previous sighting counts as finding that species in a new area.
+NEW_AREA_RADIUS_METRES = 250
+
+# A sighting of the same species at least this far from every
+# previous sighting counts as finding that species in a new area.
+NEW_AREA_RADIUS_METRES = 250
+
+# A sighting of the same species at least this far from every
+# previous sighting counts as finding that species in a new area.
+NEW_AREA_RADIUS_METRES = 250
+
+# A sighting of the same species at least this far from every
+# previous sighting counts as finding that species in a new area.
+NEW_AREA_RADIUS_METRES = 250
+
+# A sighting of the same species at least this far from every
+# previous sighting counts as finding that species in a new area.
+NEW_AREA_RADIUS_METRES = 250
+
+# A sighting of the same species at least this far from every
+# previous sighting counts as finding that species in a new area.
+NEW_AREA_RADIUS_METRES = 250
 GARDEN_UPGRADES = (
     {"level": 2, "cost": 150, "plots": 6},
     {"level": 3, "cost": 300, "plots": 10},
@@ -373,6 +417,18 @@ def init_db():
                 ON plant_observations(user_id, created_at);
             CREATE INDEX IF NOT EXISTS idx_observations_user_taxon
                 ON plant_observations(user_id, taxon_key);
+
+            CREATE TABLE IF NOT EXISTS biodiversity_daily_species (
+                user_id INTEGER NOT NULL,
+                streak_date TEXT NOT NULL,
+                taxon_key TEXT NOT NULL,
+                first_seen_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id, streak_date, taxon_key),
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_biodiversity_daily_user_date
+                ON biodiversity_daily_species(user_id, streak_date);
 
             CREATE TABLE IF NOT EXISTS friendships (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -808,6 +864,7 @@ def state_for_user(db, user_id):
             "nextCost": next_upgrade["cost"] if next_upgrade else None,
             "nextPlots": next_upgrade["plots"] if next_upgrade else None,
         },
+        "biodiversity": biodiversity_snapshot(db, user_id),
     }
 
 
@@ -850,6 +907,155 @@ def clean_item(item):
 
 def quest_date():
     return date.today().isoformat()
+
+
+def biodiversity_multiplier(
+    unique_count,
+):
+    """Multiplier earned by today's number of different species."""
+
+    unique_count = max(
+        0,
+        int(
+            unique_count
+            or 0
+        ),
+    )
+
+    if (
+        unique_count
+        >= 10
+    ):
+        return 2.0
+
+    if (
+        unique_count
+        >= 5
+    ):
+        return 1.5
+
+    if (
+        unique_count
+        >= 3
+    ):
+        return 1.25
+
+    return 1.0
+
+
+def biodiversity_next_target(
+    unique_count,
+):
+
+    unique_count = max(
+        0,
+        int(
+            unique_count
+            or 0
+        ),
+    )
+
+    if (
+        unique_count
+        < 3
+    ):
+        return (
+            3,
+            1.25,
+        )
+
+    if (
+        unique_count
+        < 5
+    ):
+        return (
+            5,
+            1.5,
+        )
+
+    if (
+        unique_count
+        < 10
+    ):
+        return (
+            10,
+            2.0,
+        )
+
+    return (
+        None,
+        None,
+    )
+
+
+def biodiversity_snapshot(
+    db,
+    user_id,
+):
+
+    today = quest_date()
+
+    today_unique = db.execute(
+        """
+        SELECT COUNT(*)
+        FROM biodiversity_daily_species
+        WHERE
+            user_id = ?
+            AND streak_date = ?
+        """,
+        (
+            user_id,
+            today,
+        ),
+    ).fetchone()[0]
+
+    total_unique = db.execute(
+        """
+        SELECT COUNT(
+            DISTINCT taxon_key
+        )
+        FROM plant_observations
+        WHERE user_id = ?
+        """,
+        (
+            user_id,
+        ),
+    ).fetchone()[0]
+
+    (
+        next_target,
+        next_multiplier,
+    ) = biodiversity_next_target(
+        today_unique
+    )
+
+    return {
+        "todayUnique":
+            int(
+                today_unique
+                or 0
+            ),
+
+        "totalUnique":
+            int(
+                total_unique
+                or 0
+            ),
+
+        "multiplier":
+            biodiversity_multiplier(
+                today_unique
+            ),
+
+        "nextTarget":
+            next_target,
+
+        "nextMultiplier":
+            next_multiplier,
+
+        "newAreaRadiusMetres":
+            NEW_AREA_RADIUS_METRES,
+    }
 
 
 def quest_progress_row(db, user_id, quest_key):
@@ -1282,70 +1488,416 @@ def identify():
         return jsonify({"error": "PlantNet could not determine the plant species."}), 422
 
     with get_db() as db:
-        previous_locations = db.execute(
+        previous_rows = db.execute(
             """
-            SELECT latitude, longitude
+            SELECT
+                latitude,
+                longitude
             FROM plant_observations
-            WHERE user_id = ? AND taxon_key = ?
+            WHERE
+                user_id = ?
+                AND taxon_key = ?
             """,
-            (uid, taxon_key),
+            (
+                uid,
+                taxon_key,
+            ),
         ).fetchall()
-        nearby_count = sum(
+
+        distances = [
             haversine_metres(
                 latitude,
                 longitude,
-                float(row["latitude"]),
-                float(row["longitude"]),
-            ) <= OBSERVATION_RADIUS_METRES
-            for row in previous_locations
-        )
-        if nearby_count >= MAX_SAME_PLANT_PER_LOCATION:
-            display_name = common_name or scientific_name or "this plant"
-            return jsonify({
-                "error": (
-                    f"You have already logged {MAX_SAME_PLANT_PER_LOCATION} "
-                    f"{display_name} sightings within {OBSERVATION_RADIUS_METRES} m "
-                    "of this location. Move to a different location or photograph another species."
+                float(
+                    row[
+                        "latitude"
+                    ]
                 ),
-                "code": "location_species_limit",
-                "limit": MAX_SAME_PLANT_PER_LOCATION,
-                "radius_metres": OBSERVATION_RADIUS_METRES,
-            }), 409
+                float(
+                    row[
+                        "longitude"
+                    ]
+                ),
+            )
+
+            for row
+            in previous_rows
+        ]
+
+        nearby_count = sum(
+            1
+
+            for distance
+            in distances
+
+            if (
+                distance
+                <= OBSERVATION_RADIUS_METRES
+            )
+        )
+
+        if (
+            nearby_count
+            >= MAX_SAME_PLANT_PER_LOCATION
+        ):
+            display_name = (
+                common_name
+                or scientific_name
+                or "this plant"
+            )
+
+            return jsonify(
+                {
+                    "error":
+                        (
+                            f"You have already logged "
+                            f"{MAX_SAME_PLANT_PER_LOCATION} "
+                            f"{display_name} sightings within "
+                            f"{OBSERVATION_RADIUS_METRES} m "
+                            f"of this location. "
+                            f"Move to a different location "
+                            f"or photograph another species."
+                        ),
+
+                    "code":
+                        "location_species_limit",
+
+                    "limit":
+                        MAX_SAME_PLANT_PER_LOCATION,
+
+                    "radius_metres":
+                        OBSERVATION_RADIUS_METRES,
+                }
+            ), 409
+
+        first_species = (
+            len(
+                previous_rows
+            )
+            == 0
+        )
+
+        nearest_distance = (
+            min(
+                distances
+            )
+
+            if distances
+
+            else None
+        )
+
+        new_area = (
+            not first_species
+
+            and nearest_distance
+            is not None
+
+            and nearest_distance
+            >= NEW_AREA_RADIUS_METRES
+        )
+
+        today = quest_date()
+
+        already_in_today_streak = db.execute(
+            """
+            SELECT 1
+            FROM biodiversity_daily_species
+            WHERE
+                user_id = ?
+                AND streak_date = ?
+                AND taxon_key = ?
+            """,
+            (
+                uid,
+                today,
+                taxon_key,
+            ),
+        ).fetchone()
+
+        new_daily_species = (
+            already_in_today_streak
+            is None
+        )
+
+        current_daily_unique = db.execute(
+            """
+            SELECT COUNT(*)
+            FROM biodiversity_daily_species
+            WHERE
+                user_id = ?
+                AND streak_date = ?
+            """,
+            (
+                uid,
+                today,
+            ),
+        ).fetchone()[0]
+
+        projected_daily_unique = (
+            int(
+                current_daily_unique
+                or 0
+            )
+            + (
+                1
+                if new_daily_species
+                else 0
+            )
+        )
+
+        # -----------------------------------------
+        # Base biodiversity reward
+        # -----------------------------------------
+
+        if first_species:
+            reward_type = (
+                "first_species"
+            )
+
+            reward_label = (
+                "New species discovered"
+            )
+
+            base_coins = 30
+            base_xp = 30
+
+        elif new_area:
+            reward_type = (
+                "new_area"
+            )
+
+            reward_label = (
+                "Species found in a new area"
+            )
+
+            base_coins = 20
+            base_xp = 20
+
+        else:
+            reward_type = (
+                "repeat"
+            )
+
+            reward_label = (
+                "Repeat sighting"
+            )
+
+            base_coins = 5
+            base_xp = 5
+
+        # -----------------------------------------
+        # Biodiversity streak
+        #
+        # Only a different species can receive the
+        # streak multiplier. A repeat sighting still
+        # earns its normal reward but cannot farm ×2.
+        # -----------------------------------------
+
+        reward_multiplier = (
+            biodiversity_multiplier(
+                projected_daily_unique
+            )
+
+            if new_daily_species
+
+            else 1.0
+        )
+
+        coin_reward = int(
+            math.floor(
+                base_coins
+                * reward_multiplier
+                + 0.5
+            )
+        )
+
+        xp_reward = int(
+            math.floor(
+                base_xp
+                * reward_multiplier
+                + 0.5
+            )
+        )
+
+        # -----------------------------------------
+        # Save observation
+        # -----------------------------------------
 
         observation_id = db.execute(
             """
             INSERT INTO plant_observations(
-                user_id, taxon_key, common_name, scientific_name,
-                latitude, longitude, accuracy_m
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                user_id,
+                taxon_key,
+                common_name,
+                scientific_name,
+                latitude,
+                longitude,
+                accuracy_m
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-            (uid, taxon_key, common_name, scientific_name, latitude, longitude, accuracy),
+            (
+                uid,
+                taxon_key,
+                common_name,
+                scientific_name,
+                latitude,
+                longitude,
+                accuracy,
+            ),
         ).lastrowid
-        db.execute("INSERT OR IGNORE INTO game_state(user_id) VALUES (?)", (uid,))
+
+        # Add the species to today's unique-species
+        # streak if it has not already appeared today.
+
+        if new_daily_species:
+            db.execute(
+                """
+                INSERT OR IGNORE INTO biodiversity_daily_species(
+                    user_id,
+                    streak_date,
+                    taxon_key
+                )
+                VALUES (?, ?, ?)
+                """,
+                (
+                    uid,
+                    today,
+                    taxon_key,
+                ),
+            )
+
+        db.execute(
+            """
+            INSERT OR IGNORE INTO game_state(
+                user_id
+            )
+            VALUES (?)
+            """,
+            (
+                uid,
+            ),
+        )
+
+        # Coins and XP are now awarded by Flask.
+
         db.execute(
             """
             UPDATE game_state
-            SET snaps_completed = snaps_completed + 1,
-                snaps_taken = snaps_taken + 1
+            SET
+                snaps_completed =
+                    snaps_completed + 1,
+
+                snaps_taken =
+                    snaps_taken + 1,
+
+                points =
+                    points + ?,
+
+                score =
+                    score + ?
+
             WHERE user_id = ?
             """,
-            (uid,),
+            (
+                coin_reward,
+                xp_reward,
+                uid,
+            ),
         )
-        check_and_update_achievements(db, uid)
-        quest_update = apply_quest_event(db, uid, "snap")
-        observation = db.execute(
+
+        # Achievement XP is calculated after the
+        # biodiversity XP has been added.
+
+        new_achievements = (
+            check_and_update_achievements(
+                db,
+                uid,
+            )
+        )
+
+        # Daily / community / special quest rewards
+        # remain separate coin rewards.
+
+        quest_update = apply_quest_event(
+            db,
+            uid,
+            "snap",
+        )
+
+        balance = db.execute(
             """
-            SELECT id, COALESCE(common_name, scientific_name, 'Plant') AS name,
-                   common_name, scientific_name, latitude, longitude, accuracy_m, created_at
-            FROM plant_observations WHERE id = ?
+            SELECT
+                points,
+                score
+            FROM game_state
+            WHERE user_id = ?
             """,
-            (observation_id,),
+            (
+                uid,
+            ),
         ).fetchone()
 
+        biodiversity = (
+            biodiversity_snapshot(
+                db,
+                uid,
+            )
+        )
+
+        observation = db.execute(
+            """
+            SELECT
+                id,
+
+                COALESCE(
+                    common_name,
+                    scientific_name,
+                    'Plant'
+                ) AS name,
+
+                common_name,
+                scientific_name,
+                latitude,
+                longitude,
+                accuracy_m,
+                created_at
+
+            FROM plant_observations
+            WHERE id = ?
+            """,
+            (
+                observation_id,
+            ),
+        ).fetchone()
     return jsonify({
         "identification": identification,
         "predictions": predictions,
         "questUpdate": quest_update,
+        "reward": {
+            "type": reward_type,
+            "label": reward_label,
+            "coins": coin_reward,
+            "xp": xp_reward,
+            "baseCoins": base_coins,
+            "baseXp": base_xp,
+            "multiplier": reward_multiplier,
+            "newDailySpecies": new_daily_species,
+            "firstSpecies": first_species,
+            "newArea": new_area,
+            "nearestPreviousMetres": (
+                round(nearest_distance, 1)
+                if nearest_distance is not None
+                else None
+            ),
+        },
+        "balance": {
+            "coins": int(balance["points"] or 0),
+            "xp": int(balance["score"] or 0),
+        },
+        "biodiversity": biodiversity,
+        "newAchievements": new_achievements,
         "observation": dict(observation),
         "remaining_at_location": max(
             0,
@@ -1354,6 +1906,7 @@ def identify():
         "locationLimit": {
             "maxSamePlant": MAX_SAME_PLANT_PER_LOCATION,
             "radiusMetres": OBSERVATION_RADIUS_METRES,
+            "newAreaRadiusMetres": NEW_AREA_RADIUS_METRES,
         },
     })
 

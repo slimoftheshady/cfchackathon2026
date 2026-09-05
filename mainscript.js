@@ -178,6 +178,15 @@
         nextPlots: 6
     };
 
+    let biodiversity = {
+        todayUnique: 0,
+        totalUnique: 0,
+        multiplier: 1,
+        nextTarget: 3,
+        nextMultiplier: 1.25,
+        newAreaRadiusMetres: 250
+    };
+
     // =========================================================
     // LOGIN / UI STATE
     // =========================================================
@@ -241,6 +250,22 @@
     const playerXpProgress = $('playerXpProgress');
     const playerXpText = $('playerXpText');
     const playerNextUnlock = $('playerNextUnlock');
+
+    // Biodiversity progression
+    const biodiversityStreakCount =
+        $('biodiversityStreakCount');
+
+    const biodiversityMultiplier =
+        $('biodiversityMultiplier');
+
+    const biodiversityStreakTrack =
+        $('biodiversityStreakTrack');
+
+    const biodiversityNextBonus =
+        $('biodiversityNextBonus');
+
+    const biodiversityTotalUnique =
+        $('biodiversityTotalUnique');
 
     // Garden progression
     const gardenLevelLabel = $('gardenLevelLabel');
@@ -836,6 +861,15 @@
             nextPlots: 6
         };
 
+        biodiversity = {
+            todayUnique: 0,
+            totalUnique: 0,
+            multiplier: 1,
+            nextTarget: 3,
+            nextMultiplier: 1.25,
+            newAreaRadiusMetres: 250
+        };
+
         friendSearchResults.innerHTML =
             '';
 
@@ -930,6 +964,112 @@
 
                     nextPlots:
                         null
+                };
+
+        biodiversity =
+            state.biodiversity
+            && typeof state.biodiversity === 'object'
+
+                ? {
+                    todayUnique:
+                        Number(
+                            state.biodiversity.todayUnique
+                            || 0
+                        ),
+
+                    totalUnique:
+                        Number(
+                            state.biodiversity.totalUnique
+                            || 0
+                        ),
+
+                    multiplier:
+                        Number(
+                            state.biodiversity.multiplier
+                            || 1
+                        ),
+
+                    nextTarget:
+                        state.biodiversity.nextTarget == null
+                            ? null
+                            : Number(
+                                state.biodiversity.nextTarget
+                            ),
+
+                    nextMultiplier:
+                        state.biodiversity.nextMultiplier == null
+                            ? null
+                            : Number(
+                                state.biodiversity.nextMultiplier
+                            ),
+
+                    newAreaRadiusMetres:
+                        Number(
+                            state.biodiversity.newAreaRadiusMetres
+                            || 250
+                        )
+                }
+
+                : {
+                    todayUnique: 0,
+                    totalUnique: 0,
+                    multiplier: 1,
+                    nextTarget: 3,
+                    nextMultiplier: 1.25,
+                    newAreaRadiusMetres: 250
+                };
+
+        biodiversity =
+            state.biodiversity
+            && typeof state.biodiversity === 'object'
+
+                ? {
+                    todayUnique:
+                        Number(
+                            state.biodiversity.todayUnique
+                            || 0
+                        ),
+
+                    totalUnique:
+                        Number(
+                            state.biodiversity.totalUnique
+                            || 0
+                        ),
+
+                    multiplier:
+                        Number(
+                            state.biodiversity.multiplier
+                            || 1
+                        ),
+
+                    nextTarget:
+                        state.biodiversity.nextTarget == null
+                            ? null
+                            : Number(
+                                state.biodiversity.nextTarget
+                            ),
+
+                    nextMultiplier:
+                        state.biodiversity.nextMultiplier == null
+                            ? null
+                            : Number(
+                                state.biodiversity.nextMultiplier
+                            ),
+
+                    newAreaRadiusMetres:
+                        Number(
+                            state.biodiversity.newAreaRadiusMetres
+                            || 250
+                        )
+                }
+
+                : {
+                    todayUnique: 0,
+                    totalUnique: 0,
+                    multiplier: 1,
+                    nextTarget: 3,
+                    nextMultiplier: 1.25,
+                    newAreaRadiusMetres: 250
                 };
 
         collection =
@@ -1036,6 +1176,8 @@
         updateStats();
 
         renderProgression();
+
+        renderBiodiversity();
 
         renderStore();
 
@@ -1625,6 +1767,165 @@
                 gardenUpgradeHint
                     .innerHTML =
                     `<i class="fas fa-lock-open"></i> Next upgrade unlocks ${nextPlots} plots`;
+            }
+        }
+    }
+
+
+    function formatMultiplier(
+        value
+    ) {
+        const number =
+            Number(
+                value
+                || 1
+            );
+
+        return Number.isInteger(
+            number
+        )
+            ? number.toFixed(0)
+            : String(number);
+    }
+
+
+    function renderBiodiversity() {
+
+        const count =
+            Math.max(
+                0,
+                Number(
+                    biodiversity
+                        .todayUnique
+                    || 0
+                )
+            );
+
+        const multiplier =
+            Number(
+                biodiversity
+                    .multiplier
+                || 1
+            );
+
+        if (
+            biodiversityStreakCount
+        ) {
+            biodiversityStreakCount
+                .textContent =
+                count;
+        }
+
+        if (
+            biodiversityMultiplier
+        ) {
+            biodiversityMultiplier
+                .textContent =
+                `×${formatMultiplier(multiplier)}`;
+        }
+
+        if (
+            biodiversityTotalUnique
+        ) {
+            const total =
+                Math.max(
+                    0,
+                    Number(
+                        biodiversity
+                            .totalUnique
+                        || 0
+                    )
+                );
+
+            biodiversityTotalUnique
+                .textContent =
+                `${total} species discovered overall`;
+        }
+
+        if (
+            biodiversityStreakTrack
+        ) {
+            biodiversityStreakTrack
+                .innerHTML =
+                Array.from(
+                    {
+                        length: 10
+                    },
+
+                    (
+                        _,
+                        index
+                    ) => {
+                        const number =
+                            index + 1;
+
+                        const active =
+                            number
+                            <= count;
+
+                        const milestone =
+                            number === 3
+                            || number === 5
+                            || number === 10;
+
+                        return `
+                            <span
+                                class="biodiversity-streak-dot ${
+                                    active
+                                        ? 'active'
+                                        : ''
+                                } ${
+                                    milestone
+                                        ? 'milestone'
+                                        : ''
+                                }"
+                                title="${number} unique species"
+                            ></span>
+                        `;
+                    }
+                )
+                .join('');
+        }
+
+        if (
+            biodiversityNextBonus
+        ) {
+
+            if (
+                biodiversity
+                    .nextTarget
+                == null
+            ) {
+                biodiversityNextBonus
+                    .textContent =
+                    'Maximum ×2 biodiversity bonus reached for today.';
+
+            } else {
+                const target =
+                    Number(
+                        biodiversity
+                            .nextTarget
+                    );
+
+                const remaining =
+                    Math.max(
+                        0,
+                        target
+                        - count
+                    );
+
+                biodiversityNextBonus
+                    .textContent =
+                    `Find ${remaining} more different ${
+                        remaining === 1
+                            ? 'species'
+                            : 'species'
+                    } today to reach ×${
+                        formatMultiplier(
+                            biodiversity
+                                .nextMultiplier
+                        )
+                    }.`;
             }
         }
     }
@@ -2617,20 +2918,56 @@
                     || 0
                 );
 
-            // Base biodiversity reward.
-            points +=
-                15
-                + questCoins;
+            const reward =
+                data.reward
+                || {};
 
-            score +=
-                10;
+            const rewardCoins =
+                Number(
+                    reward.coins
+                    || 0
+                );
+
+            const rewardXp =
+                Number(
+                    reward.xp
+                    || 0
+                );
+
+            // Flask now returns the authoritative
+            // post-snap balances.
+
+            if (
+                data.balance
+            ) {
+                points =
+                    Number(
+                        data.balance.coins
+                        ?? points
+                    );
+
+                score =
+                    Number(
+                        data.balance.xp
+                        ?? score
+                    );
+            }
+
+            if (
+                data.biodiversity
+            ) {
+                biodiversity = {
+                    ...biodiversity,
+                    ...data.biodiversity
+                };
+            }
 
             updateStats();
             renderProgression();
-            scheduleSave();
+            renderBiodiversity();
 
             usePhotoButton.innerHTML =
-                '<i class="fas fa-check"></i> Logged <span>+10 XP · +15 coins</span>';
+                `<i class="fas fa-check"></i> Logged <span>+${rewardXp} XP · +${rewardCoins} coins</span>`;
 
             if (data.observation) {
                 mapPlants = [
@@ -2646,8 +2983,31 @@
             const remainingText = Number.isFinite(remaining)
                 ? ` ${remaining} more of this species can be logged near here.`
                 : '';
+            const rewardLabel =
+                reward.label
+                || 'Biodiversity sighting';
+
+            const multiplierText =
+                Number(
+                    reward.multiplier
+                    || 1
+                ) > 1
+
+                    ? ` ×${formatMultiplier(
+                        reward.multiplier
+                    )} streak bonus!`
+
+                    : '';
+
+            const questText =
+                questCoins
+
+                    ? ` Quest bonus: +${questCoins} coins.`
+
+                    : '';
+
             showToast(
-                `Logged ${identification.common_name || identification.scientific_name}! +10 XP and +15 coins.${questCoins ? ` Quest bonus: +${questCoins} coins.` : ''}${remainingText}`,
+                `${rewardLabel}: +${rewardXp} XP and +${rewardCoins} coins.${multiplierText}${questText}${remainingText}`,
                 'fa-location-dot'
             );
             await loadQuests();

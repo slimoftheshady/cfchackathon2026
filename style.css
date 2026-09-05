@@ -4136,3 +4136,201 @@ button {
         justify-content: center;
     }
 }
+
+
+/* STAGE 2: BIODIVERSITY REWARDS */
+
+.biodiversity-card {
+    padding: 16px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    position: relative;
+}
+
+.biodiversity-card::after {
+    content: "";
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    right: -46px;
+    top: -50px;
+    border-radius: 50%;
+    background: rgba(120, 162, 116, .08);
+    pointer-events: none;
+}
+
+.biodiversity-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    position: relative;
+    z-index: 1;
+}
+
+.biodiversity-card-title {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-width: 0;
+}
+
+.biodiversity-card-title h2 {
+    margin-top: 3px;
+    font-size: 17px;
+    letter-spacing: -.025em;
+}
+
+.biodiversity-icon {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    display: grid;
+    place-items: center;
+    border-radius: 15px;
+    background: var(--soft);
+    color: var(--forest);
+    font-size: 17px;
+}
+
+.biodiversity-multiplier {
+    min-width: 56px;
+    padding: 8px 10px;
+    border-radius: 15px;
+    background: var(--forest);
+    color: white;
+    text-align: center;
+    font-weight: 950;
+    font-size: 17px;
+    box-shadow:
+        0 6px 0
+        rgba(59, 73, 83, .12);
+}
+
+.biodiversity-streak-track {
+    display: grid;
+    grid-template-columns:
+        repeat(10, 1fr);
+    gap: 5px;
+    margin-top: 15px;
+}
+
+.biodiversity-streak-dot {
+    height: 8px;
+    border-radius: 999px;
+    background:
+        rgba(79, 118, 94, .12);
+    transition:
+        transform .18s ease,
+        background .18s ease;
+}
+
+.biodiversity-streak-dot.active {
+    background:
+        var(--sage);
+}
+
+.biodiversity-streak-dot.active.milestone {
+    background:
+        var(--forest);
+    transform:
+        scaleY(1.45);
+}
+
+.biodiversity-streak-dot.milestone:not(.active) {
+    outline:
+        1px solid
+        rgba(79, 118, 94, .28);
+    outline-offset:
+        1px;
+}
+
+.biodiversity-next {
+    margin-top: 9px;
+    font-size: 11px;
+    line-height: 1.4;
+    font-weight: 750;
+    color:
+        rgba(59, 73, 83, .70);
+}
+
+.biodiversity-reward-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(3, 1fr);
+    gap: 7px;
+    margin-top: 13px;
+}
+
+.biodiversity-reward-grid > div {
+    padding:
+        9px 7px;
+    border-radius:
+        14px;
+    background:
+        rgba(232, 241, 223, .68);
+    text-align:
+        center;
+}
+
+.biodiversity-reward-grid strong,
+.biodiversity-reward-grid span {
+    display:
+        block;
+}
+
+.biodiversity-reward-grid strong {
+    color:
+        var(--forest);
+    font-size:
+        14px;
+}
+
+.biodiversity-reward-grid span {
+    margin-top:
+        2px;
+    color:
+        rgba(59, 73, 83, .62);
+    font-size:
+        9px;
+    font-weight:
+        800;
+}
+
+.biodiversity-footnote {
+    display:
+        flex;
+    justify-content:
+        space-between;
+    gap:
+        10px;
+    margin-top:
+        10px;
+    padding-top:
+        9px;
+    border-top:
+        1px solid
+        rgba(90, 120, 99, .12);
+    color:
+        rgba(59, 73, 83, .55);
+    font-size:
+        9px;
+    font-weight:
+        750;
+}
+
+@media (
+    max-width: 390px
+) {
+    .biodiversity-card-title h2 {
+        font-size:
+            15px;
+    }
+
+    .biodiversity-footnote {
+        flex-direction:
+            column;
+        gap:
+            3px;
+    }
+}
