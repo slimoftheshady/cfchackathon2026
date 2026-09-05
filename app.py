@@ -5,6 +5,9 @@ from pathlib import Path
 import re
 import os
 import random
+import secrets
+import json
+from datetime import date
 import requests
 from model.api_call import identify_plant_from_file, parse_results
 
@@ -29,152 +32,216 @@ MAX_COLLECTION_ITEMS = 40
 MAP_WIDTH = 1764
 MAP_HEIGHT = 1194
 
+DAILY_QUESTS = [
+    {
+        "key": "daily-snap-5",
+        "title": "Native plant scout",
+        "description": "Snap 5 plants around your neighbourhood.",
+        "event": "snap",
+        "target": 5,
+        "reward": 30,
+    },
+    {
+        "key": "daily-kangaroo-paw",
+        "title": "Find a Kangaroo Paw",
+        "description": "Identify a Kangaroo Paw.",
+        "event": "snap",
+        "target": 1,
+        "reward": 25,
+    },
+    {
+        "key": "daily-gacha",
+        "title": "Try your luck",
+        "description": "Open one seed packet in the gacha.",
+        "event": "gacha",
+        "target": 1,
+        "reward": 20,
+    },
+]
+
+COMMUNITY_QUEST = {
+    "key": "community-nedlands-10000",
+    "title": "Nedlands biodiversity census",
+    "description": "Help researchers record 10,000 plant snaps in the Nedlands region.",
+    "target": 10000,
+    "reward": 250,
+    "milestones": [
+        {"target": target, "reward": 25 if target < 10000 else 250}
+        for target in range(1000, 10001, 1000)
+    ],
+}
+
 
 def random_map_coordinates():
     return random.randint(0, MAP_HEIGHT - 1), random.randint(0, MAP_WIDTH - 1)
 
+
 STARTER_ITEMS = [
-    {"key": "kangaroo-paw", "name": "Kangaroo Paw", "icon": "fa-leaf", "rarity": "common", "kind": "plant"},
-    {"key": "featherflower", "name": "Featherflower", "icon": "fa-seedling", "rarity": "rare", "kind": "plant"},
-    {"key": "pixie-mops", "name": "Pixie Mops", "icon": "fa-cannabis", "rarity": "epic", "kind": "plant"},
-    {"key": "custard-orchid", "name": "Custard Orchid", "icon": "fa-clover", "rarity": "legendary", "kind": "plant"},
+    {
+        "key": "kangaroo-paw",
+        "name": "Kangaroo Paw",
+        "icon": "fa-leaf",
+        "rarity": "common",
+        "kind": "plant",
+    },
+    {
+        "key": "featherflower",
+        "name": "Featherflower",
+        "icon": "fa-seedling",
+        "rarity": "rare",
+        "kind": "plant",
+    },
+    {
+        "key": "pixie-mops",
+        "name": "Pixie Mops",
+        "icon": "fa-cannabis",
+        "rarity": "epic",
+        "kind": "plant",
+    },
+    {
+        "key": "custard-orchid",
+        "name": "Custard Orchid",
+        "icon": "fa-clover",
+        "rarity": "legendary",
+        "kind": "plant",
+    },
 ]
 
 # Achievement definitions
 ACHIEVEMENTS = {
-    'first_plant': {
-        'name': 'First Steps',
-        'description': 'Grow your first plant',
-        'icon': 'fa-seedling',
-        'points': 10,
-        'max_progress': 1
+    "first_plant": {
+        "name": "First Steps",
+        "description": "Grow your first plant",
+        "icon": "fa-seedling",
+        "points": 10,
+        "max_progress": 1,
     },
-    'plant_collector_10': {
-        'name': 'Plant Collector',
-        'description': 'Grow 10 plants',
-        'icon': 'fa-leaf',
-        'points': 25,
-        'max_progress': 10
+    "plant_collector_10": {
+        "name": "Plant Collector",
+        "description": "Grow 10 plants",
+        "icon": "fa-leaf",
+        "points": 25,
+        "max_progress": 10,
     },
-    'plant_collector_50': {
-        'name': 'Botanist',
-        'description': 'Grow 50 plants',
-        'icon': 'fa-tree',
-        'points': 50,
-        'max_progress': 50
+    "plant_collector_50": {
+        "name": "Botanist",
+        "description": "Grow 50 plants",
+        "icon": "fa-tree",
+        "points": 50,
+        "max_progress": 50,
     },
-    'plant_collector_100': {
-        'name': 'Master Botanist',
-        'description': 'Grow 100 plants',
-        'icon': 'fa-crown',
-        'points': 100,
-        'max_progress': 100
+    "plant_collector_100": {
+        "name": "Master Botanist",
+        "description": "Grow 100 plants",
+        "icon": "fa-crown",
+        "points": 100,
+        "max_progress": 100,
     },
-    'rare_collector': {
-        'name': 'Rare Finder',
-        'description': 'Find your first rare plant',
-        'icon': 'fa-gem',
-        'points': 30,
-        'max_progress': 1
+    "rare_collector": {
+        "name": "Rare Finder",
+        "description": "Find your first rare plant",
+        "icon": "fa-gem",
+        "points": 30,
+        "max_progress": 1,
     },
-    'rare_collector_5': {
-        'name': 'Rare Collector',
-        'description': 'Find 5 rare plants',
-        'icon': 'fa-gem',
-        'points': 50,
-        'max_progress': 5
+    "rare_collector_5": {
+        "name": "Rare Collector",
+        "description": "Find 5 rare plants",
+        "icon": "fa-gem",
+        "points": 50,
+        "max_progress": 5,
     },
-    'epic_collector': {
-        'name': 'Epic Seeker',
-        'description': 'Find your first epic plant',
-        'icon': 'fa-star',
-        'points': 50,
-        'max_progress': 1
+    "epic_collector": {
+        "name": "Epic Seeker",
+        "description": "Find your first epic plant",
+        "icon": "fa-star",
+        "points": 50,
+        "max_progress": 1,
     },
-    'epic_collector_3': {
-        'name': 'Epic Collector',
-        'description': 'Find 3 epic plants',
-        'icon': 'fa-star',
-        'points': 75,
-        'max_progress': 3
+    "epic_collector_3": {
+        "name": "Epic Collector",
+        "description": "Find 3 epic plants",
+        "icon": "fa-star",
+        "points": 75,
+        "max_progress": 3,
     },
-    'legendary_collector': {
-        'name': 'Legendary Hunter',
-        'description': 'Find your first legendary plant',
-        'icon': 'fa-crown',
-        'points': 100,
-        'max_progress': 1
+    "legendary_collector": {
+        "name": "Legendary Hunter",
+        "description": "Find your first legendary plant",
+        "icon": "fa-crown",
+        "points": 100,
+        "max_progress": 1,
     },
-    'legendary_collector_3': {
-        'name': 'Legendary Master',
-        'description': 'Find 3 legendary plants',
-        'icon': 'fa-crown',
-        'points': 200,
-        'max_progress': 3
+    "legendary_collector_3": {
+        "name": "Legendary Master",
+        "description": "Find 3 legendary plants",
+        "icon": "fa-crown",
+        "points": 200,
+        "max_progress": 3,
     },
-    'score_500': {
-        'name': '500 Score',
-        'description': 'Reach 500 total score',
-        'icon': 'fa-medal',
-        'points': 50,
-        'max_progress': 500
+    "score_500": {
+        "name": "500 Score",
+        "description": "Reach 500 total score",
+        "icon": "fa-medal",
+        "points": 50,
+        "max_progress": 500,
     },
-    'score_1000': {
-        'name': '1000 Score',
-        'description': 'Reach 1000 total score',
-        'icon': 'fa-medal',
-        'points': 100,
-        'max_progress': 1000
+    "score_1000": {
+        "name": "1000 Score",
+        "description": "Reach 1000 total score",
+        "icon": "fa-medal",
+        "points": 100,
+        "max_progress": 1000,
     },
-    'score_5000': {
-        'name': '5000 Score',
-        'description': 'Reach 5000 total score',
-        'icon': 'fa-trophy',
-        'points': 200,
-        'max_progress': 5000
+    "score_5000": {
+        "name": "5000 Score",
+        "description": "Reach 5000 total score",
+        "icon": "fa-trophy",
+        "points": 200,
+        "max_progress": 5000,
     },
-    'snap_10': {
-        'name': 'Nature Photographer',
-        'description': 'Take 10 biodiversity snaps',
-        'icon': 'fa-camera',
-        'points': 25,
-        'max_progress': 10
+    "snap_10": {
+        "name": "Nature Photographer",
+        "description": "Take 10 biodiversity snaps",
+        "icon": "fa-camera",
+        "points": 25,
+        "max_progress": 10,
     },
-    'snap_50': {
-        'name': 'Wildlife Photographer',
-        'description': 'Take 50 biodiversity snaps',
-        'icon': 'fa-camera',
-        'points': 50,
-        'max_progress': 50
+    "snap_50": {
+        "name": "Wildlife Photographer",
+        "description": "Take 50 biodiversity snaps",
+        "icon": "fa-camera",
+        "points": 50,
+        "max_progress": 50,
     },
-    'gacha_10': {
-        'name': 'Seed Collector',
-        'description': 'Open 10 seed packets',
-        'icon': 'fa-gift',
-        'points': 30,
-        'max_progress': 10
+    "gacha_10": {
+        "name": "Seed Collector",
+        "description": "Open 10 seed packets",
+        "icon": "fa-gift",
+        "points": 30,
+        "max_progress": 10,
     },
-    'gacha_50': {
-        'name': 'Seed Master',
-        'description': 'Open 50 seed packets',
-        'icon': 'fa-gift',
-        'points': 60,
-        'max_progress': 50
+    "gacha_50": {
+        "name": "Seed Master",
+        "description": "Open 50 seed packets",
+        "icon": "fa-gift",
+        "points": 60,
+        "max_progress": 50,
     },
-    'garden_full': {
-        'name': 'Full Garden',
-        'description': 'Fill all 16 garden slots',
-        'icon': 'fa-rainbow',
-        'points': 50,
-        'max_progress': 16
+    "garden_full": {
+        "name": "Full Garden",
+        "description": "Fill all 16 garden slots",
+        "icon": "fa-rainbow",
+        "points": 50,
+        "max_progress": 16,
     },
-    'complete_collection': {
-        'name': 'Complete Collection',
-        'description': 'Unlock all plants',
-        'icon': 'fa-trophy',
-        'points': 500,
-        'max_progress': 16  # PLANT_POOL length
-    }
+    "complete_collection": {
+        "name": "Complete Collection",
+        "description": "Unlock all plants",
+        "icon": "fa-trophy",
+        "points": 500,
+        "max_progress": 16,  # PLANT_POOL length
+    },
 }
 
 
@@ -331,7 +398,66 @@ def init_db():
                 ON friendships(addressee_id, status);
             CREATE INDEX IF NOT EXISTS idx_achievements_user
                 ON achievements(user_id, completed);
+
+            CREATE TABLE IF NOT EXISTS daily_quest_progress (
+                user_id INTEGER NOT NULL,
+                quest_key TEXT NOT NULL,
+                quest_date TEXT NOT NULL,
+                progress INTEGER NOT NULL DEFAULT 0,
+                completed INTEGER NOT NULL DEFAULT 0,
+                reward_claimed INTEGER NOT NULL DEFAULT 0,
+                PRIMARY KEY (user_id, quest_key, quest_date),
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS community_quest_state (
+                quest_key TEXT PRIMARY KEY,
+                progress INTEGER NOT NULL DEFAULT 0
+            );
+
+            CREATE TABLE IF NOT EXISTS community_milestone_claims (
+                quest_key TEXT NOT NULL,
+                milestone_target INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                PRIMARY KEY (quest_key, milestone_target, user_id),
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS special_quests (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                code TEXT NOT NULL UNIQUE,
+                plant_name TEXT NOT NULL,
+                target_snaps INTEGER NOT NULL,
+                tasks_json TEXT NOT NULL DEFAULT '[]',
+                created_by INTEGER NOT NULL,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS special_quest_progress (
+                quest_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                progress INTEGER NOT NULL DEFAULT 0,
+                completed INTEGER NOT NULL DEFAULT 0,
+                reward_claimed INTEGER NOT NULL DEFAULT 0,
+                PRIMARY KEY (quest_id, user_id),
+                FOREIGN KEY (quest_id) REFERENCES special_quests(id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
         """)
+
+        db.execute(
+            "INSERT OR IGNORE INTO community_quest_state(quest_key, progress) VALUES (?, 0)",
+            (COMMUNITY_QUEST["key"],),
+        )
+
+        special_columns = {
+            row[1] for row in db.execute("PRAGMA table_info(special_quests)")
+        }
+        if "tasks_json" not in special_columns:
+            db.execute(
+                "ALTER TABLE special_quests ADD COLUMN tasks_json TEXT NOT NULL DEFAULT '[]'"
+            )
 
         # Migration for databases created by earlier versions.
         user_columns = {row[1] for row in db.execute("PRAGMA table_info(users)")}
@@ -359,9 +485,13 @@ def init_db():
         # Check if game_state needs new columns
         state_columns = {row[1] for row in db.execute("PRAGMA table_info(game_state)")}
         if "snaps_taken" not in state_columns:
-            db.execute("ALTER TABLE game_state ADD COLUMN snaps_taken INTEGER NOT NULL DEFAULT 0")
+            db.execute(
+                "ALTER TABLE game_state ADD COLUMN snaps_taken INTEGER NOT NULL DEFAULT 0"
+            )
         if "gacha_pulls" not in state_columns:
-            db.execute("ALTER TABLE game_state ADD COLUMN gacha_pulls INTEGER NOT NULL DEFAULT 0")
+            db.execute(
+                "ALTER TABLE game_state ADD COLUMN gacha_pulls INTEGER NOT NULL DEFAULT 0"
+            )
 
         # Preserve every currently placed item as an unlocked collection item.
         old_items = db.execute(
@@ -421,21 +551,27 @@ def role_required(*allowed_roles):
 
 
 def teacher_owns_classroom(db, teacher_id, classroom_id):
-    return db.execute(
-        "SELECT id FROM classrooms WHERE id = ? AND teacher_id = ?",
-        (classroom_id, teacher_id),
-    ).fetchone() is not None
+    return (
+        db.execute(
+            "SELECT id FROM classrooms WHERE id = ? AND teacher_id = ?",
+            (classroom_id, teacher_id),
+        ).fetchone()
+        is not None
+    )
 
 
 def student_in_classroom(db, student_id, classroom_id):
-    return db.execute(
-        """
+    return (
+        db.execute(
+            """
         SELECT 1
         FROM classroom_members
         WHERE classroom_id = ? AND student_id = ?
         """,
-        (classroom_id, student_id),
-    ).fetchone() is not None
+            (classroom_id, student_id),
+        ).fetchone()
+        is not None
+    )
 
 
 def quest_progress_for(db, quest, student_id):
@@ -615,6 +751,201 @@ def clean_item(item):
     return {"key": key, "name": name, "icon": icon, "rarity": rarity, "kind": kind}
 
 
+def quest_date():
+    return date.today().isoformat()
+
+
+def quest_progress_row(db, user_id, quest_key):
+    today = quest_date()
+    db.execute(
+        """
+        INSERT OR IGNORE INTO daily_quest_progress
+            (user_id, quest_key, quest_date, progress)
+        VALUES (?, ?, ?, 0)
+        """,
+        (user_id, quest_key, today),
+    )
+    return db.execute(
+        """
+        SELECT progress, completed, reward_claimed
+        FROM daily_quest_progress
+        WHERE user_id = ? AND quest_key = ? AND quest_date = ?
+        """,
+        (user_id, quest_key, today),
+    ).fetchone()
+
+
+def apply_quest_event(db, user_id, event_type, reward_multiplier=1):
+    rewards = 0
+    completed = []
+    today = quest_date()
+
+    for quest in DAILY_QUESTS:
+        if quest["event"] != event_type:
+            continue
+
+        current = quest_progress_row(db, user_id, quest["key"])
+        if current["completed"]:
+            continue
+
+        progress = min(quest["target"], current["progress"] + 1)
+        is_complete = progress >= quest["target"]
+        db.execute(
+            """
+            UPDATE daily_quest_progress
+            SET progress = ?, completed = ?, reward_claimed = ?
+            WHERE user_id = ? AND quest_key = ? AND quest_date = ?
+            """,
+            (
+                progress,
+                int(is_complete),
+                int(current["reward_claimed"]),
+                user_id,
+                quest["key"],
+                today,
+            ),
+        )
+
+    if event_type == "snap":
+        community = db.execute(
+            "SELECT progress FROM community_quest_state WHERE quest_key = ?",
+            (COMMUNITY_QUEST["key"],),
+        ).fetchone()
+        old_total = int(community["progress"] if community else 0)
+        new_total = min(COMMUNITY_QUEST["target"], old_total + 1)
+        db.execute(
+            "UPDATE community_quest_state SET progress = ? WHERE quest_key = ?",
+            (new_total, COMMUNITY_QUEST["key"]),
+        )
+
+        for milestone in COMMUNITY_QUEST["milestones"]:
+            if old_total < milestone["target"] <= new_total:
+                claim = db.execute(
+                    """
+                    SELECT 1 FROM community_milestone_claims
+                    WHERE quest_key = ? AND milestone_target = ? AND user_id = ?
+                    """,
+                    (COMMUNITY_QUEST["key"], milestone["target"], user_id),
+                ).fetchone()
+                if not claim:
+                    db.execute(
+                        """
+                        INSERT INTO community_milestone_claims
+                            (quest_key, milestone_target, user_id)
+                        VALUES (?, ?, ?)
+                        """,
+                        (COMMUNITY_QUEST["key"], milestone["target"], user_id),
+                    )
+                    rewards += milestone["reward"]
+                    completed.append(f'Nedlands milestone {milestone["target"]:,}')
+
+        special_rows = db.execute(
+            """
+            SELECT sq.id, sq.plant_name, sq.target_snaps,
+                   sqp.progress, sqp.completed, sqp.reward_claimed
+            FROM special_quest_progress sqp
+            JOIN special_quests sq ON sq.id = sqp.quest_id
+            WHERE sqp.user_id = ?
+            """,
+            (user_id,),
+        ).fetchall()
+        for special in special_rows:
+            if special["completed"]:
+                continue
+            progress = min(special["target_snaps"], special["progress"] + 1)
+            is_complete = progress >= special["target_snaps"]
+            special_reward = 50 if is_complete and not special["reward_claimed"] else 0
+            db.execute(
+                """
+                UPDATE special_quest_progress
+                SET progress = ?, completed = ?, reward_claimed = ?
+                WHERE quest_id = ? AND user_id = ?
+                """,
+                (
+                    progress,
+                    int(is_complete),
+                    int(special["reward_claimed"] or special_reward > 0),
+                    special["id"],
+                    user_id,
+                ),
+            )
+            if special_reward:
+                rewards += special_reward
+                completed.append(f'{special["plant_name"]} special quest')
+
+    if rewards:
+        db.execute(
+            "UPDATE game_state SET points = points + ? WHERE user_id = ?",
+            (rewards * reward_multiplier, user_id),
+        )
+    return {"reward": rewards * reward_multiplier, "completed": completed}
+
+
+def quest_snapshot(db, user_id):
+    today = quest_date()
+    daily = []
+    for quest in DAILY_QUESTS:
+        row = quest_progress_row(db, user_id, quest["key"])
+        daily.append(
+            {
+                **quest,
+                "progress": row["progress"],
+                "completed": bool(row["completed"]),
+                "claimed": bool(row["reward_claimed"]),
+            }
+        )
+
+    community_row = db.execute(
+        "SELECT progress FROM community_quest_state WHERE quest_key = ?",
+        (COMMUNITY_QUEST["key"],),
+    ).fetchone()
+    community_progress = int(community_row["progress"] if community_row else 0)
+    special = []
+    for row in db.execute(
+        """
+                 SELECT sq.id, sq.code, sq.plant_name, sq.target_snaps, sq.tasks_json,
+                     sqp.progress, sqp.completed, sqp.reward_claimed
+            FROM special_quest_progress sqp
+            JOIN special_quests sq ON sq.id = sqp.quest_id
+            WHERE sqp.user_id = ?
+            ORDER BY sq.created_at DESC
+            """,
+        (user_id,),
+    ).fetchall():
+        try:
+            tasks = json.loads(row["tasks_json"] or "[]")
+        except (TypeError, ValueError):
+            tasks = []
+        special.append(
+            {
+                "id": row["id"],
+                "code": row["code"],
+                "plant": row["plant_name"],
+                "target": row["target_snaps"],
+                "tasks": tasks
+                or [
+                    {"plant": row["plant_name"], "required_snaps": row["target_snaps"]}
+                ],
+                "progress": row["progress"],
+                "completed": bool(row["completed"]),
+                "claimed": bool(row["reward_claimed"]),
+            }
+        )
+    return {
+        "date": today,
+        "daily": daily,
+        "community": {
+            **COMMUNITY_QUEST,
+            "progress": community_progress,
+            "milestones": [
+                {**milestone, "reached": community_progress >= milestone["target"]}
+                for milestone in COMMUNITY_QUEST["milestones"]
+            ],
+        },
+        "special": special,
+    }
+
+
 def check_and_update_achievements(db, user_id):
     """Check all achievements and update progress/completion status."""
     # Get current stats
@@ -631,7 +962,17 @@ def check_and_update_achievements(db, user_id):
             (SELECT snaps_taken FROM game_state WHERE user_id = ?) as snaps_taken,
             (SELECT gacha_pulls FROM game_state WHERE user_id = ?) as gacha_pulls
         """,
-        (user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id)
+        (
+            user_id,
+            user_id,
+            user_id,
+            user_id,
+            user_id,
+            user_id,
+            user_id,
+            user_id,
+            user_id,
+        ),
     ).fetchone()
 
     unlocked_achievements = set()
@@ -641,74 +982,74 @@ def check_and_update_achievements(db, user_id):
     for key, defn in ACHIEVEMENTS.items():
         progress = 0
         completed = 0
-        
+
         # Calculate progress based on achievement type
-        if key == 'first_plant':
-            progress = min(stats['plants_grown'], 1)
+        if key == "first_plant":
+            progress = min(stats["plants_grown"], 1)
             completed = 1 if progress >= 1 else 0
-        elif key == 'plant_collector_10':
-            progress = min(stats['plants_grown'], 10)
+        elif key == "plant_collector_10":
+            progress = min(stats["plants_grown"], 10)
             completed = 1 if progress >= 10 else 0
-        elif key == 'plant_collector_50':
-            progress = min(stats['plants_grown'], 50)
+        elif key == "plant_collector_50":
+            progress = min(stats["plants_grown"], 50)
             completed = 1 if progress >= 50 else 0
-        elif key == 'plant_collector_100':
-            progress = min(stats['plants_grown'], 100)
+        elif key == "plant_collector_100":
+            progress = min(stats["plants_grown"], 100)
             completed = 1 if progress >= 100 else 0
-        elif key == 'rare_collector':
-            progress = min(stats['rares_found'], 1)
+        elif key == "rare_collector":
+            progress = min(stats["rares_found"], 1)
             completed = 1 if progress >= 1 else 0
-        elif key == 'rare_collector_5':
-            progress = min(stats['rares_found'], 5)
+        elif key == "rare_collector_5":
+            progress = min(stats["rares_found"], 5)
             completed = 1 if progress >= 5 else 0
-        elif key == 'epic_collector':
-            progress = min(stats['epics_found'], 1)
+        elif key == "epic_collector":
+            progress = min(stats["epics_found"], 1)
             completed = 1 if progress >= 1 else 0
-        elif key == 'epic_collector_3':
-            progress = min(stats['epics_found'], 3)
+        elif key == "epic_collector_3":
+            progress = min(stats["epics_found"], 3)
             completed = 1 if progress >= 3 else 0
-        elif key == 'legendary_collector':
-            progress = min(stats['legendaries_found'], 1)
+        elif key == "legendary_collector":
+            progress = min(stats["legendaries_found"], 1)
             completed = 1 if progress >= 1 else 0
-        elif key == 'legendary_collector_3':
-            progress = min(stats['legendaries_found'], 3)
+        elif key == "legendary_collector_3":
+            progress = min(stats["legendaries_found"], 3)
             completed = 1 if progress >= 3 else 0
-        elif key == 'score_500':
-            progress = min(stats['total_score'], 500)
+        elif key == "score_500":
+            progress = min(stats["total_score"], 500)
             completed = 1 if progress >= 500 else 0
-        elif key == 'score_1000':
-            progress = min(stats['total_score'], 1000)
+        elif key == "score_1000":
+            progress = min(stats["total_score"], 1000)
             completed = 1 if progress >= 1000 else 0
-        elif key == 'score_5000':
-            progress = min(stats['total_score'], 5000)
+        elif key == "score_5000":
+            progress = min(stats["total_score"], 5000)
             completed = 1 if progress >= 5000 else 0
-        elif key == 'snap_10':
-            progress = min(stats['snaps_taken'], 10)
+        elif key == "snap_10":
+            progress = min(stats["snaps_taken"], 10)
             completed = 1 if progress >= 10 else 0
-        elif key == 'snap_50':
-            progress = min(stats['snaps_taken'], 50)
+        elif key == "snap_50":
+            progress = min(stats["snaps_taken"], 50)
             completed = 1 if progress >= 50 else 0
-        elif key == 'gacha_10':
-            progress = min(stats['gacha_pulls'], 10)
+        elif key == "gacha_10":
+            progress = min(stats["gacha_pulls"], 10)
             completed = 1 if progress >= 10 else 0
-        elif key == 'gacha_50':
-            progress = min(stats['gacha_pulls'], 50)
+        elif key == "gacha_50":
+            progress = min(stats["gacha_pulls"], 50)
             completed = 1 if progress >= 50 else 0
-        elif key == 'garden_full':
-            progress = min(stats['placed_plants'], 16)
+        elif key == "garden_full":
+            progress = min(stats["placed_plants"], 16)
             completed = 1 if progress >= 16 else 0
-        elif key == 'complete_collection':
-            progress = min(stats['total_collection'], 16)
+        elif key == "complete_collection":
+            progress = min(stats["total_collection"], 16)
             completed = 1 if progress >= 16 else 0
 
         # Update or insert achievement
         existing = db.execute(
             "SELECT id, completed FROM achievements WHERE user_id = ? AND achievement_key = ?",
-            (user_id, key)
+            (user_id, key),
         ).fetchone()
 
         if existing:
-            if existing['completed'] == 0 and completed == 1:
+            if existing["completed"] == 0 and completed == 1:
                 # Newly completed!
                 new_achievements.append(key)
                 db.execute(
@@ -717,12 +1058,12 @@ def check_and_update_achievements(db, user_id):
                     SET progress = ?, completed = ?, unlocked_at = CURRENT_TIMESTAMP
                     WHERE user_id = ? AND achievement_key = ?
                     """,
-                    (progress, completed, user_id, key)
+                    (progress, completed, user_id, key),
                 )
                 # Add score reward
                 db.execute(
                     "UPDATE game_state SET score = score + ? WHERE user_id = ?",
-                    (defn['points'], user_id)
+                    (defn["points"], user_id),
                 )
             else:
                 db.execute(
@@ -731,7 +1072,7 @@ def check_and_update_achievements(db, user_id):
                     SET progress = ?
                     WHERE user_id = ? AND achievement_key = ?
                     """,
-                    (progress, user_id, key)
+                    (progress, user_id, key),
                 )
         else:
             db.execute(
@@ -739,13 +1080,13 @@ def check_and_update_achievements(db, user_id):
                 INSERT INTO achievements (user_id, achievement_key, progress, completed)
                 VALUES (?, ?, ?, ?)
                 """,
-                (user_id, key, progress, completed)
+                (user_id, key, progress, completed),
             )
             if completed:
                 new_achievements.append(key)
                 db.execute(
                     "UPDATE game_state SET score = score + ? WHERE user_id = ?",
-                    (defn['points'], user_id)
+                    (defn["points"], user_id),
                 )
 
     return new_achievements
@@ -770,9 +1111,11 @@ def script():
 def icons(filename):
     return send_from_directory(BASE_DIR / "icons", filename)
 
+
 @app.get("/images/<path:filename>")
 def serve_image(filename):
     return send_from_directory(BASE_DIR / "images", filename)
+
 
 @app.post("/api/identify")
 def identify():
@@ -843,16 +1186,191 @@ def identify():
             (uid,),
         )
 
-    
     # Update snap count
     with get_db() as db:
         db.execute(
             "UPDATE game_state SET snaps_taken = snaps_taken + 1 WHERE user_id = ?",
-            (current_user_id(),)
+            (current_user_id(),),
         )
         check_and_update_achievements(db, current_user_id())
-    
-    return jsonify({"identification": predictions[0], "predictions": predictions})
+        quest_update = apply_quest_event(db, uid, "snap")
+
+    return jsonify(
+        {
+            "identification": predictions[0],
+            "predictions": predictions,
+            "questUpdate": quest_update,
+        }
+    )
+
+
+@app.get("/api/quests")
+def list_quests():
+    uid, error = login_required()
+    if error:
+        return error
+    with get_db() as db:
+        return jsonify({"quests": quest_snapshot(db, uid)})
+
+
+@app.post("/api/quests/event")
+def quest_event():
+    uid, error = login_required()
+    if error:
+        return error
+    data = request.get_json(silent=True) or {}
+    event_type = str(data.get("event", "")).strip().lower()
+    if event_type != "gacha":
+        return jsonify({"error": "Unsupported quest event."}), 400
+    with get_db() as db:
+        update = apply_quest_event(db, uid, event_type)
+    return jsonify({"questUpdate": update})
+
+
+@app.post("/api/quests/daily/<quest_key>/claim")
+def claim_daily_quest(quest_key):
+    uid, error = login_required()
+    if error:
+        return error
+    quest = next((item for item in DAILY_QUESTS if item["key"] == quest_key), None)
+    if not quest:
+        return jsonify({"error": "Daily quest not found."}), 404
+
+    with get_db() as db:
+        row = quest_progress_row(db, uid, quest_key)
+        if not row["completed"]:
+            return (
+                jsonify({"error": "Complete the quest before claiming its reward."}),
+                400,
+            )
+        if row["reward_claimed"]:
+            return (
+                jsonify({"error": "That quest reward has already been claimed."}),
+                409,
+            )
+        db.execute(
+            """
+            UPDATE daily_quest_progress
+            SET reward_claimed = 1
+            WHERE user_id = ? AND quest_key = ? AND quest_date = ?
+            """,
+            (uid, quest_key, quest_date()),
+        )
+        db.execute(
+            "UPDATE game_state SET points = points + ? WHERE user_id = ?",
+            (quest["reward"], uid),
+        )
+    return jsonify({"reward": quest["reward"], "title": quest["title"]})
+
+
+@app.post("/api/quests/special/create")
+def create_special_quest():
+    uid, error = login_required()
+    if error:
+        return error
+    data = request.get_json(silent=True) or {}
+    raw_tasks = data.get("tasks")
+    if not isinstance(raw_tasks, list):
+        raw_tasks = [
+            {
+                "plant": data.get("plant", ""),
+                "required_snaps": data.get("required_snaps", 1),
+            }
+        ]
+
+    tasks = []
+    for raw_task in raw_tasks[:10]:
+        plant = str(raw_task.get("plant", "")).strip()[:80]
+        try:
+            required_snaps = int(raw_task.get("required_snaps", 0))
+        except (TypeError, ValueError):
+            return jsonify({"error": "Each task needs a numeric snap count."}), 400
+        if not plant or not 1 <= required_snaps <= 1000:
+            return (
+                jsonify(
+                    {"error": "Each task needs a plant and between 1 and 1,000 snaps."}
+                ),
+                400,
+            )
+        tasks.append({"plant": plant, "required_snaps": required_snaps})
+
+    if not tasks:
+        return jsonify({"error": "Add at least one task."}), 400
+    target = sum(task["required_snaps"] for task in tasks)
+    if target > 1000:
+        return (
+            jsonify(
+                {"error": "Special quests can require at most 1,000 snaps in total."}
+            ),
+            400,
+        )
+
+    with get_db() as db:
+        code = None
+        while not code:
+            candidate = secrets.token_hex(4).upper()
+            if not db.execute(
+                "SELECT 1 FROM special_quests WHERE code = ?", (candidate,)
+            ).fetchone():
+                code = candidate
+        cur = db.execute(
+            """
+            INSERT INTO special_quests(code, plant_name, target_snaps, tasks_json, created_by)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (code, tasks[0]["plant"], target, json.dumps(tasks), uid),
+        )
+    return (
+        jsonify({"id": cur.lastrowid, "code": code, "tasks": tasks, "target": target}),
+        201,
+    )
+
+
+@app.post("/api/quests/special/redeem")
+def redeem_special_quest():
+    uid, error = login_required()
+    if error:
+        return error
+    data = request.get_json(silent=True) or {}
+    code = str(data.get("code", "")).strip().upper()
+    if not re.fullmatch(r"[A-Z0-9]{8}", code):
+        return jsonify({"error": "Enter the 8-character quest code."}), 400
+    with get_db() as db:
+        quest = db.execute(
+            "SELECT id, code, plant_name, target_snaps FROM special_quests WHERE code = ?",
+            (code,),
+        ).fetchone()
+        if not quest:
+            return jsonify({"error": "That special quest code was not found."}), 404
+        db.execute(
+            "INSERT OR IGNORE INTO special_quest_progress(quest_id, user_id) VALUES (?, ?)",
+            (quest["id"], uid),
+        )
+    return jsonify(
+        {
+            "ok": True,
+            "quest": {
+                "code": quest["code"],
+                "plant": quest["plant_name"],
+                "target": quest["target_snaps"],
+            },
+        }
+    )
+
+
+@app.delete("/api/quests/special/<int:quest_id>")
+def delete_special_quest(quest_id):
+    uid, error = login_required()
+    if error:
+        return error
+    with get_db() as db:
+        cur = db.execute(
+            "DELETE FROM special_quest_progress WHERE quest_id = ? AND user_id = ?",
+            (quest_id, uid),
+        )
+    if cur.rowcount == 0:
+        return jsonify({"error": "Special quest not found in your list."}), 404
+    return jsonify({"ok": True})
 
 
 @app.post("/api/register")
@@ -930,7 +1448,7 @@ def register():
                         *random_map_coordinates(),
                     ),
                 )
-            
+
             # Initialize achievements
             for key in ACHIEVEMENTS.keys():
                 db.execute(
@@ -938,12 +1456,12 @@ def register():
                     INSERT OR IGNORE INTO achievements (user_id, achievement_key, progress, completed)
                     VALUES (?, ?, 0, 0)
                     """,
-                    (user_id, key)
+                    (user_id, key),
                 )
-            
+
             # Check initial achievements
             check_and_update_achievements(db, user_id)
-            
+
     except sqlite3.IntegrityError:
         return jsonify({"error": "That username is already taken."}), 409
 
@@ -1141,7 +1659,7 @@ def save_state():
                     longitude,
                 ),
             )
-        
+
         # Check achievements after state update
         new_achievements = check_and_update_achievements(db, uid)
 
@@ -1157,7 +1675,7 @@ def get_achievements():
     with get_db() as db:
         # Check and update achievements first
         check_and_update_achievements(db, uid)
-        
+
         # Get user's achievement progress
         user_achievements = db.execute(
             """
@@ -1165,9 +1683,9 @@ def get_achievements():
             FROM achievements
             WHERE user_id = ?
             """,
-            (uid,)
+            (uid,),
         ).fetchall()
-        
+
         # Get user stats
         stats = db.execute(
             """
@@ -1182,33 +1700,37 @@ def get_achievements():
                 (SELECT snaps_taken FROM game_state WHERE user_id = ?) as snaps_taken,
                 (SELECT gacha_pulls FROM game_state WHERE user_id = ?) as gacha_pulls
             """,
-            (uid, uid, uid, uid, uid, uid, uid, uid, uid)
+            (uid, uid, uid, uid, uid, uid, uid, uid, uid),
         ).fetchone()
-        
+
         # Parse achievement progress
-        progress_map = {row['achievement_key']: dict(row) for row in user_achievements}
-        
+        progress_map = {row["achievement_key"]: dict(row) for row in user_achievements}
+
         # Calculate achievement status
         achievements = []
         for key, defn in ACHIEVEMENTS.items():
-            prog = progress_map.get(key, {'progress': 0, 'completed': 0})
-            
+            prog = progress_map.get(key, {"progress": 0, "completed": 0})
+
             # Calculate current progress based on stats
-            current_progress = prog['progress']
-            
-            achievements.append({
-                'key': key,
-                'name': defn['name'],
-                'description': defn['description'],
-                'icon': defn['icon'],
-                'points': defn['points'],
-                'progress': current_progress,
-                'max_progress': defn['max_progress'],
-                'completed': bool(prog['completed']),
-                'unlocked_at': prog.get('unlocked_at') if prog['completed'] else None
-            })
-    
-    return jsonify({'achievements': achievements})
+            current_progress = prog["progress"]
+
+            achievements.append(
+                {
+                    "key": key,
+                    "name": defn["name"],
+                    "description": defn["description"],
+                    "icon": defn["icon"],
+                    "points": defn["points"],
+                    "progress": current_progress,
+                    "max_progress": defn["max_progress"],
+                    "completed": bool(prog["completed"]),
+                    "unlocked_at": (
+                        prog.get("unlocked_at") if prog["completed"] else None
+                    ),
+                }
+            )
+
+    return jsonify({"achievements": achievements})
 
 
 @app.get("/api/users/search")
@@ -1466,6 +1988,7 @@ def remove_friend(friend_id):
 # CLASSROOMS / ROLE-BASED ACCESS CONTROL
 # =========================================================
 
+
 @app.get("/api/classrooms")
 def list_classrooms():
     user, error = role_required("student", "teacher")
@@ -1564,7 +2087,9 @@ def classroom_detail(classroom_id):
             return jsonify({"error": "Classroom not found."}), 404
 
         is_teacher = user["role"] == "teacher" and classroom["teacher_id"] == uid
-        is_student = user["role"] == "student" and student_in_classroom(db, uid, classroom_id)
+        is_student = user["role"] == "student" and student_in_classroom(
+            db, uid, classroom_id
+        )
         if not (is_teacher or is_student):
             return jsonify({"error": "You do not have access to this classroom."}), 403
 
@@ -1680,7 +2205,12 @@ def add_classroom_student(classroom_id):
         if not student:
             return jsonify({"error": "Student not found."}), 404
         if student["role"] != "student":
-            return jsonify({"error": "Only student accounts can be added to a classroom."}), 400
+            return (
+                jsonify(
+                    {"error": "Only student accounts can be added to a classroom."}
+                ),
+                400,
+            )
 
         try:
             db.execute(

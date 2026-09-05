@@ -1,22 +1,22 @@
 (function () {
-  const PLANT_POOL = [
-      { key: 'kangaroo-paw', name: 'Kangaroo Paw', icon: 'fa-leaf', rarity: 'common', kind: 'plant' },
-      { key: 'paper-daisy', name: 'Paper Daisy', icon: 'fa-leaf', rarity: 'common', kind: 'plant' },
-      { key: 'pigface', name: 'Pigface', icon: 'fa-leaf', rarity: 'common', kind: 'plant' },
-      { key: 'fringe-lily', name: 'Fringe Lily', icon: 'fa-leaf', rarity: 'common', kind: 'plant' },
-      { key: 'blue-leschenaultia', name: 'Blue Leschenaultia', icon: 'fa-seedling', rarity: 'rare', kind: 'plant' },
-      { key: 'featherflower', name: 'Featherflower', icon: 'fa-seedling', rarity: 'rare', kind: 'plant' },
-      { key: 'cowslip-orchid', name: 'Cowslip Orchid', icon: 'fa-seedling', rarity: 'rare', kind: 'plant' },
-      { key: 'donkey-orchid', name: 'Donkey Orchid', icon: 'fa-seedling', rarity: 'rare', kind: 'plant' },
-      { key: 'qualup-bell', name: 'Qualup Bell', icon: 'fa-cannabis', rarity: 'epic', kind: 'plant' },
-      { key: 'wreath-flower', name: 'Wreath Flower', icon: 'fa-cannabis', rarity: 'epic', kind: 'plant' },
-      { key: 'spider-orchid', name: 'Spider Orchid', icon: 'fa-cannabis', rarity: 'epic', kind: 'plant' },
-      { key: 'pixie-mops', name: 'Pixie Mops', icon: 'fa-cannabis', rarity: 'epic', kind: 'plant' },
-      { key: 'rhizanthella-gardneri', name: 'Rhizanthella Gardneri', icon: 'fa-clover', rarity: 'legendary', kind: 'plant' },
-      { key: 'drakaea', name: 'Drakaea', icon: 'fa-clover', rarity: 'legendary', kind: 'plant' },
-      { key: 'queen-of-sheba', name: 'Queen of Sheba Orchid', icon: 'fa-clover', rarity: 'legendary', kind: 'plant' },
-      { key: 'custard-orchid', name: 'Custard Orchid', icon: 'fa-clover', rarity: 'legendary', kind: 'plant' }
-  ];
+    const PLANT_POOL = [
+        { key: 'kangaroo-paw', name: 'Kangaroo Paw', icon: 'fa-leaf', rarity: 'common', kind: 'plant' },
+        { key: 'paper-daisy', name: 'Paper Daisy', icon: 'fa-leaf', rarity: 'common', kind: 'plant' },
+        { key: 'pigface', name: 'Pigface', icon: 'fa-leaf', rarity: 'common', kind: 'plant' },
+        { key: 'fringe-lily', name: 'Fringe Lily', icon: 'fa-leaf', rarity: 'common', kind: 'plant' },
+        { key: 'blue-leschenaultia', name: 'Blue Leschenaultia', icon: 'fa-seedling', rarity: 'rare', kind: 'plant' },
+        { key: 'featherflower', name: 'Featherflower', icon: 'fa-seedling', rarity: 'rare', kind: 'plant' },
+        { key: 'cowslip-orchid', name: 'Cowslip Orchid', icon: 'fa-seedling', rarity: 'rare', kind: 'plant' },
+        { key: 'donkey-orchid', name: 'Donkey Orchid', icon: 'fa-seedling', rarity: 'rare', kind: 'plant' },
+        { key: 'qualup-bell', name: 'Qualup Bell', icon: 'fa-cannabis', rarity: 'epic', kind: 'plant' },
+        { key: 'wreath-flower', name: 'Wreath Flower', icon: 'fa-cannabis', rarity: 'epic', kind: 'plant' },
+        { key: 'spider-orchid', name: 'Spider Orchid', icon: 'fa-cannabis', rarity: 'epic', kind: 'plant' },
+        { key: 'pixie-mops', name: 'Pixie Mops', icon: 'fa-cannabis', rarity: 'epic', kind: 'plant' },
+        { key: 'rhizanthella-gardneri', name: 'Rhizanthella Gardneri', icon: 'fa-clover', rarity: 'legendary', kind: 'plant' },
+        { key: 'drakaea', name: 'Drakaea', icon: 'fa-clover', rarity: 'legendary', kind: 'plant' },
+        { key: 'queen-of-sheba', name: 'Queen of Sheba Orchid', icon: 'fa-clover', rarity: 'legendary', kind: 'plant' },
+        { key: 'custard-orchid', name: 'Custard Orchid', icon: 'fa-clover', rarity: 'legendary', kind: 'plant' }
+    ];
 
     const PLANT_INFO = {
         'kangaroo-paw': 'Western Australia\u2019s floral emblem. Its velvety, paw-shaped flowers are a favourite feeding stop for honeyeaters and other nectar-loving birds.',
@@ -40,11 +40,10 @@
     function plantImagePath(
         name
     ) {
-        return `images/${
-            String(name ?? '')
-                .toLowerCase()
-                .replace(/\s+/g, '')
-        }.jpg`;
+        return `images/${String(name ?? '')
+            .toLowerCase()
+            .replace(/\s+/g, '')
+            }.jpg`;
     }
 
     const DECOR_POOL = [
@@ -110,6 +109,7 @@
     let latestPlant = null;
     let achievements = [];
     let mapPlants = [];
+    let quests = null;
 
     // =========================================================
     // LOGIN / UI STATE
@@ -220,6 +220,27 @@
     const achievementsGrid = $('achievementsGrid');
     const achievementTotal = $('achievementTotal');
     const achievementPoints = $('achievementPoints');
+
+    // Quests
+    const dailyQuestList = $('dailyQuestList');
+    const communityQuestCard = $('communityQuestCard');
+    const specialQuestList = $('specialQuestList');
+    const specialQuestCodeInput = $('specialQuestCodeInput');
+    const redeemSpecialQuestButton = $('redeemSpecialQuestButton');
+    const specialTaskList = $('specialTaskList');
+    const addSpecialTaskButton = $('addSpecialTaskButton');
+    const createSpecialQuestButton = $('createSpecialQuestButton');
+    const specialQuestResult = $('specialQuestResult');
+    const specialQuestQr = $('specialQuestQr');
+    const specialQuestCreatedCode = $('specialQuestCreatedCode');
+    const specialQuestCreatedDetails = $('specialQuestCreatedDetails');
+    const scanSpecialQuestButton = $('scanSpecialQuestButton');
+    const qrScanBackdrop = $('qrScanBackdrop');
+    const qrScanVideo = $('qrScanVideo');
+    const qrScanStatus = $('qrScanStatus');
+    const closeQrScanButton = $('closeQrScanButton');
+    let qrScanStream = null;
+    let qrScanFrame = null;
 
     // Navigation
     const navBtns = document.querySelectorAll('.nav-btn');
@@ -468,6 +489,7 @@
             await loadFriends();
             await loadAchievements();
             await loadMapPlants();
+            await loadQuests();
 
             if (currentUser.role !== 'generic') {
                 await loadClassrooms();
@@ -743,6 +765,218 @@
         ) {
             renderCollectionPicker();
         }
+    }
+
+    async function loadQuests() {
+        if (!currentUser) return;
+        try {
+            const data = await api('/api/quests');
+            quests = data.quests;
+            renderQuests();
+        } catch (error) {
+            if (error.status !== 401) {
+                showToast('Could not load quests.', 'fa-triangle-exclamation');
+            }
+        }
+    }
+
+    function questProgressBar(progress, target) {
+        const percent = Math.min(100, Math.round((progress / target) * 100));
+        return `<div class="quest-progress"><span style="width: ${percent}%"></span></div>`;
+    }
+
+    function renderQuests() {
+        if (!quests || !dailyQuestList) return;
+
+        dailyQuestList.innerHTML = quests.daily.map(quest => `
+            <article class="quest-card daily-quest-card ${quest.completed && !quest.claimed ? 'claimable' : ''} ${quest.claimed ? 'completed' : ''}" data-quest-key="${escapeHtml(quest.key)}" ${quest.completed && !quest.claimed ? 'tabindex="0" role="button"' : ''}>
+                <div class="quest-card-icon"><i class="fas ${quest.completed ? 'fa-check' : 'fa-camera'}"></i></div>
+                <div class="quest-card-body">
+                    <strong>${escapeHtml(quest.title)}</strong>
+                    <p>${escapeHtml(quest.description)}</p>
+                    ${questProgressBar(quest.progress, quest.target)}
+                    <span>${quest.progress} / ${quest.target} · +${quest.reward} points</span>
+                </div>
+                <div class="quest-reward ${quest.claimed ? 'claimed' : ''}"><i class="fas fa-star"></i><strong>${quest.reward}</strong><small>${quest.claimed ? 'Claimed' : quest.completed ? 'Claim' : 'points'}</small></div>
+            </article>
+        `).join('');
+
+        const community = quests.community;
+        communityQuestCard.innerHTML = `
+            <article class="community-quest-card ${community.progress >= community.target ? 'completed' : ''}">
+                <div class="community-quest-heading">
+                    <div>
+                        <span class="eyebrow">RESEARCHER-LED GOAL</span>
+                        <h2>${escapeHtml(community.title)}</h2>
+                        <p>${escapeHtml(community.description)}</p>
+                    </div>
+                    <i class="fas fa-location-dot"></i>
+                </div>
+                <div class="community-tracker">
+                    ${questProgressBar(community.progress, community.target)}
+                    <div class="community-milestones">${community.milestones.map(milestone => `
+                        <div class="community-milestone ${milestone.reached ? 'reached' : ''}" style="left: ${(milestone.target / community.target) * 100}%">
+                            <span class="community-milestone-dot"></span>
+                            <strong>${milestone.target.toLocaleString()}</strong>
+                            <small>+${milestone.reward} pts</small>
+                        </div>`).join('')}</div>
+                </div>
+                <div class="community-quest-total"><strong>${community.progress.toLocaleString()}</strong> / ${community.target.toLocaleString()} snaps</div>
+            </article>
+        `;
+
+        specialQuestList.innerHTML = quests.special.length
+            ? quests.special.map(quest => `
+                <article class="quest-card special-quest-card ${quest.completed ? 'completed' : ''}">
+                    <button class="special-quest-delete" type="button" data-special-quest-id="${quest.id}" aria-label="Remove ${escapeHtml(quest.plant)} quest"><i class="fas fa-xmark"></i></button>
+                    <div class="quest-card-icon"><i class="fas ${quest.completed ? 'fa-check' : 'fa-qrcode'}"></i></div>
+                    <div class="quest-card-body">
+                        <strong>${escapeHtml(quest.plant)} quest</strong>
+                        <p>${quest.tasks?.map(task => `${escapeHtml(task.plant)} × ${task.required_snaps}`).join(' · ') || 'Snap this quest target at the marked location.'}</p>
+                        ${questProgressBar(quest.progress, quest.target)}
+                        <span>${quest.progress} / ${quest.target} snaps</span>
+                    </div>
+                </article>
+            `).join('')
+            : '<div class="empty-state"><i class="fas fa-qrcode"></i><strong>No special quests yet</strong><span>Scan a sign or enter a code to add one.</span></div>';
+    }
+
+    async function claimDailyQuest(questKey) {
+        try {
+            const data = await api(`/api/quests/daily/${encodeURIComponent(questKey)}/claim`, { method: 'POST' });
+            points += Number(data.reward || 0);
+            updateStats();
+            scheduleSave();
+            await loadQuests();
+            showToast(`${data.title} reward claimed! +${data.reward} points.`, 'fa-star');
+        } catch (error) {
+            showToast(error.message, 'fa-triangle-exclamation');
+        }
+    }
+
+    async function deleteSpecialQuest(questId) {
+        try {
+            await api(`/api/quests/special/${questId}`, { method: 'DELETE' });
+            await loadQuests();
+            showToast('Special quest removed.', 'fa-xmark');
+        } catch (error) {
+            showToast(error.message, 'fa-triangle-exclamation');
+        }
+    }
+
+    async function redeemSpecialQuest() {
+        const code = specialQuestCodeInput.value.trim().toUpperCase();
+        try {
+            await api('/api/quests/special/redeem', {
+                method: 'POST',
+                body: JSON.stringify({ code })
+            });
+            specialQuestCodeInput.value = '';
+            await loadQuests();
+            showToast('Special quest added to your field guide.', 'fa-qrcode');
+        } catch (error) {
+            showToast(error.message, 'fa-triangle-exclamation');
+        }
+    }
+
+    async function createSpecialQuest() {
+        createSpecialQuestButton.disabled = true;
+        try {
+            const tasks = [...specialTaskList.querySelectorAll('.special-task-row')].map(row => ({
+                plant: row.querySelector('.special-task-plant').value.trim(),
+                required_snaps: Number(row.querySelector('.special-task-target').value)
+            }));
+            const data = await api('/api/quests/special/create', {
+                method: 'POST',
+                body: JSON.stringify({ tasks })
+            });
+            specialQuestResult.classList.remove('hidden');
+            specialQuestCreatedCode.textContent = data.code;
+            specialQuestCreatedDetails.textContent = `Complete ${data.tasks.length} task${data.tasks.length === 1 ? '' : 's'} (${data.target} snaps total). Share or print this code.`;
+            specialQuestQr.innerHTML = '';
+            if (window.QRCode) {
+                new QRCode(specialQuestQr, {
+                    text: data.code,
+                    width: 128,
+                    height: 128,
+                    colorDark: '#26352d',
+                    colorLight: '#ffffff'
+                });
+            }
+            specialTaskList.innerHTML = `
+                <div class="special-task-row">
+                    <input class="special-task-plant" type="text" maxlength="80" placeholder="Plant name, e.g. Kangaroo Paw">
+                    <input class="special-task-target" type="number" min="1" max="1000" value="5" aria-label="Required snaps">
+                    <button class="icon-btn remove-special-task" type="button" aria-label="Remove task"><i class="fas fa-xmark"></i></button>
+                </div>`;
+            await loadQuests();
+            showToast('Special quest created.', 'fa-wand-magic-sparkles');
+        } catch (error) {
+            showToast(error.message, 'fa-triangle-exclamation');
+        } finally {
+            createSpecialQuestButton.disabled = false;
+        }
+    }
+
+    function addSpecialTask() {
+        if (specialTaskList.children.length >= 10) {
+            showToast('A quest can contain up to 10 tasks.', 'fa-list-check');
+            return;
+        }
+        specialTaskList.insertAdjacentHTML('beforeend', `
+            <div class="special-task-row">
+                <input class="special-task-plant" type="text" maxlength="80" placeholder="Plant name">
+                <input class="special-task-target" type="number" min="1" max="1000" value="5" aria-label="Required snaps">
+                <button class="icon-btn remove-special-task" type="button" aria-label="Remove task"><i class="fas fa-xmark"></i></button>
+            </div>`);
+    }
+
+    async function scanSpecialQuest() {
+        if (!('BarcodeDetector' in window)) {
+            showToast('QR scanning is not supported here. Enter the code manually.', 'fa-keyboard');
+            specialQuestCodeInput.focus();
+            return;
+        }
+
+        try {
+            qrScanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+            qrScanVideo.srcObject = qrScanStream;
+            qrScanBackdrop.classList.remove('hidden');
+            document.body.classList.add('modal-open');
+            qrScanStatus.textContent = 'Point your camera at the code.';
+            const detector = new BarcodeDetector({ formats: ['qr_code'] });
+
+            const scanFrame = async () => {
+                if (!qrScanStream) return;
+                try {
+                    const codes = await detector.detect(qrScanVideo);
+                    const code = codes[0]?.rawValue?.trim().toUpperCase();
+                    if (code) {
+                        specialQuestCodeInput.value = code;
+                        closeQrScanner();
+                        await redeemSpecialQuest();
+                        return;
+                    }
+                } catch (_) {
+                    qrScanStatus.textContent = 'Move the code into view and try again.';
+                }
+                qrScanFrame = requestAnimationFrame(scanFrame);
+            };
+            qrScanFrame = requestAnimationFrame(scanFrame);
+        } catch (_) {
+            closeQrScanner();
+            showToast('Camera access was unavailable. Enter the code manually.', 'fa-triangle-exclamation');
+        }
+    }
+
+    function closeQrScanner() {
+        if (qrScanFrame) cancelAnimationFrame(qrScanFrame);
+        qrScanFrame = null;
+        qrScanStream?.getTracks().forEach(track => track.stop());
+        qrScanStream = null;
+        qrScanVideo.srcObject = null;
+        qrScanBackdrop.classList.add('hidden');
+        document.body.classList.remove('modal-open');
     }
 
     // =========================================================
@@ -1072,11 +1306,10 @@
 
                 card.innerHTML = `
                     <span class="collection-icon">
-                        ${
-                            unlocked
-                                ? renderIcon(item.icon)
-                                : '<i class="fas fa-lock"></i>'
-                        }
+                        ${unlocked
+                        ? renderIcon(item.icon)
+                        : '<i class="fas fa-lock"></i>'
+                    }
                     </span>
 
                     <span class="collection-name">
@@ -1210,7 +1443,7 @@
         return 'common';
     }
 
-    function pullGacha() {
+    async function pullGacha() {
         if (
             points < 60
         ) {
@@ -1313,9 +1546,23 @@
             </div>
         `;
 
+        try {
+            const data = await api('/api/quests/event', {
+                method: 'POST',
+                body: JSON.stringify({ event: 'gacha' })
+            });
+            points += Number(data.questUpdate?.reward || 0);
+            if (data.questUpdate?.completed?.length) {
+                showToast(`Quest complete! +${data.questUpdate.reward} points.`, 'fa-map-signs');
+            }
+        } catch (error) {
+            console.error('Could not update quest progress:', error);
+        }
+
         renderEverything();
 
         scheduleSave();
+        await loadQuests();
 
         showToast(
             alreadyUnlocked
@@ -1688,12 +1935,13 @@
             cameraIdentification.classList.remove('hidden');
             cameraStatus.classList.add('hidden');
 
-            points += 10;
+            points += 10 + Number(data.questUpdate?.reward || 0);
             updateStats();
             scheduleSave();
             usePhotoButton.innerHTML = '<i class="fas fa-check"></i> Identified <span>+10 ★</span>';
             showToast(`Identified as ${identification.common_name || identification.scientific_name}! +10 points.`, 'fa-leaf');
-            
+            await loadQuests();
+
             // Reload achievements after snap
             await loadAchievements();
         } catch (error) {
@@ -2867,14 +3115,14 @@
                 <div class="section-title">Quests</div>
                 <div id="classQuestList">
                     ${quests.length
-                        ? quests.map(
-                            quest =>
-                                isTeacher
-                                    ? teacherQuestMarkup(quest)
-                                    : studentQuestMarkup(quest)
-                        ).join('')
-                        : '<div class="empty-inline">No active quests yet.</div>'
-                    }
+                ? quests.map(
+                    quest =>
+                        isTeacher
+                            ? teacherQuestMarkup(quest)
+                            : studentQuestMarkup(quest)
+                ).join('')
+                : '<div class="empty-inline">No active quests yet.</div>'
+            }
                 </div>
             </div>
         `;
@@ -2904,7 +3152,7 @@
                 <div class="section-title">Students</div>
                 <div class="class-roster">
                     ${roster.length
-                        ? roster.map(student => `
+                ? roster.map(student => `
                             <div class="class-roster-row">
                                 <div>
                                     <strong>@${escapeHtml(student.username)}</strong>
@@ -2916,8 +3164,8 @@
                                 </button>
                             </div>
                         `).join('')
-                        : '<div class="empty-inline">No students yet. Search for a student account above.</div>'
-                    }
+                : '<div class="empty-inline">No students yet. Search for a student account above.</div>'
+            }
                 </div>
             </div>
 
@@ -2987,9 +3235,9 @@
                     </button>
                 </div>
                 ${quest.description
-                    ? `<p>${escapeHtml(quest.description)}</p>`
-                    : ''
-                }
+                ? `<p>${escapeHtml(quest.description)}</p>`
+                : ''
+            }
                 <div class="quest-status-line">
                     <span>${quest.completed_count || 0} / ${quest.student_count || 0} completed</span>
                     ${quest.due_at ? `<span>Due ${escapeHtml(quest.due_at)}</span>` : ''}
@@ -3019,19 +3267,19 @@
                     </span>
                 </div>
                 ${quest.description
-                    ? `<p>${escapeHtml(quest.description)}</p>`
-                    : ''
-                }
+                ? `<p>${escapeHtml(quest.description)}</p>`
+                : ''
+            }
                 <div class="quest-progress-track">
                     <span style="width:${Math.max(0, Math.min(100, Number(progress.percent || 0)))}%"></span>
                 </div>
                 <div class="quest-status-line">
                     ${quest.due_at ? `<span>Due ${escapeHtml(quest.due_at)}</span>` : '<span>No due date</span>'}
                     ${quest.target_type === 'manual' && !progress.completed
-                        ? `<button class="friend-action complete-manual-quest"
+                ? `<button class="friend-action complete-manual-quest"
                             data-quest-id="${quest.id}" type="button">Mark done</button>`
-                        : ''
-                    }
+                : ''
+            }
                 </div>
             </div>
         `;
@@ -3440,6 +3688,10 @@
             loadAchievements();
         }
 
+        if (viewId === 'questsView') {
+            loadQuests();
+        }
+
         window.scrollTo({
             top: 0,
             behavior: 'smooth'
@@ -3706,6 +3958,77 @@
             'click',
             pullGacha
         );
+
+        redeemSpecialQuestButton.addEventListener(
+            'click',
+            redeemSpecialQuest
+        );
+
+        createSpecialQuestButton.addEventListener(
+            'click',
+            createSpecialQuest
+        );
+
+        addSpecialTaskButton.addEventListener(
+            'click',
+            addSpecialTask
+        );
+
+        specialTaskList.addEventListener(
+            'click',
+            event => {
+                const removeButton = event.target.closest('.remove-special-task');
+                if (!removeButton) return;
+                if (specialTaskList.children.length === 1) {
+                    showToast('Keep at least one task in the quest.', 'fa-list-check');
+                    return;
+                }
+                removeButton.closest('.special-task-row').remove();
+            }
+        );
+
+        scanSpecialQuestButton.addEventListener(
+            'click',
+            scanSpecialQuest
+        );
+
+        closeQrScanButton.addEventListener(
+            'click',
+            closeQrScanner
+        );
+
+        qrScanBackdrop.addEventListener(
+            'click',
+            event => {
+                if (event.target === qrScanBackdrop) {
+                    closeQrScanner();
+                }
+            }
+        );
+
+        specialQuestCodeInput.addEventListener(
+            'keydown',
+            event => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    redeemSpecialQuest();
+                }
+            }
+        );
+
+        dailyQuestList.addEventListener('click', event => {
+            const questCard = event.target.closest('.daily-quest-card.claimable');
+            if (questCard) {
+                claimDailyQuest(questCard.dataset.questKey);
+            }
+        });
+
+        specialQuestList.addEventListener('click', event => {
+            const deleteButton = event.target.closest('.special-quest-delete');
+            if (deleteButton) {
+                deleteSpecialQuest(deleteButton.dataset.specialQuestId);
+            }
+        });
 
         // Navigation
         navBtns.forEach(
