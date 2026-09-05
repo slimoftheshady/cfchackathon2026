@@ -162,6 +162,66 @@
                     </div>
                 </div>
 
+                <div class="garden-card">
+                    <div class="garden-card-top">
+                        <div>
+                            <span class="garden-kicker">
+                                <i class="fas fa-cloud-sun"></i>
+                                Djilba is waking
+                            </span>
+
+                            <div class="garden-level-line">
+                                <strong id="gardenLevelLabel">
+                                    Garden Level 1
+                                </strong>
+                                <span id="gardenPlotSummary">
+                                    4 plots unlocked
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="garden-card-actions">
+                            <button
+                                class="soft-btn"
+                                id="gardenUpgradeButton"
+                                type="button"
+                            >
+                                <i class="fas fa-arrow-up"></i>
+                                <span id="gardenUpgradeText">
+                                    Level 2 · 150 coins
+                                </span>
+                            </button>
+
+                            <button
+                                class="soft-btn"
+                                id="openCollectionButton"
+                                type="button"
+                            >
+                                <i class="fas fa-seedling"></i>
+                                Collection
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="garden-scene">
+                        <div class="cloud cloud-one"></div>
+                        <div class="cloud cloud-two"></div>
+                        <div class="garden-path"></div>
+                        <div class="plot-grid" id="plotGrid"></div>
+                    </div>
+
+                    <div class="garden-footer-row">
+                        <span id="gardenUpgradeHint">
+                            <i class="fas fa-lock-open"></i>
+                            Next upgrade unlocks 6 plots
+                        </span>
+
+                        <span id="plantCounter">
+                            0 / 4 placed
+                        </span>
+                    </div>
+                </div>
+
                 <div class="biodiversity-card card-surface">
                     <div class="biodiversity-card-top">
 
@@ -240,65 +300,64 @@
 
                 </div>
 
-                <div class="garden-card">
-                    <div class="garden-card-top">
+
+                <div
+                    class="next-goal-card card-surface"
+                    id="nextGoalCard"
+                >
+                    <div class="next-goal-head">
+
                         <div>
-                            <span class="garden-kicker">
-                                <i class="fas fa-cloud-sun"></i>
-                                Djilba is waking
-                            </span>
-
-                            <div class="garden-level-line">
-                                <strong id="gardenLevelLabel">
-                                    Garden Level 1
-                                </strong>
-                                <span id="gardenPlotSummary">
-                                    4 plots unlocked
-                                </span>
+                            <div class="eyebrow">
+                                YOUR NEXT GOAL
                             </div>
+
+                            <h2 id="nextGoalTitle">
+                                Upgrade Garden → Level 2
+                            </h2>
                         </div>
 
-                        <div class="garden-card-actions">
-                            <button
-                                class="soft-btn"
-                                id="gardenUpgradeButton"
-                                type="button"
-                            >
-                                <i class="fas fa-arrow-up"></i>
-                                <span id="gardenUpgradeText">
-                                    Level 2 · 150 coins
-                                </span>
-                            </button>
-
-                            <button
-                                class="soft-btn"
-                                id="openCollectionButton"
-                                type="button"
-                            >
-                                <i class="fas fa-seedling"></i>
-                                Collection
-                            </button>
+                        <div
+                            class="next-goal-icon"
+                            id="nextGoalIcon"
+                        >
+                            <i class="fas fa-seedling"></i>
                         </div>
+
                     </div>
 
-                    <div class="garden-scene">
-                        <div class="cloud cloud-one"></div>
-                        <div class="cloud cloud-two"></div>
-                        <div class="garden-path"></div>
-                        <div class="plot-grid" id="plotGrid"></div>
+                    <div class="next-goal-progress-track">
+
+                        <div
+                            class="next-goal-progress-fill"
+                            id="nextGoalProgressFill"
+                        ></div>
+
                     </div>
 
-                    <div class="garden-footer-row">
-                        <span id="gardenUpgradeHint">
-                            <i class="fas fa-lock-open"></i>
-                            Next upgrade unlocks 6 plots
+                    <div class="next-goal-progress-copy">
+
+                        <strong id="nextGoalProgressText">
+                            0 / 150 coins
+                        </strong>
+
+                        <span id="nextGoalUnlocks">
+                            Unlocks 2 more garden plots.
                         </span>
 
-                        <span id="plantCounter">
-                            0 / 4 placed
-                        </span>
                     </div>
+
+                    <button
+                        class="primary-btn next-goal-button"
+                        id="nextGoalButton"
+                        type="button"
+                    >
+                        <i class="fas fa-map-signs"></i>
+                        <span>View quests</span>
+                    </button>
+
                 </div>
+
 
                 <div class="snap-card">
                     <div>
@@ -480,7 +539,23 @@
                 </div>
 
                 <div class="quest-section">
-                    <div class="section-title"><i class="fas fa-people-group"></i> Community fieldwork</div>
+                    <div class="section-title">
+                        <i class="fas fa-calendar-week"></i>
+                        This week
+                    </div>
+
+                    <div
+                        class="quest-grid"
+                        id="weeklyQuestList"
+                    ></div>
+                </div>
+
+                <div class="quest-section">
+                    <div class="section-title">
+                        <i class="fas fa-people-group"></i>
+                        Community fieldwork
+                    </div>
+
                     <div id="communityQuestCard"></div>
                 </div>
 

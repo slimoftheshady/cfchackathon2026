@@ -4334,3 +4334,230 @@ button {
             3px;
     }
 }
+
+
+/* STAGE 3: QUEST PROGRESSION */
+
+.next-goal-card {
+    margin-bottom: 16px;
+    padding: 16px;
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255, 255, 255, .92),
+            rgba(232, 241, 223, .84)
+        );
+}
+
+.next-goal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.next-goal-head h2 {
+    margin-top: 4px;
+    font-size: 18px;
+    letter-spacing: -.025em;
+}
+
+.next-goal-icon {
+    width: 46px;
+    height: 46px;
+    flex: 0 0 46px;
+    display: grid;
+    place-items: center;
+    border-radius: 16px;
+    background: var(--forest);
+    color: white;
+    font-size: 18px;
+    box-shadow:
+        0 7px 0
+        rgba(59, 73, 83, .12);
+}
+
+.next-goal-progress-track {
+    height: 11px;
+    margin-top: 14px;
+    overflow: hidden;
+    border-radius: 999px;
+    background:
+        rgba(
+            79,
+            118,
+            94,
+            .13
+        );
+}
+
+.next-goal-progress-fill {
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background:
+        linear-gradient(
+            90deg,
+            var(--sage),
+            var(--forest)
+        );
+    transition:
+        width .3s ease;
+}
+
+.next-goal-progress-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-top: 8px;
+}
+
+.next-goal-progress-copy strong {
+    font-size: 12px;
+    color: var(--teal);
+}
+
+.next-goal-progress-copy span {
+    font-size: 10px;
+    line-height: 1.4;
+    color:
+        rgba(
+            59,
+            73,
+            83,
+            .65
+        );
+    font-weight: 700;
+}
+
+.next-goal-button {
+    width: 100%;
+    justify-content: center;
+    margin-top: 12px;
+}
+
+.weekly-quest-card {
+    border-color:
+        rgba(
+            168,
+            205,
+            221,
+            .45
+        );
+}
+
+.weekly-quest-card .weekly-icon {
+    background:
+        rgba(
+            168,
+            205,
+            221,
+            .26
+        );
+}
+
+.community-contribution-note {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin: 12px 0 4px;
+    padding: 9px 11px;
+    border-radius: 14px;
+    background:
+        rgba(
+            232,
+            241,
+            223,
+            .62
+        );
+    color:
+        rgba(
+            59,
+            73,
+            83,
+            .72
+        );
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.community-contribution-note i {
+    color: var(--forest);
+}
+
+.community-claim-box {
+    display: grid;
+    gap: 8px;
+    margin-top: 14px;
+    padding: 12px;
+    border-radius: 16px;
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            .66
+        );
+    border:
+        1px solid
+        rgba(
+            90,
+            120,
+            99,
+            .14
+        );
+}
+
+.community-claim-box > strong {
+    font-size: 11px;
+    color: var(--forest);
+}
+
+.community-claim-btn {
+    justify-content: center;
+    text-align: center;
+    line-height: 1.35;
+}
+
+.community-next-reward {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background:
+        rgba(
+            232,
+            241,
+            223,
+            .52
+        );
+    color:
+        rgba(
+            59,
+            73,
+            83,
+            .66
+        );
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.45;
+}
+
+.community-milestone.claimed
+.community-milestone-dot {
+    outline:
+        3px solid
+        rgba(
+            79,
+            118,
+            94,
+            .18
+        );
+}
+
+@media (
+    max-width: 390px
+) {
+    .next-goal-head h2 {
+        font-size: 16px;
+    }
+}

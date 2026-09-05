@@ -267,6 +267,28 @@
     const biodiversityTotalUnique =
         $('biodiversityTotalUnique');
 
+    // Next goal
+    const nextGoalCard =
+        $('nextGoalCard');
+
+    const nextGoalTitle =
+        $('nextGoalTitle');
+
+    const nextGoalIcon =
+        $('nextGoalIcon');
+
+    const nextGoalProgressFill =
+        $('nextGoalProgressFill');
+
+    const nextGoalProgressText =
+        $('nextGoalProgressText');
+
+    const nextGoalUnlocks =
+        $('nextGoalUnlocks');
+
+    const nextGoalButton =
+        $('nextGoalButton');
+
     // Garden progression
     const gardenLevelLabel = $('gardenLevelLabel');
     const gardenPlotSummary = $('gardenPlotSummary');
@@ -333,6 +355,7 @@
 
     // Quests
     const dailyQuestList = $('dailyQuestList');
+    const weeklyQuestList = $('weeklyQuestList');
     const communityQuestCard = $('communityQuestCard');
     const specialQuestList = $('specialQuestList');
     const specialQuestCodeInput = $('specialQuestCodeInput');
@@ -1179,6 +1202,8 @@
 
         renderBiodiversity();
 
+        renderNextGoal();
+
         renderStore();
 
         if (
@@ -1208,72 +1233,664 @@
         return `<div class="quest-progress"><span style="width: ${percent}%"></span></div>`;
     }
 
+
     function renderQuests() {
-        if (!quests || !dailyQuestList) return;
 
-        dailyQuestList.innerHTML = quests.daily.map(quest => `
-            <article class="quest-card daily-quest-card ${quest.completed && !quest.claimed ? 'claimable' : ''} ${quest.claimed ? 'completed' : ''}" data-quest-key="${escapeHtml(quest.key)}" ${quest.completed && !quest.claimed ? 'tabindex="0" role="button"' : ''}>
-                <div class="quest-card-icon"><i class="fas ${quest.completed ? 'fa-check' : 'fa-camera'}"></i></div>
-                <div class="quest-card-body">
-                    <strong>${escapeHtml(quest.title)}</strong>
-                    <p>${escapeHtml(quest.description)}</p>
-                    ${questProgressBar(quest.progress, quest.target)}
-                    <span>${quest.progress} / ${quest.target} · +${quest.reward} coins</span>
-                </div>
-                <div class="quest-reward ${quest.claimed ? 'claimed' : ''}"><i class="fas fa-coins"></i><strong>${quest.reward}</strong><small>${quest.claimed ? 'Claimed' : quest.completed ? 'Claim' : 'coins'}</small></div>
-            </article>
-        `).join('');
+        if (
+            !quests
+            || !dailyQuestList
+        ) {
+            return;
+        }
 
-        const community = quests.community;
-        communityQuestCard.innerHTML = `
-            <article class="community-quest-card ${community.progress >= community.target ? 'completed' : ''}">
-                <div class="community-quest-heading">
-                    <div>
-                        <span class="eyebrow">RESEARCHER-LED GOAL</span>
-                        <h2>${escapeHtml(community.title)}</h2>
-                        <p>${escapeHtml(community.description)}</p>
+        const rewardSummary = (
+            quest
+        ) =>
+            (
+                `${Number(
+                    quest.reward
+                    || 0
+                )} coins · `
+                + `${Number(
+                    quest.xp_reward
+                    || 0
+                )} XP`
+            );
+
+        // -----------------------------------------
+        // Daily
+        // -----------------------------------------
+
+        dailyQuestList
+            .innerHTML =
+            quests.daily
+                .map(
+                    quest => `
+                        <article
+                            class="quest-card daily-quest-card ${
+                                quest.completed
+                                && !quest.claimed
+                                    ? 'claimable'
+                                    : ''
+                            } ${
+                                quest.claimed
+                                    ? 'completed'
+                                    : ''
+                            }"
+                            data-quest-key="${escapeHtml(quest.key)}"
+                            ${
+                                quest.completed
+                                && !quest.claimed
+                                    ? 'tabindex="0" role="button"'
+                                    : ''
+                            }
+                        >
+                            <div class="quest-card-icon">
+                                <i class="fas ${
+                                    quest.completed
+                                        ? 'fa-check'
+                                        : 'fa-camera'
+                                }"></i>
+                            </div>
+
+                            <div class="quest-card-body">
+                                <strong>
+                                    ${escapeHtml(quest.title)}
+                                </strong>
+
+                                <p>
+                                    ${escapeHtml(quest.description)}
+                                </p>
+
+                                ${
+                                    questProgressBar(
+                                        quest.progress,
+                                        quest.target
+                                    )
+                                }
+
+                                <span>
+                                    ${quest.progress}
+                                    /
+                                    ${quest.target}
+                                    ·
+                                    ${rewardSummary(quest)}
+                                </span>
+                            </div>
+
+                            <div
+                                class="quest-reward ${
+                                    quest.claimed
+                                        ? 'claimed'
+                                        : ''
+                                }"
+                            >
+                                <i class="fas ${
+                                    quest.claimed
+                                        ? 'fa-check'
+                                        : 'fa-coins'
+                                }"></i>
+
+                                <strong>
+                                    ${quest.reward}
+                                </strong>
+
+                                <small>
+                                    ${
+                                        quest.claimed
+                                            ? 'Claimed'
+                                            : quest.completed
+                                                ? 'Claim'
+                                                : 'coins'
+                                    }
+                                </small>
+                            </div>
+                        </article>
+                    `
+                )
+                .join('');
+
+        // -----------------------------------------
+        // Weekly
+        // -----------------------------------------
+
+        if (
+            weeklyQuestList
+        ) {
+            weeklyQuestList
+                .innerHTML =
+                (
+                    quests.weekly
+                    || []
+                )
+                    .map(
+                        quest => `
+                            <article
+                                class="quest-card weekly-quest-card ${
+                                    quest.completed
+                                    && !quest.claimed
+                                        ? 'claimable'
+                                        : ''
+                                } ${
+                                    quest.claimed
+                                        ? 'completed'
+                                        : ''
+                                }"
+                                data-quest-key="${escapeHtml(quest.key)}"
+                                ${
+                                    quest.completed
+                                    && !quest.claimed
+                                        ? 'tabindex="0" role="button"'
+                                        : ''
+                                }
+                            >
+                                <div class="quest-card-icon weekly-icon">
+                                    <i class="fas ${
+                                        quest.completed
+                                            ? 'fa-check'
+                                            : 'fa-calendar-week'
+                                    }"></i>
+                                </div>
+
+                                <div class="quest-card-body">
+                                    <strong>
+                                        ${escapeHtml(quest.title)}
+                                    </strong>
+
+                                    <p>
+                                        ${escapeHtml(quest.description)}
+                                    </p>
+
+                                    ${
+                                        questProgressBar(
+                                            quest.progress,
+                                            quest.target
+                                        )
+                                    }
+
+                                    <span>
+                                        ${quest.progress}
+                                        /
+                                        ${quest.target}
+                                        ·
+                                        ${rewardSummary(quest)}
+                                    </span>
+                                </div>
+
+                                <div
+                                    class="quest-reward ${
+                                        quest.claimed
+                                            ? 'claimed'
+                                            : ''
+                                    }"
+                                >
+                                    <i class="fas ${
+                                        quest.claimed
+                                            ? 'fa-check'
+                                            : 'fa-coins'
+                                    }"></i>
+
+                                    <strong>
+                                        ${quest.reward}
+                                    </strong>
+
+                                    <small>
+                                        ${
+                                            quest.claimed
+                                                ? 'Claimed'
+                                                : quest.completed
+                                                    ? 'Claim'
+                                                    : 'coins'
+                                        }
+                                    </small>
+                                </div>
+                            </article>
+                        `
+                    )
+                    .join('');
+        }
+
+        // -----------------------------------------
+        // Community
+        // -----------------------------------------
+
+        const community =
+            quests.community;
+
+        const nextMilestone =
+            community
+                .milestones
+                .find(
+                    milestone =>
+                        !milestone
+                            .reached
+                );
+
+        const claimableMilestones =
+            community
+                .milestones
+                .filter(
+                    milestone =>
+                        milestone
+                            .claimable
+                );
+
+        communityQuestCard
+            .innerHTML = `
+                <article
+                    class="community-quest-card ${
+                        community.progress
+                        >= community.target
+                            ? 'completed'
+                            : ''
+                    }"
+                >
+                    <div class="community-quest-heading">
+
+                        <div>
+                            <span class="eyebrow">
+                                RESEARCHER-LED GOAL
+                            </span>
+
+                            <h2>
+                                ${escapeHtml(community.title)}
+                            </h2>
+
+                            <p>
+                                ${escapeHtml(community.description)}
+                            </p>
+                        </div>
+
+                        <i class="fas fa-location-dot"></i>
+
                     </div>
-                    <i class="fas fa-location-dot"></i>
-                </div>
-                <div class="community-tracker">
-                    ${questProgressBar(community.progress, community.target)}
-                    <div class="community-milestones">${community.milestones.map(milestone => `
-                        <div class="community-milestone ${milestone.reached ? 'reached' : ''}" style="left: ${(milestone.target / community.target) * 100}%">
-                            <span class="community-milestone-dot"></span>
-                            <strong>${milestone.target.toLocaleString()}</strong>
-                            <small>+${milestone.reward} coins</small>
-                        </div>`).join('')}</div>
-                </div>
-                <div class="community-quest-total"><strong>${community.progress.toLocaleString()}</strong> / ${community.target.toLocaleString()} snaps</div>
-            </article>
-        `;
 
-        specialQuestList.innerHTML = quests.special.length
-            ? quests.special.map(quest => `
-                <article class="quest-card special-quest-card ${quest.completed ? 'completed' : ''}">
-                    <button class="special-quest-delete" type="button" data-special-quest-id="${quest.id}" aria-label="Remove ${escapeHtml(quest.plant)} quest"><i class="fas fa-xmark"></i></button>
-                    <div class="quest-card-icon"><i class="fas ${quest.completed ? 'fa-check' : 'fa-qrcode'}"></i></div>
-                    <div class="quest-card-body">
-                        <strong>${escapeHtml(quest.plant)} quest</strong>
-                        <p>${quest.tasks?.map(task => `${escapeHtml(task.plant)} × ${task.required_snaps}`).join(' · ') || 'Snap this quest target at the marked location.'}</p>
-                        ${questProgressBar(quest.progress, quest.target)}
-                        <span>${quest.progress} / ${quest.target} snaps</span>
+                    <div class="community-contribution-note">
+
+                        <i class="fas fa-leaf"></i>
+
+                        You have contributed
+
+                        <strong>
+                            ${Number(
+                                community.contribution
+                                || 0
+                            ).toLocaleString()}
+                        </strong>
+
+                        accepted sighting${
+                            Number(
+                                community.contribution
+                                || 0
+                            ) === 1
+                                ? ''
+                                : 's'
+                        }.
+
                     </div>
+
+                    <div class="community-tracker">
+
+                        ${
+                            questProgressBar(
+                                community.progress,
+                                community.target
+                            )
+                        }
+
+                        <div class="community-milestones">
+
+                            ${
+                                community
+                                    .milestones
+                                    .map(
+                                        milestone => `
+                                            <div
+                                                class="community-milestone ${
+                                                    milestone.reached
+                                                        ? 'reached'
+                                                        : ''
+                                                } ${
+                                                    milestone.claimed
+                                                        ? 'claimed'
+                                                        : ''
+                                                }"
+                                                style="left: ${
+                                                    (
+                                                        milestone.target
+                                                        / community.target
+                                                    )
+                                                    * 100
+                                                }%"
+                                            >
+                                                <span
+                                                    class="community-milestone-dot"
+                                                ></span>
+
+                                                <strong>
+                                                    ${milestone.target.toLocaleString()}
+                                                </strong>
+
+                                                <small>
+                                                    +${milestone.reward}
+                                                    coins
+                                                </small>
+                                            </div>
+                                        `
+                                    )
+                                    .join('')
+                            }
+
+                        </div>
+
+                    </div>
+
+                    <div class="community-quest-total">
+
+                        <strong>
+                            ${community.progress.toLocaleString()}
+                        </strong>
+
+                        /
+                        ${community.target.toLocaleString()}
+                        snaps
+
+                    </div>
+
+                    ${
+                        claimableMilestones.length
+
+                            ? `
+                                <div class="community-claim-box">
+
+                                    <strong>
+                                        Contributor rewards ready
+                                    </strong>
+
+                                    ${
+                                        claimableMilestones
+                                            .map(
+                                                milestone => `
+                                                    <button
+                                                        class="soft-btn community-claim-btn"
+                                                        data-community-target="${milestone.target}"
+                                                        type="button"
+                                                    >
+                                                        <i class="fas fa-gift"></i>
+
+                                                        Claim
+                                                        ${milestone.target.toLocaleString()}
+                                                        reward ·
+                                                        ${milestone.reward}
+                                                        coins +
+                                                        ${milestone.xp_reward}
+                                                        XP
+                                                    </button>
+                                                `
+                                            )
+                                            .join('')
+                                    }
+
+                                </div>
+                            `
+
+                            : `
+                                <div class="community-next-reward">
+
+                                    ${
+                                        Number(
+                                            community.contribution
+                                            || 0
+                                        ) <= 0
+
+                                            ? (
+                                                'Make one accepted '
+                                                + 'biodiversity snap '
+                                                + 'to become a '
+                                                + 'community contributor.'
+                                            )
+
+                                            : nextMilestone
+
+                                                ? (
+                                                    `Next contributor reward at `
+                                                    + `${nextMilestone.target.toLocaleString()} `
+                                                    + `sightings: `
+                                                    + `${nextMilestone.reward} coins `
+                                                    + `+ ${nextMilestone.xp_reward} XP.`
+                                                )
+
+                                                : (
+                                                    'All community '
+                                                    + 'milestones have '
+                                                    + 'been reached.'
+                                                )
+                                    }
+
+                                </div>
+                            `
+                    }
+
                 </article>
-            `).join('')
-            : '<div class="empty-state"><i class="fas fa-qrcode"></i><strong>No special quests yet</strong><span>Scan a sign or enter a code to add one.</span></div>';
+            `;
+
+        // -----------------------------------------
+        // Special
+        // -----------------------------------------
+
+        specialQuestList
+            .innerHTML =
+            quests.special.length
+
+                ? quests.special
+                    .map(
+                        quest => `
+                            <article
+                                class="quest-card special-quest-card ${
+                                    quest.completed
+                                        ? 'completed'
+                                        : ''
+                                }"
+                            >
+                                <button
+                                    class="special-quest-delete"
+                                    type="button"
+                                    data-special-quest-id="${quest.id}"
+                                    aria-label="Remove ${escapeHtml(quest.plant)} quest"
+                                >
+                                    <i class="fas fa-xmark"></i>
+                                </button>
+
+                                <div class="quest-card-icon">
+                                    <i class="fas ${
+                                        quest.completed
+                                            ? 'fa-check'
+                                            : 'fa-qrcode'
+                                    }"></i>
+                                </div>
+
+                                <div class="quest-card-body">
+
+                                    <strong>
+                                        ${escapeHtml(quest.plant)}
+                                        quest
+                                    </strong>
+
+                                    <p>
+                                        ${
+                                            quest.tasks
+                                                ?.map(
+                                                    task =>
+                                                        `${escapeHtml(task.plant)} × ${task.required_snaps}`
+                                                )
+                                                .join(' · ')
+                                            ||
+                                            'Snap this quest target at the marked location.'
+                                        }
+                                    </p>
+
+                                    ${
+                                        questProgressBar(
+                                            quest.progress,
+                                            quest.target
+                                        )
+                                    }
+
+                                    <span>
+                                        ${quest.progress}
+                                        /
+                                        ${quest.target}
+                                        snaps ·
+                                        ${quest.reward}
+                                        coins ·
+                                        ${quest.xp_reward}
+                                        XP
+                                    </span>
+
+                                </div>
+
+                            </article>
+                        `
+                    )
+                    .join('')
+
+                : `
+                    <div class="empty-state">
+                        <i class="fas fa-qrcode"></i>
+                        <strong>No special quests yet</strong>
+                        <span>
+                            Scan a sign or enter a code to add one.
+                        </span>
+                    </div>
+                `;
     }
 
-    async function claimDailyQuest(questKey) {
+
+    function applyQuestBalance(
+        data
+    ) {
+        if (
+            !data
+            || !data.balance
+        ) {
+            return;
+        }
+
+        points =
+            Number(
+                data
+                    .balance
+                    .coins
+                ?? points
+            );
+
+        score =
+            Number(
+                data
+                    .balance
+                    .xp
+                ?? score
+            );
+
+        renderEverything();
+    }
+
+
+    async function claimDailyQuest(
+        questKey
+    ) {
         try {
-            const data = await api(`/api/quests/daily/${encodeURIComponent(questKey)}/claim`, { method: 'POST' });
-            points += Number(data.reward || 0);
-            updateStats();
-            scheduleSave();
+            const data =
+                await api(
+                    `/api/quests/daily/${encodeURIComponent(questKey)}/claim`,
+                    {
+                        method:
+                            'POST'
+                    }
+                );
+
+            applyQuestBalance(
+                data
+            );
+
             await loadQuests();
-            showToast(`${data.title} reward claimed! +${data.reward} coins.`, 'fa-coins');
+
+            showToast(
+                `${data.title} complete! +${data.reward} coins and +${data.xp_reward} XP.`,
+                'fa-map-signs'
+            );
+
         } catch (error) {
-            showToast(error.message, 'fa-triangle-exclamation');
+            showToast(
+                error.message,
+                'fa-triangle-exclamation'
+            );
+        }
+    }
+
+
+    async function claimWeeklyQuest(
+        questKey
+    ) {
+        try {
+            const data =
+                await api(
+                    `/api/quests/weekly/${encodeURIComponent(questKey)}/claim`,
+                    {
+                        method:
+                            'POST'
+                    }
+                );
+
+            applyQuestBalance(
+                data
+            );
+
+            await loadQuests();
+
+            showToast(
+                `${data.title} complete! +${data.reward} coins and +${data.xp_reward} XP.`,
+                'fa-calendar-week'
+            );
+
+        } catch (error) {
+            showToast(
+                error.message,
+                'fa-triangle-exclamation'
+            );
+        }
+    }
+
+
+    async function claimCommunityMilestone(
+        target
+    ) {
+        try {
+            const data =
+                await api(
+                    `/api/quests/community/${Number(target)}/claim`,
+                    {
+                        method:
+                            'POST'
+                    }
+                );
+
+            applyQuestBalance(
+                data
+            );
+
+            await loadQuests();
+
+            showToast(
+                `Community reward claimed! +${data.reward} coins and +${data.xp_reward} XP.`,
+                'fa-people-group'
+            );
+
+        } catch (error) {
+            showToast(
+                error.message,
+                'fa-triangle-exclamation'
+            );
         }
     }
 
@@ -1928,6 +2545,240 @@
                     }.`;
             }
         }
+    }
+
+
+
+    function renderNextGoal() {
+
+        if (
+            !nextGoalCard
+        ) {
+            return;
+        }
+
+        const player =
+            getPlayerProgression();
+
+        const nextGardenLevel =
+            gardenProgression
+                .nextLevel;
+
+
+        if (
+            nextGardenLevel
+            != null
+        ) {
+            const cost =
+                Number(
+                    gardenProgression
+                        .nextCost
+                    || 0
+                );
+
+            const nextPlots =
+                Number(
+                    gardenProgression
+                        .nextPlots
+                    || gardenProgression
+                        .unlockedPlots
+                );
+
+            const currentPlots =
+                Number(
+                    gardenProgression
+                        .unlockedPlots
+                    || 0
+                );
+
+            const percent =
+                cost > 0
+
+                    ? Math.min(
+                        100,
+
+                        Math.max(
+                            0,
+                            (
+                                points
+                                / cost
+                            )
+                            * 100
+                        )
+                    )
+
+                    : 100;
+
+            nextGoalTitle
+                .textContent =
+                `Upgrade Garden → Level ${nextGardenLevel}`;
+
+            nextGoalIcon
+                .innerHTML =
+                '<i class="fas fa-seedling"></i>';
+
+            nextGoalProgressFill
+                .style
+                .width =
+                `${percent}%`;
+
+            nextGoalProgressText
+                .textContent =
+                `${Math.min(
+                    points,
+                    cost
+                ).toLocaleString()} / ${cost.toLocaleString()} coins`;
+
+            nextGoalUnlocks
+                .textContent =
+                `Unlocks ${Math.max(
+                    0,
+                    nextPlots
+                    - currentPlots
+                )} more garden plots.`;
+
+            if (
+                points
+                >= cost
+            ) {
+                nextGoalButton
+                    .dataset
+                    .action =
+                    'upgrade';
+
+                nextGoalButton
+                    .innerHTML =
+                    '<i class="fas fa-arrow-up"></i><span>Upgrade now</span>';
+
+            } else {
+                nextGoalButton
+                    .dataset
+                    .action =
+                    'quests';
+
+                nextGoalButton
+                    .innerHTML =
+                    '<i class="fas fa-map-signs"></i><span>Earn coins in quests</span>';
+            }
+
+            return;
+        }
+
+        if (
+            player.next
+        ) {
+            const currentXp =
+                Number(
+                    player.xp
+                    || 0
+                );
+
+            const targetXp =
+                Number(
+                    player.next
+                        .minXp
+                    || currentXp
+                );
+
+            const startXp =
+                Number(
+                    player.current
+                        .minXp
+                    || 0
+                );
+
+            const span =
+                Math.max(
+                    1,
+                    targetXp
+                    - startXp
+                );
+
+            const percent =
+                Math.min(
+                    100,
+
+                    Math.max(
+                        0,
+                        (
+                            (
+                                currentXp
+                                - startXp
+                            )
+                            / span
+                        )
+                        * 100
+                    )
+                );
+
+            nextGoalTitle
+                .textContent =
+                `Reach Level ${player.next.level} · ${player.next.title}`;
+
+            nextGoalIcon
+                .innerHTML =
+                '<i class="fas fa-compass"></i>';
+
+            nextGoalProgressFill
+                .style
+                .width =
+                `${percent}%`;
+
+            nextGoalProgressText
+                .textContent =
+                `${currentXp.toLocaleString()} / ${targetXp.toLocaleString()} XP`;
+
+            nextGoalUnlocks
+                .textContent =
+                nextUnlockCopy(
+                    player.current
+                        .level
+                );
+
+            nextGoalButton
+                .dataset
+                .action =
+                'snap';
+
+            nextGoalButton
+                .innerHTML =
+                '<i class="fas fa-camera"></i><span>Go exploring</span>';
+
+            return;
+        }
+
+        nextGoalTitle
+            .textContent =
+            'Complete this week’s fieldwork';
+
+        nextGoalIcon
+            .innerHTML =
+            '<i class="fas fa-calendar-week"></i>';
+
+        nextGoalProgressFill
+            .style
+            .width =
+            '100%';
+
+        nextGoalProgressText
+            .textContent =
+            'Maximum garden and player rank reached';
+
+        nextGoalUnlocks
+            .textContent =
+            (
+                'Weekly and community quests '
+                + 'keep earning coins and XP.'
+            );
+
+        nextGoalButton
+            .dataset
+            .action =
+            'quests';
+
+        nextGoalButton
+            .innerHTML =
+            '<i class="fas fa-map-signs"></i><span>View quests</span>';
     }
 
 
@@ -2918,6 +3769,12 @@
                     || 0
                 );
 
+            const questXp =
+                Number(
+                    data.questUpdate?.xp_reward
+                    || 0
+                );
+
             const reward =
                 data.reward
                 || {};
@@ -3000,9 +3857,12 @@
                     : '';
 
             const questText =
-                questCoins
+                (
+                    questCoins
+                    || questXp
+                )
 
-                    ? ` Quest bonus: +${questCoins} coins.`
+                    ? ` Quest bonus: +${questCoins} coins${questXp ? ` and +${questXp} XP` : ''}.`
 
                     : '';
 
@@ -5126,11 +5986,72 @@
         );
 
         dailyQuestList.addEventListener('click', event => {
-            const questCard = event.target.closest('.daily-quest-card.claimable');
-            if (questCard) {
-                claimDailyQuest(questCard.dataset.questKey);
+
+            const questCard =
+                event.target.closest(
+                    '.daily-quest-card.claimable'
+                );
+
+            if (
+                questCard
+            ) {
+                claimDailyQuest(
+                    questCard
+                        .dataset
+                        .questKey
+                );
             }
         });
+
+        if (
+            weeklyQuestList
+        ) {
+            weeklyQuestList.addEventListener(
+                'click',
+                event => {
+
+                    const questCard =
+                        event.target.closest(
+                            '.weekly-quest-card.claimable'
+                        );
+
+                    if (
+                        questCard
+                    ) {
+                        claimWeeklyQuest(
+                            questCard
+                                .dataset
+                                .questKey
+                        );
+                    }
+                }
+            );
+        }
+
+        if (
+            communityQuestCard
+        ) {
+            communityQuestCard.addEventListener(
+                'click',
+                event => {
+
+                    const claimButton =
+                        event.target.closest(
+                            '.community-claim-btn'
+                        );
+
+                    if (
+                        claimButton
+                    ) {
+                        claimCommunityMilestone(
+                            claimButton
+                                .dataset
+                                .communityTarget
+                        );
+                    }
+                }
+            );
+        }
 
         specialQuestList.addEventListener('click', event => {
             const deleteButton = event.target.closest('.special-quest-delete');
@@ -5361,6 +6282,41 @@
             gardenUpgradeButton.addEventListener(
                 'click',
                 upgradeGarden
+            );
+        }
+
+        if (
+            nextGoalButton
+        ) {
+            nextGoalButton.addEventListener(
+                'click',
+                () => {
+
+                    const action =
+                        nextGoalButton
+                            .dataset
+                            .action;
+
+                    if (
+                        action
+                        === 'upgrade'
+                    ) {
+                        upgradeGarden();
+                        return;
+                    }
+
+                    if (
+                        action
+                        === 'snap'
+                    ) {
+                        snapPlant();
+                        return;
+                    }
+
+                    navigateTo(
+                        'questsView'
+                    );
+                }
             );
         }
 

@@ -7,7 +7,7 @@ import os
 import math
 import secrets
 import json
-from datetime import date
+from datetime import date, timedelta, timedelta, timedelta, timedelta, timedelta, timedelta, timedelta
 import requests
 from model.api_call import identify_plant_from_file, parse_results
 
@@ -81,249 +81,216 @@ GARDEN_UPGRADES = (
     {"level": 4, "cost": 500, "plots": 16},
 )
 
+
+
+
+
+
+
+
 DAILY_QUESTS = [
     {
-        "key": "daily-snap-5",
-        "title": "Native plant scout",
-        "description": "Snap 5 plants around your neighbourhood.",
-        "event": "snap",
-        "target": 5,
-        "reward": 30,
+        "key":
+            "daily-snap-3",
+
+        "title":
+            "Field notes",
+
+        "description":
+            "Log 3 accepted biodiversity snaps today.",
+
+        "event":
+            "snap",
+
+        "target":
+            3,
+
+        "reward":
+            40,
+
+        "xp_reward":
+            20,
     },
+
     {
-        "key": "daily-kangaroo-paw",
-        "title": "Find a Kangaroo Paw",
-        "description": "Identify a Kangaroo Paw.",
-        "event": "snap",
-        "target": 1,
-        "reward": 25,
+        "key":
+            "daily-identify-1",
+
+        "title":
+            "One good observation",
+
+        "description":
+            "Identify and log any plant today.",
+
+        "event":
+            "snap",
+
+        "target":
+            1,
+
+        "reward":
+            20,
+
+        "xp_reward":
+            10,
     },
+
     {
-        "key": "daily-gacha",
-        "title": "Try your luck",
-        "description": "Open one seed packet in the gacha.",
-        "event": "gacha",
-        "target": 1,
-        "reward": 20,
+        "key":
+            "daily-gacha",
+
+        "title":
+            "Open a seed packet",
+
+        "description":
+            "Open one seed packet in the Seed store.",
+
+        "event":
+            "gacha",
+
+        "target":
+            1,
+
+        "reward":
+            25,
+
+        "xp_reward":
+            15,
     },
 ]
+
+
+WEEKLY_QUESTS = [
+    {
+        "key":
+            "weekly-snaps-10",
+
+        "title":
+            "Weekly field survey",
+
+        "description":
+            "Log 10 accepted biodiversity snaps this week.",
+
+        "target_type":
+            "snaps",
+
+        "target":
+            10,
+
+        "reward":
+            150,
+
+        "xp_reward":
+            100,
+    },
+
+    {
+        "key":
+            "weekly-unique-5",
+
+        "title":
+            "Biodiversity sampler",
+
+        "description":
+            "Discover 5 different species this week.",
+
+        "target_type":
+            "unique_species",
+
+        "target":
+            5,
+
+        "reward":
+            250,
+
+        "xp_reward":
+            150,
+    },
+
+    {
+        "key":
+            "weekly-dailies-3",
+
+        "title":
+            "Keep the field notes going",
+
+        "description":
+            "Claim rewards from 3 daily quests this week.",
+
+        "target_type":
+            "daily_claims",
+
+        "target":
+            3,
+
+        "reward":
+            200,
+
+        "xp_reward":
+            125,
+    },
+]
+
 
 COMMUNITY_QUEST = {
-    "key": "community-nedlands-10000",
-    "title": "Nedlands biodiversity census",
-    "description": "Help researchers record 10,000 plant snaps in the Nedlands region.",
-    "target": 10000,
-    "reward": 250,
-    "milestones": [
-        {"target": target, "reward": 25 if target < 10000 else 250}
-        for target in range(1000, 10001, 1000)
-    ],
+    "key":
+        "community-nedlands-10000",
+
+    "title":
+        "Nedlands biodiversity census",
+
+    "description":
+        (
+            "Help researchers record 10,000 plant "
+            "snaps in the Nedlands region."
+        ),
+
+    "target":
+        10000,
+
+    "reward":
+        350,
+
+    "xp_reward":
+        150,
+
+    "milestones":
+        [
+            {
+                "target":
+                    target,
+
+                "reward":
+                    (
+                        75
+                        if target < 5000
+                        else 150
+                        if target < 10000
+                        else 350
+                    ),
+
+                "xp_reward":
+                    (
+                        25
+                        if target < 5000
+                        else 50
+                        if target < 10000
+                        else 150
+                    ),
+            }
+
+            for target
+            in range(
+                1000,
+                10001,
+                1000,
+            )
+        ],
 }
 
 
-def haversine_metres(lat1, lon1, lat2, lon2):
-    """Return the straight-line distance between two GPS coordinates in metres."""
-    earth_radius_m = 6371000.0
-    phi1 = math.radians(lat1)
-    phi2 = math.radians(lat2)
-    delta_phi = math.radians(lat2 - lat1)
-    delta_lambda = math.radians(lon2 - lon1)
-    a = (
-        math.sin(delta_phi / 2) ** 2
-        + math.cos(phi1)
-        * math.cos(phi2)
-        * math.sin(delta_lambda / 2) ** 2
-    )
-    return earth_radius_m * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-
-
-def observation_taxon_key(common_name, scientific_name):
-    value = str(scientific_name or common_name or "").strip().lower()
-    value = re.sub(r"\s+", " ", value)
-    return value[:180]
-
-
-def parse_observation_location():
-    try:
-        latitude = float(request.form.get("latitude", ""))
-        longitude = float(request.form.get("longitude", ""))
-        accuracy = float(request.form.get("accuracy", "0") or 0)
-    except (TypeError, ValueError):
-        raise ValueError("A valid current location is required to log a biodiversity snap.")
-
-    if not -90 <= latitude <= 90 or not -180 <= longitude <= 180:
-        raise ValueError("The browser returned an invalid location.")
-
-    return latitude, longitude, max(0.0, min(accuracy, 10000.0))
-
-
-STARTER_ITEMS = [
-    {
-        "key": "kangaroo-paw",
-        "name": "Kangaroo Paw",
-        "icon": "fa-leaf",
-        "rarity": "common",
-        "kind": "plant",
-    },
-    {
-        "key": "featherflower",
-        "name": "Featherflower",
-        "icon": "fa-seedling",
-        "rarity": "rare",
-        "kind": "plant",
-    },
-    {
-        "key": "pixie-mops",
-        "name": "Pixie Mops",
-        "icon": "fa-cannabis",
-        "rarity": "epic",
-        "kind": "plant",
-    },
-    {
-        "key": "custard-orchid",
-        "name": "Custard Orchid",
-        "icon": "fa-clover",
-        "rarity": "legendary",
-        "kind": "plant",
-    },
-]
-
-# Achievement definitions
-ACHIEVEMENTS = {
-    "first_plant": {
-        "name": "First Steps",
-        "description": "Grow your first plant",
-        "icon": "fa-seedling",
-        "points": 10,
-        "max_progress": 1,
-    },
-    "plant_collector_10": {
-        "name": "Plant Collector",
-        "description": "Grow 10 plants",
-        "icon": "fa-leaf",
-        "points": 25,
-        "max_progress": 10,
-    },
-    "plant_collector_50": {
-        "name": "Botanist",
-        "description": "Grow 50 plants",
-        "icon": "fa-tree",
-        "points": 50,
-        "max_progress": 50,
-    },
-    "plant_collector_100": {
-        "name": "Master Botanist",
-        "description": "Grow 100 plants",
-        "icon": "fa-crown",
-        "points": 100,
-        "max_progress": 100,
-    },
-    "rare_collector": {
-        "name": "Rare Finder",
-        "description": "Find your first rare plant",
-        "icon": "fa-gem",
-        "points": 30,
-        "max_progress": 1,
-    },
-    "rare_collector_5": {
-        "name": "Rare Collector",
-        "description": "Find 5 rare plants",
-        "icon": "fa-gem",
-        "points": 50,
-        "max_progress": 5,
-    },
-    "epic_collector": {
-        "name": "Epic Seeker",
-        "description": "Find your first epic plant",
-        "icon": "fa-star",
-        "points": 50,
-        "max_progress": 1,
-    },
-    "epic_collector_3": {
-        "name": "Epic Collector",
-        "description": "Find 3 epic plants",
-        "icon": "fa-star",
-        "points": 75,
-        "max_progress": 3,
-    },
-    "legendary_collector": {
-        "name": "Legendary Hunter",
-        "description": "Find your first legendary plant",
-        "icon": "fa-crown",
-        "points": 100,
-        "max_progress": 1,
-    },
-    "legendary_collector_3": {
-        "name": "Legendary Master",
-        "description": "Find 3 legendary plants",
-        "icon": "fa-crown",
-        "points": 200,
-        "max_progress": 3,
-    },
-    "score_500": {
-        "name": "500 Score",
-        "description": "Reach 500 total score",
-        "icon": "fa-medal",
-        "points": 50,
-        "max_progress": 500,
-    },
-    "score_1000": {
-        "name": "1000 Score",
-        "description": "Reach 1000 total score",
-        "icon": "fa-medal",
-        "points": 100,
-        "max_progress": 1000,
-    },
-    "score_5000": {
-        "name": "5000 Score",
-        "description": "Reach 5000 total score",
-        "icon": "fa-trophy",
-        "points": 200,
-        "max_progress": 5000,
-    },
-    "snap_10": {
-        "name": "Nature Photographer",
-        "description": "Take 10 biodiversity snaps",
-        "icon": "fa-camera",
-        "points": 25,
-        "max_progress": 10,
-    },
-    "snap_50": {
-        "name": "Wildlife Photographer",
-        "description": "Take 50 biodiversity snaps",
-        "icon": "fa-camera",
-        "points": 50,
-        "max_progress": 50,
-    },
-    "gacha_10": {
-        "name": "Seed Collector",
-        "description": "Open 10 seed packets",
-        "icon": "fa-gift",
-        "points": 30,
-        "max_progress": 10,
-    },
-    "gacha_50": {
-        "name": "Seed Master",
-        "description": "Open 50 seed packets",
-        "icon": "fa-gift",
-        "points": 60,
-        "max_progress": 50,
-    },
-    "garden_full": {
-        "name": "Full Garden",
-        "description": "Fill all 16 garden slots",
-        "icon": "fa-rainbow",
-        "points": 50,
-        "max_progress": 16,
-    },
-    "complete_collection": {
-        "name": "Complete Collection",
-        "description": "Unlock all plants",
-        "icon": "fa-trophy",
-        "points": 500,
-        "max_progress": 16,  # PLANT_POOL length
-    },
-}
+SPECIAL_QUEST_COIN_REWARD = 50
+SPECIAL_QUEST_XP_REWARD = 30
 
 
 def get_db():
@@ -523,6 +490,188 @@ def init_db():
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             );
 
+            CREATE TABLE IF NOT EXISTS weekly_quest_claims (
+                user_id INTEGER NOT NULL,
+                quest_key TEXT NOT NULL,
+                week_key TEXT NOT NULL,
+                claimed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (
+                    user_id,
+                    quest_key,
+                    week_key
+                ),
+                FOREIGN KEY (user_id)
+                    REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS community_contributions (
+                quest_key TEXT NOT NULL,
+                user_id INTEGER NOT NULL,
+                contribution INTEGER NOT NULL DEFAULT 0,
+                PRIMARY KEY (
+                    quest_key,
+                    user_id
+                ),
+                FOREIGN KEY (user_id)
+                    REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS weekly_quest_claims (
+                user_id INTEGER NOT NULL,
+                quest_key TEXT NOT NULL,
+                week_key TEXT NOT NULL,
+                claimed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (
+                    user_id,
+                    quest_key,
+                    week_key
+                ),
+                FOREIGN KEY (user_id)
+                    REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS community_contributions (
+                quest_key TEXT NOT NULL,
+                user_id INTEGER NOT NULL,
+                contribution INTEGER NOT NULL DEFAULT 0,
+                PRIMARY KEY (
+                    quest_key,
+                    user_id
+                ),
+                FOREIGN KEY (user_id)
+                    REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS weekly_quest_claims (
+                user_id INTEGER NOT NULL,
+                quest_key TEXT NOT NULL,
+                week_key TEXT NOT NULL,
+                claimed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (
+                    user_id,
+                    quest_key,
+                    week_key
+                ),
+                FOREIGN KEY (user_id)
+                    REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS community_contributions (
+                quest_key TEXT NOT NULL,
+                user_id INTEGER NOT NULL,
+                contribution INTEGER NOT NULL DEFAULT 0,
+                PRIMARY KEY (
+                    quest_key,
+                    user_id
+                ),
+                FOREIGN KEY (user_id)
+                    REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS weekly_quest_claims (
+                user_id INTEGER NOT NULL,
+                quest_key TEXT NOT NULL,
+                week_key TEXT NOT NULL,
+                claimed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (
+                    user_id,
+                    quest_key,
+                    week_key
+                ),
+                FOREIGN KEY (user_id)
+                    REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS community_contributions (
+                quest_key TEXT NOT NULL,
+                user_id INTEGER NOT NULL,
+                contribution INTEGER NOT NULL DEFAULT 0,
+                PRIMARY KEY (
+                    quest_key,
+                    user_id
+                ),
+                FOREIGN KEY (user_id)
+                    REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS weekly_quest_claims (
+                user_id INTEGER NOT NULL,
+                quest_key TEXT NOT NULL,
+                week_key TEXT NOT NULL,
+                claimed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (
+                    user_id,
+                    quest_key,
+                    week_key
+                ),
+                FOREIGN KEY (user_id)
+                    REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS community_contributions (
+                quest_key TEXT NOT NULL,
+                user_id INTEGER NOT NULL,
+                contribution INTEGER NOT NULL DEFAULT 0,
+                PRIMARY KEY (
+                    quest_key,
+                    user_id
+                ),
+                FOREIGN KEY (user_id)
+                    REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS weekly_quest_claims (
+                user_id INTEGER NOT NULL,
+                quest_key TEXT NOT NULL,
+                week_key TEXT NOT NULL,
+                claimed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (
+                    user_id,
+                    quest_key,
+                    week_key
+                ),
+                FOREIGN KEY (user_id)
+                    REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS community_contributions (
+                quest_key TEXT NOT NULL,
+                user_id INTEGER NOT NULL,
+                contribution INTEGER NOT NULL DEFAULT 0,
+                PRIMARY KEY (
+                    quest_key,
+                    user_id
+                ),
+                FOREIGN KEY (user_id)
+                    REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS weekly_quest_claims (
+                user_id INTEGER NOT NULL,
+                quest_key TEXT NOT NULL,
+                week_key TEXT NOT NULL,
+                claimed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (
+                    user_id,
+                    quest_key,
+                    week_key
+                ),
+                FOREIGN KEY (user_id)
+                    REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS community_contributions (
+                quest_key TEXT NOT NULL,
+                user_id INTEGER NOT NULL,
+                contribution INTEGER NOT NULL DEFAULT 0,
+                PRIMARY KEY (
+                    quest_key,
+                    user_id
+                ),
+                FOREIGN KEY (user_id)
+                    REFERENCES users(id) ON DELETE CASCADE
+            );
+
             CREATE TABLE IF NOT EXISTS community_quest_state (
                 quest_key TEXT PRIMARY KEY,
                 progress INTEGER NOT NULL DEFAULT 0
@@ -560,8 +709,38 @@ def init_db():
         """)
 
         db.execute(
-            "INSERT OR IGNORE INTO community_quest_state(quest_key, progress) VALUES (?, 0)",
+            """
+            INSERT OR IGNORE INTO community_quest_state(
+                quest_key,
+                progress
+            )
+            VALUES (?, 0)
+            """,
             (COMMUNITY_QUEST["key"],),
+        )
+
+        # Backfill community contribution counts for
+        # existing players. The existing community quest
+        # already counted accepted observations, so these
+        # observations are the best available source for
+        # contributor attribution.
+        db.execute(
+            """
+            INSERT OR IGNORE INTO community_contributions(
+                quest_key,
+                user_id,
+                contribution
+            )
+            SELECT
+                ?,
+                user_id,
+                COUNT(*)
+            FROM plant_observations
+            GROUP BY user_id
+            """,
+            (
+                COMMUNITY_QUEST["key"],
+            ),
         )
 
         special_columns = {
@@ -1058,6 +1237,165 @@ def biodiversity_snapshot(
     }
 
 
+
+def week_bounds():
+    today = date.today()
+
+    start = (
+        today
+        - timedelta(
+            days=
+                today.weekday()
+        )
+    )
+
+    end = (
+        start
+        + timedelta(
+            days=7
+        )
+    )
+
+    return (
+        start.isoformat(),
+        end.isoformat(),
+    )
+
+
+def week_key():
+    start, _ = (
+        week_bounds()
+    )
+
+    return start
+
+
+def weekly_quest_status(
+    db,
+    user_id,
+    quest,
+):
+    (
+        start_date,
+        end_date,
+    ) = week_bounds()
+
+    target_type = (
+        quest[
+            "target_type"
+        ]
+    )
+
+    target = int(
+        quest[
+            "target"
+        ]
+    )
+
+    if (
+        target_type
+        == "snaps"
+    ):
+        progress = db.execute(
+            """
+            SELECT COUNT(*)
+            FROM plant_observations
+            WHERE
+                user_id = ?
+                AND DATE(created_at) >= ?
+                AND DATE(created_at) < ?
+            """,
+            (
+                user_id,
+                start_date,
+                end_date,
+            ),
+        ).fetchone()[0]
+
+    elif (
+        target_type
+        == "unique_species"
+    ):
+        progress = db.execute(
+            """
+            SELECT COUNT(
+                DISTINCT taxon_key
+            )
+            FROM plant_observations
+            WHERE
+                user_id = ?
+                AND DATE(created_at) >= ?
+                AND DATE(created_at) < ?
+            """,
+            (
+                user_id,
+                start_date,
+                end_date,
+            ),
+        ).fetchone()[0]
+
+    elif (
+        target_type
+        == "daily_claims"
+    ):
+        progress = db.execute(
+            """
+            SELECT COUNT(*)
+            FROM daily_quest_progress
+            WHERE
+                user_id = ?
+                AND reward_claimed = 1
+                AND quest_date >= ?
+                AND quest_date < ?
+            """,
+            (
+                user_id,
+                start_date,
+                end_date,
+            ),
+        ).fetchone()[0]
+
+    else:
+        progress = 0
+
+    progress = min(
+        target,
+        int(
+            progress
+            or 0
+        ),
+    )
+
+    claimed = db.execute(
+        """
+        SELECT 1
+        FROM weekly_quest_claims
+        WHERE
+            user_id = ?
+            AND quest_key = ?
+            AND week_key = ?
+        """,
+        (
+            user_id,
+            quest["key"],
+            week_key(),
+        ),
+    ).fetchone()
+
+    return {
+        "progress":
+            progress,
+
+        "completed":
+            progress
+            >= target,
+
+        "claimed":
+            claimed
+            is not None,
+    }
+
+
 def quest_progress_row(db, user_id, quest_key):
     today = quest_date()
     db.execute(
@@ -1078,176 +1416,656 @@ def quest_progress_row(db, user_id, quest_key):
     ).fetchone()
 
 
-def apply_quest_event(db, user_id, event_type, reward_multiplier=1):
-    rewards = 0
+
+def apply_quest_event(
+    db,
+    user_id,
+    event_type,
+    reward_multiplier=1,
+):
+    coin_rewards = 0
+    xp_rewards = 0
     completed = []
-    today = quest_date()
+
+    today = (
+        quest_date()
+    )
+
+    # -----------------------------------------
+    # Daily quest progress
+    # -----------------------------------------
 
     for quest in DAILY_QUESTS:
-        if quest["event"] != event_type:
+
+        if (
+            quest["event"]
+            != event_type
+        ):
             continue
 
-        current = quest_progress_row(db, user_id, quest["key"])
-        if current["completed"]:
+        current = (
+            quest_progress_row(
+                db,
+                user_id,
+                quest["key"],
+            )
+        )
+
+        if (
+            current[
+                "completed"
+            ]
+        ):
             continue
 
-        progress = min(quest["target"], current["progress"] + 1)
-        is_complete = progress >= quest["target"]
+        progress = min(
+            quest[
+                "target"
+            ],
+            current[
+                "progress"
+            ] + 1,
+        )
+
+        is_complete = (
+            progress
+            >= quest[
+                "target"
+            ]
+        )
+
         db.execute(
             """
             UPDATE daily_quest_progress
-            SET progress = ?, completed = ?, reward_claimed = ?
-            WHERE user_id = ? AND quest_key = ? AND quest_date = ?
+            SET
+                progress = ?,
+                completed = ?,
+                reward_claimed = ?
+            WHERE
+                user_id = ?
+                AND quest_key = ?
+                AND quest_date = ?
             """,
             (
                 progress,
-                int(is_complete),
-                int(current["reward_claimed"]),
+
+                int(
+                    is_complete
+                ),
+
+                int(
+                    current[
+                        "reward_claimed"
+                    ]
+                ),
+
                 user_id,
                 quest["key"],
                 today,
             ),
         )
 
-    if event_type == "snap":
+    if (
+        event_type
+        == "snap"
+    ):
+
+        # -----------------------------------------
+        # Community progress
+        # -----------------------------------------
+
         community = db.execute(
-            "SELECT progress FROM community_quest_state WHERE quest_key = ?",
-            (COMMUNITY_QUEST["key"],),
+            """
+            SELECT progress
+            FROM community_quest_state
+            WHERE quest_key = ?
+            """,
+            (
+                COMMUNITY_QUEST[
+                    "key"
+                ],
+            ),
         ).fetchone()
-        old_total = int(community["progress"] if community else 0)
-        new_total = min(COMMUNITY_QUEST["target"], old_total + 1)
-        db.execute(
-            "UPDATE community_quest_state SET progress = ? WHERE quest_key = ?",
-            (new_total, COMMUNITY_QUEST["key"]),
+
+        old_total = int(
+            community[
+                "progress"
+            ]
+            if community
+            else 0
         )
 
-        for milestone in COMMUNITY_QUEST["milestones"]:
-            if old_total < milestone["target"] <= new_total:
-                claim = db.execute(
-                    """
-                    SELECT 1 FROM community_milestone_claims
-                    WHERE quest_key = ? AND milestone_target = ? AND user_id = ?
-                    """,
-                    (COMMUNITY_QUEST["key"], milestone["target"], user_id),
-                ).fetchone()
-                if not claim:
-                    db.execute(
-                        """
-                        INSERT INTO community_milestone_claims
-                            (quest_key, milestone_target, user_id)
-                        VALUES (?, ?, ?)
-                        """,
-                        (COMMUNITY_QUEST["key"], milestone["target"], user_id),
-                    )
-                    rewards += milestone["reward"]
-                    completed.append(f'Nedlands milestone {milestone["target"]:,}')
+        new_total = min(
+            COMMUNITY_QUEST[
+                "target"
+            ],
+            old_total + 1,
+        )
+
+        db.execute(
+            """
+            UPDATE community_quest_state
+            SET progress = ?
+            WHERE quest_key = ?
+            """,
+            (
+                new_total,
+                COMMUNITY_QUEST[
+                    "key"
+                ],
+            ),
+        )
+
+        # Each accepted snap now records who
+        # contributed to the community goal.
+
+        db.execute(
+            """
+            INSERT INTO community_contributions(
+                quest_key,
+                user_id,
+                contribution
+            )
+            VALUES (?, ?, 1)
+            ON CONFLICT(
+                quest_key,
+                user_id
+            )
+            DO UPDATE SET
+                contribution =
+                    contribution + 1
+            """,
+            (
+                COMMUNITY_QUEST[
+                    "key"
+                ],
+                user_id,
+            ),
+        )
+
+        # Community milestone rewards are not paid
+        # automatically here anymore.
+        #
+        # Every contributor can claim each reached
+        # milestone once from the Quests screen.
+
+        # -----------------------------------------
+        # Special quests
+        # -----------------------------------------
 
         special_rows = db.execute(
             """
-            SELECT sq.id, sq.plant_name, sq.target_snaps,
-                   sqp.progress, sqp.completed, sqp.reward_claimed
+            SELECT
+                sq.id,
+                sq.plant_name,
+                sq.target_snaps,
+                sqp.progress,
+                sqp.completed,
+                sqp.reward_claimed
             FROM special_quest_progress sqp
-            JOIN special_quests sq ON sq.id = sqp.quest_id
+            JOIN special_quests sq
+                ON sq.id = sqp.quest_id
             WHERE sqp.user_id = ?
             """,
-            (user_id,),
+            (
+                user_id,
+            ),
         ).fetchall()
+
         for special in special_rows:
-            if special["completed"]:
+
+            if (
+                special[
+                    "completed"
+                ]
+            ):
                 continue
-            progress = min(special["target_snaps"], special["progress"] + 1)
-            is_complete = progress >= special["target_snaps"]
-            special_reward = 50 if is_complete and not special["reward_claimed"] else 0
+
+            progress = min(
+                special[
+                    "target_snaps"
+                ],
+                special[
+                    "progress"
+                ] + 1,
+            )
+
+            is_complete = (
+                progress
+                >= special[
+                    "target_snaps"
+                ]
+            )
+
+            should_reward = (
+                is_complete
+                and not special[
+                    "reward_claimed"
+                ]
+            )
+
             db.execute(
                 """
                 UPDATE special_quest_progress
-                SET progress = ?, completed = ?, reward_claimed = ?
-                WHERE quest_id = ? AND user_id = ?
+                SET
+                    progress = ?,
+                    completed = ?,
+                    reward_claimed = ?
+                WHERE
+                    quest_id = ?
+                    AND user_id = ?
                 """,
                 (
                     progress,
-                    int(is_complete),
-                    int(special["reward_claimed"] or special_reward > 0),
+
+                    int(
+                        is_complete
+                    ),
+
+                    int(
+                        special[
+                            "reward_claimed"
+                        ]
+                        or should_reward
+                    ),
+
                     special["id"],
                     user_id,
                 ),
             )
-            if special_reward:
-                rewards += special_reward
-                completed.append(f'{special["plant_name"]} special quest')
 
-    if rewards:
+            if (
+                should_reward
+            ):
+                coin_rewards += (
+                    SPECIAL_QUEST_COIN_REWARD
+                )
+
+                xp_rewards += (
+                    SPECIAL_QUEST_XP_REWARD
+                )
+
+                completed.append(
+                    f'{special["plant_name"]} '
+                    f'special quest'
+                )
+
+    if (
+        coin_rewards
+        or xp_rewards
+    ):
         db.execute(
-            "UPDATE game_state SET points = points + ? WHERE user_id = ?",
-            (rewards * reward_multiplier, user_id),
+            """
+            UPDATE game_state
+            SET
+                points =
+                    points + ?,
+
+                score =
+                    score + ?
+
+            WHERE user_id = ?
+            """,
+            (
+                int(
+                    coin_rewards
+                    * reward_multiplier
+                ),
+
+                int(
+                    xp_rewards
+                    * reward_multiplier
+                ),
+
+                user_id,
+            ),
         )
-    return {"reward": rewards * reward_multiplier, "completed": completed}
+
+    return {
+        "reward":
+            int(
+                coin_rewards
+                * reward_multiplier
+            ),
+
+        "xp_reward":
+            int(
+                xp_rewards
+                * reward_multiplier
+            ),
+
+        "completed":
+            completed,
+    }
 
 
-def quest_snapshot(db, user_id):
-    today = quest_date()
+def quest_snapshot(
+    db,
+    user_id,
+):
+    today = (
+        quest_date()
+    )
+
+    # -----------------------------------------
+    # Daily
+    # -----------------------------------------
+
     daily = []
+
     for quest in DAILY_QUESTS:
-        row = quest_progress_row(db, user_id, quest["key"])
+
+        row = (
+            quest_progress_row(
+                db,
+                user_id,
+                quest["key"],
+            )
+        )
+
         daily.append(
             {
                 **quest,
-                "progress": row["progress"],
-                "completed": bool(row["completed"]),
-                "claimed": bool(row["reward_claimed"]),
+
+                "progress":
+                    row[
+                        "progress"
+                    ],
+
+                "completed":
+                    bool(
+                        row[
+                            "completed"
+                        ]
+                    ),
+
+                "claimed":
+                    bool(
+                        row[
+                            "reward_claimed"
+                        ]
+                    ),
             }
         )
+
+    # -----------------------------------------
+    # Weekly
+    # -----------------------------------------
+
+    weekly = []
+
+    for quest in WEEKLY_QUESTS:
+
+        status = (
+            weekly_quest_status(
+                db,
+                user_id,
+                quest,
+            )
+        )
+
+        weekly.append(
+            {
+                **quest,
+                **status,
+            }
+        )
+
+    # -----------------------------------------
+    # Community
+    # -----------------------------------------
 
     community_row = db.execute(
-        "SELECT progress FROM community_quest_state WHERE quest_key = ?",
-        (COMMUNITY_QUEST["key"],),
-    ).fetchone()
-    community_progress = int(community_row["progress"] if community_row else 0)
-    special = []
-    for row in db.execute(
         """
-                 SELECT sq.id, sq.code, sq.plant_name, sq.target_snaps, sq.tasks_json,
-                     sqp.progress, sqp.completed, sqp.reward_claimed
-            FROM special_quest_progress sqp
-            JOIN special_quests sq ON sq.id = sqp.quest_id
-            WHERE sqp.user_id = ?
-            ORDER BY sq.created_at DESC
-            """,
-        (user_id,),
-    ).fetchall():
-        try:
-            tasks = json.loads(row["tasks_json"] or "[]")
-        except (TypeError, ValueError):
-            tasks = []
-        special.append(
-            {
-                "id": row["id"],
-                "code": row["code"],
-                "plant": row["plant_name"],
-                "target": row["target_snaps"],
-                "tasks": tasks
-                or [
-                    {"plant": row["plant_name"], "required_snaps": row["target_snaps"]}
-                ],
-                "progress": row["progress"],
-                "completed": bool(row["completed"]),
-                "claimed": bool(row["reward_claimed"]),
-            }
-        )
-    return {
-        "date": today,
-        "daily": daily,
-        "community": {
-            **COMMUNITY_QUEST,
-            "progress": community_progress,
-            "milestones": [
-                {**milestone, "reached": community_progress >= milestone["target"]}
-                for milestone in COMMUNITY_QUEST["milestones"]
+        SELECT progress
+        FROM community_quest_state
+        WHERE quest_key = ?
+        """,
+        (
+            COMMUNITY_QUEST[
+                "key"
             ],
-        },
-        "special": special,
+        ),
+    ).fetchone()
+
+    community_progress = int(
+        community_row[
+            "progress"
+        ]
+        if community_row
+        else 0
+    )
+
+    contribution_row = (
+        db.execute(
+            """
+            SELECT contribution
+            FROM community_contributions
+            WHERE
+                quest_key = ?
+                AND user_id = ?
+            """,
+            (
+                COMMUNITY_QUEST[
+                    "key"
+                ],
+                user_id,
+            ),
+        ).fetchone()
+    )
+
+    contribution = int(
+        contribution_row[
+            "contribution"
+        ]
+        if contribution_row
+        else 0
+    )
+
+    claimed_targets = {
+        int(
+            row[
+                "milestone_target"
+            ]
+        )
+
+        for row
+        in db.execute(
+            """
+            SELECT milestone_target
+            FROM community_milestone_claims
+            WHERE
+                quest_key = ?
+                AND user_id = ?
+            """,
+            (
+                COMMUNITY_QUEST[
+                    "key"
+                ],
+                user_id,
+            ),
+        ).fetchall()
     }
 
+    community_milestones = []
+
+    for milestone in (
+        COMMUNITY_QUEST[
+            "milestones"
+        ]
+    ):
+        target = int(
+            milestone[
+                "target"
+            ]
+        )
+
+        reached = (
+            community_progress
+            >= target
+        )
+
+        claimed = (
+            target
+            in claimed_targets
+        )
+
+        community_milestones.append(
+            {
+                **milestone,
+
+                "reached":
+                    reached,
+
+                "claimed":
+                    claimed,
+
+                "claimable":
+                    (
+                        reached
+                        and contribution > 0
+                        and not claimed
+                    ),
+            }
+        )
+
+    # -----------------------------------------
+    # Special quests
+    # -----------------------------------------
+
+    special = []
+
+    for row in db.execute(
+        """
+        SELECT
+            sq.id,
+            sq.code,
+            sq.plant_name,
+            sq.target_snaps,
+            sq.tasks_json,
+            sqp.progress,
+            sqp.completed,
+            sqp.reward_claimed
+        FROM special_quest_progress sqp
+        JOIN special_quests sq
+            ON sq.id = sqp.quest_id
+        WHERE sqp.user_id = ?
+        ORDER BY sq.created_at DESC
+        """,
+        (
+            user_id,
+        ),
+    ).fetchall():
+
+        try:
+            tasks = json.loads(
+                row[
+                    "tasks_json"
+                ]
+                or "[]"
+            )
+
+        except (
+            TypeError,
+            ValueError,
+        ):
+            tasks = []
+
+        special.append(
+            {
+                "id":
+                    row[
+                        "id"
+                    ],
+
+                "code":
+                    row[
+                        "code"
+                    ],
+
+                "plant":
+                    row[
+                        "plant_name"
+                    ],
+
+                "target":
+                    row[
+                        "target_snaps"
+                    ],
+
+                "tasks":
+                    tasks
+                    or [
+                        {
+                            "plant":
+                                row[
+                                    "plant_name"
+                                ],
+
+                            "required_snaps":
+                                row[
+                                    "target_snaps"
+                                ],
+                        }
+                    ],
+
+                "progress":
+                    row[
+                        "progress"
+                    ],
+
+                "completed":
+                    bool(
+                        row[
+                            "completed"
+                        ]
+                    ),
+
+                "claimed":
+                    bool(
+                        row[
+                            "reward_claimed"
+                        ]
+                    ),
+
+                "reward":
+                    SPECIAL_QUEST_COIN_REWARD,
+
+                "xp_reward":
+                    SPECIAL_QUEST_XP_REWARD,
+            }
+        )
+
+    return {
+        "date":
+            today,
+
+        "weekStart":
+            week_key(),
+
+        "daily":
+            daily,
+
+        "weekly":
+            weekly,
+
+        "community":
+            {
+                **COMMUNITY_QUEST,
+
+                "progress":
+                    community_progress,
+
+                "contribution":
+                    contribution,
+
+                "milestones":
+                    community_milestones,
+            },
+
+        "special":
+            special,
+    }
 
 def check_and_update_achievements(db, user_id):
     """Check all achievements and update progress/completion status."""
@@ -1934,41 +2752,569 @@ def quest_event():
     return jsonify({"questUpdate": update})
 
 
+
+
 @app.post("/api/quests/daily/<quest_key>/claim")
-def claim_daily_quest(quest_key):
-    uid, error = login_required()
+def claim_daily_quest(
+    quest_key,
+):
+    uid, error = (
+        login_required()
+    )
+
     if error:
         return error
-    quest = next((item for item in DAILY_QUESTS if item["key"] == quest_key), None)
+
+    quest = next(
+        (
+            item
+            for item
+            in DAILY_QUESTS
+            if item[
+                "key"
+            ] == quest_key
+        ),
+        None,
+    )
+
     if not quest:
-        return jsonify({"error": "Daily quest not found."}), 404
+        return jsonify(
+            {
+                "error":
+                    "Daily quest not found."
+            }
+        ), 404
 
     with get_db() as db:
-        row = quest_progress_row(db, uid, quest_key)
-        if not row["completed"]:
-            return (
-                jsonify({"error": "Complete the quest before claiming its reward."}),
-                400,
+
+        row = (
+            quest_progress_row(
+                db,
+                uid,
+                quest_key,
             )
-        if row["reward_claimed"]:
-            return (
-                jsonify({"error": "That quest reward has already been claimed."}),
-                409,
-            )
+        )
+
+        if not row[
+            "completed"
+        ]:
+            return jsonify(
+                {
+                    "error":
+                        (
+                            "Complete the quest "
+                            "before claiming its reward."
+                        )
+                }
+            ), 400
+
+        if row[
+            "reward_claimed"
+        ]:
+            return jsonify(
+                {
+                    "error":
+                        (
+                            "That quest reward "
+                            "has already been claimed."
+                        )
+                }
+            ), 409
+
         db.execute(
             """
             UPDATE daily_quest_progress
             SET reward_claimed = 1
-            WHERE user_id = ? AND quest_key = ? AND quest_date = ?
+            WHERE
+                user_id = ?
+                AND quest_key = ?
+                AND quest_date = ?
             """,
-            (uid, quest_key, quest_date()),
+            (
+                uid,
+                quest_key,
+                quest_date(),
+            ),
         )
-        db.execute(
-            "UPDATE game_state SET points = points + ? WHERE user_id = ?",
-            (quest["reward"], uid),
-        )
-    return jsonify({"reward": quest["reward"], "title": quest["title"]})
 
+        db.execute(
+            """
+            UPDATE game_state
+            SET
+                points =
+                    points + ?,
+
+                score =
+                    score + ?
+
+            WHERE user_id = ?
+            """,
+            (
+                quest[
+                    "reward"
+                ],
+
+                quest[
+                    "xp_reward"
+                ],
+
+                uid,
+            ),
+        )
+
+        balance = db.execute(
+            """
+            SELECT
+                points,
+                score
+            FROM game_state
+            WHERE user_id = ?
+            """,
+            (
+                uid,
+            ),
+        ).fetchone()
+
+    return jsonify(
+        {
+            "reward":
+                quest[
+                    "reward"
+                ],
+
+            "xp_reward":
+                quest[
+                    "xp_reward"
+                ],
+
+            "title":
+                quest[
+                    "title"
+                ],
+
+            "balance":
+                {
+                    "coins":
+                        int(
+                            balance[
+                                "points"
+                            ]
+                            or 0
+                        ),
+
+                    "xp":
+                        int(
+                            balance[
+                                "score"
+                            ]
+                            or 0
+                        ),
+                },
+        }
+    )
+
+
+@app.post("/api/quests/weekly/<quest_key>/claim")
+def claim_weekly_quest(
+    quest_key,
+):
+    uid, error = (
+        login_required()
+    )
+
+    if error:
+        return error
+
+    quest = next(
+        (
+            item
+            for item
+            in WEEKLY_QUESTS
+            if item[
+                "key"
+            ] == quest_key
+        ),
+        None,
+    )
+
+    if not quest:
+        return jsonify(
+            {
+                "error":
+                    "Weekly quest not found."
+            }
+        ), 404
+
+    with get_db() as db:
+
+        status = (
+            weekly_quest_status(
+                db,
+                uid,
+                quest,
+            )
+        )
+
+        if not status[
+            "completed"
+        ]:
+            return jsonify(
+                {
+                    "error":
+                        (
+                            "Complete the weekly quest "
+                            "before claiming its reward."
+                        )
+                }
+            ), 400
+
+        if status[
+            "claimed"
+        ]:
+            return jsonify(
+                {
+                    "error":
+                        (
+                            "That weekly reward "
+                            "has already been claimed."
+                        )
+                }
+            ), 409
+
+        db.execute(
+            """
+            INSERT INTO weekly_quest_claims(
+                user_id,
+                quest_key,
+                week_key
+            )
+            VALUES (?, ?, ?)
+            """,
+            (
+                uid,
+                quest[
+                    "key"
+                ],
+                week_key(),
+            ),
+        )
+
+        db.execute(
+            """
+            UPDATE game_state
+            SET
+                points =
+                    points + ?,
+
+                score =
+                    score + ?
+
+            WHERE user_id = ?
+            """,
+            (
+                quest[
+                    "reward"
+                ],
+
+                quest[
+                    "xp_reward"
+                ],
+
+                uid,
+            ),
+        )
+
+        balance = db.execute(
+            """
+            SELECT
+                points,
+                score
+            FROM game_state
+            WHERE user_id = ?
+            """,
+            (
+                uid,
+            ),
+        ).fetchone()
+
+    return jsonify(
+        {
+            "reward":
+                quest[
+                    "reward"
+                ],
+
+            "xp_reward":
+                quest[
+                    "xp_reward"
+                ],
+
+            "title":
+                quest[
+                    "title"
+                ],
+
+            "balance":
+                {
+                    "coins":
+                        int(
+                            balance[
+                                "points"
+                            ]
+                            or 0
+                        ),
+
+                    "xp":
+                        int(
+                            balance[
+                                "score"
+                            ]
+                            or 0
+                        ),
+                },
+        }
+    )
+
+
+@app.post("/api/quests/community/<int:milestone_target>/claim")
+def claim_community_milestone(
+    milestone_target,
+):
+    uid, error = (
+        login_required()
+    )
+
+    if error:
+        return error
+
+    milestone = next(
+        (
+            item
+            for item
+            in COMMUNITY_QUEST[
+                "milestones"
+            ]
+            if int(
+                item[
+                    "target"
+                ]
+            )
+            == milestone_target
+        ),
+        None,
+    )
+
+    if not milestone:
+        return jsonify(
+            {
+                "error":
+                    (
+                        "Community milestone "
+                        "not found."
+                    )
+            }
+        ), 404
+
+    with get_db() as db:
+
+        progress_row = (
+            db.execute(
+                """
+                SELECT progress
+                FROM community_quest_state
+                WHERE quest_key = ?
+                """,
+                (
+                    COMMUNITY_QUEST[
+                        "key"
+                    ],
+                ),
+            ).fetchone()
+        )
+
+        progress = int(
+            progress_row[
+                "progress"
+            ]
+            if progress_row
+            else 0
+        )
+
+        if (
+            progress
+            < milestone_target
+        ):
+            return jsonify(
+                {
+                    "error":
+                        (
+                            "That community milestone "
+                            "has not been reached yet."
+                        )
+                }
+            ), 400
+
+        contribution_row = (
+            db.execute(
+                """
+                SELECT contribution
+                FROM community_contributions
+                WHERE
+                    quest_key = ?
+                    AND user_id = ?
+                """,
+                (
+                    COMMUNITY_QUEST[
+                        "key"
+                    ],
+                    uid,
+                ),
+            ).fetchone()
+        )
+
+        contribution = int(
+            contribution_row[
+                "contribution"
+            ]
+            if contribution_row
+            else 0
+        )
+
+        if (
+            contribution
+            <= 0
+        ):
+            return jsonify(
+                {
+                    "error":
+                        (
+                            "Make at least one biodiversity "
+                            "contribution before claiming "
+                            "community rewards."
+                        )
+                }
+            ), 403
+
+        claimed = db.execute(
+            """
+            SELECT 1
+            FROM community_milestone_claims
+            WHERE
+                quest_key = ?
+                AND milestone_target = ?
+                AND user_id = ?
+            """,
+            (
+                COMMUNITY_QUEST[
+                    "key"
+                ],
+                milestone_target,
+                uid,
+            ),
+        ).fetchone()
+
+        if claimed:
+            return jsonify(
+                {
+                    "error":
+                        (
+                            "You have already claimed "
+                            "this community milestone."
+                        )
+                }
+            ), 409
+
+        db.execute(
+            """
+            INSERT INTO community_milestone_claims(
+                quest_key,
+                milestone_target,
+                user_id
+            )
+            VALUES (?, ?, ?)
+            """,
+            (
+                COMMUNITY_QUEST[
+                    "key"
+                ],
+                milestone_target,
+                uid,
+            ),
+        )
+
+        db.execute(
+            """
+            UPDATE game_state
+            SET
+                points =
+                    points + ?,
+
+                score =
+                    score + ?
+
+            WHERE user_id = ?
+            """,
+            (
+                milestone[
+                    "reward"
+                ],
+
+                milestone[
+                    "xp_reward"
+                ],
+
+                uid,
+            ),
+        )
+
+        balance = db.execute(
+            """
+            SELECT
+                points,
+                score
+            FROM game_state
+            WHERE user_id = ?
+            """,
+            (
+                uid,
+            ),
+        ).fetchone()
+
+    return jsonify(
+        {
+            "target":
+                milestone_target,
+
+            "reward":
+                milestone[
+                    "reward"
+                ],
+
+            "xp_reward":
+                milestone[
+                    "xp_reward"
+                ],
+
+            "balance":
+                {
+                    "coins":
+                        int(
+                            balance[
+                                "points"
+                            ]
+                            or 0
+                        ),
+
+                    "xp":
+                        int(
+                            balance[
+                                "score"
+                            ]
+                            or 0
+                        ),
+                },
+        }
+    )
 
 @app.post("/api/quests/special/create")
 def create_special_quest():
