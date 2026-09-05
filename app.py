@@ -225,6 +225,8 @@ def init_db():
                 rarity TEXT NOT NULL,
                 kind TEXT NOT NULL DEFAULT 'plant',
                 item_key TEXT,
+                Latitude NUMERIC,
+	            Longitude NUMERIC,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
                 UNIQUE(user_id, slot)
             );
@@ -985,6 +987,28 @@ def me():
     return jsonify({"user": dict(user), "state": state})
 
 
+@app.get("/api/map-plants")
+def map_plants():
+    uid, error = login_required()
+    if error:
+        return error
+
+    with get_db() as db:
+        rows = db.execute(
+            """
+            SELECT id, name, rarity, Latitude AS latitude, Longitude AS longitude
+            FROM plants
+            WHERE user_id = ?
+              AND Latitude IS NOT NULL
+              AND Longitude IS NOT NULL
+            ORDER BY id
+            """,
+            (uid,),
+        ).fetchall()
+
+    return jsonify({"plants": [dict(row) for row in rows]})
+
+
 @app.post("/api/state")
 def save_state():
     uid, error = login_required()
@@ -1044,6 +1068,14 @@ def save_state():
             latest_name = latest_rarity = None
 
     with get_db() as db:
+        existing_locations = {
+            row["slot"]: (row["Latitude"], row["Longitude"])
+            for row in db.execute(
+                "SELECT slot, Latitude, Longitude FROM plants WHERE user_id = ?",
+                (uid,),
+            ).fetchall()
+        }
+
         db.execute(
             """
             INSERT INTO game_state(user_id, points, score, latest_name, latest_rarity)
@@ -1079,10 +1111,12 @@ def save_state():
         for slot, item in enumerate(cleaned_slots):
             if item is None:
                 continue
+            latitude, longitude = existing_locations.get(slot, (None, None))
             db.execute(
                 """
-                INSERT INTO plants(user_id, slot, item_key, name, icon, rarity, kind)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO plants
+                    (user_id, slot, item_key, name, icon, rarity, kind, Latitude, Longitude)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     uid,
@@ -1092,6 +1126,8 @@ def save_state():
                     item["icon"],
                     item["rarity"],
                     item["kind"],
+                    latitude,
+                    longitude,
                 ),
             )
         
