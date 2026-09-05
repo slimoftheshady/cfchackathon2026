@@ -108,6 +108,7 @@
     let collection = [];
 
     let latestPlant = null;
+    let achievements = [];
 
     // =========================================================
     // LOGIN / UI STATE
@@ -170,6 +171,7 @@
     const profilePlantCount = $('profilePlantCount');
     const profileCollectionCount = $('profileCollectionCount');
     const profileScore = $('profileScore');
+    const profileAchievements = $('profileAchievements');
     const profileLatestPlant = $('profileLatestPlant');
     const profileLatestRarity = $('profileLatestRarity');
     const logoutButton = $('logoutButton');
@@ -193,6 +195,11 @@
     const collectionGrid = $('collectionGrid');
     const wikiList = $('wikiList');
     const clearPlotButton = $('clearPlotButton');
+
+    // Achievements
+    const achievementsGrid = $('achievementsGrid');
+    const achievementTotal = $('achievementTotal');
+    const achievementPoints = $('achievementPoints');
 
     // Navigation
     const navBtns = document.querySelectorAll('.nav-btn');
@@ -360,6 +367,7 @@
             showGame();
 
             await loadFriends();
+            await loadAchievements();
 
         } catch (error) {
             if (
@@ -515,7 +523,7 @@
         }
 
         try {
-            await api(
+            const data = await api(
                 '/api/state',
                 {
                     method: 'POST',
@@ -529,6 +537,20 @@
                     })
                 }
             );
+
+            // Check for newly unlocked achievements
+            if (data.new_achievements && data.new_achievements.length > 0) {
+                for (const key of data.new_achievements) {
+                    const ach = ACHIEVEMENTS[key];
+                    if (ach) {
+                        showToast(
+                            `🏆 Achievement unlocked: ${ach.name}! +${ach.points} points!`,
+                            'fa-trophy'
+                        );
+                    }
+                }
+                await loadAchievements();
+            }
 
         } catch (error) {
             if (
@@ -672,6 +694,11 @@
 
         profileScore.textContent =
             score;
+
+        if (profileAchievements) {
+            const completed = achievements.filter(a => a.completed).length;
+            profileAchievements.textContent = completed;
+        }
 
         if (latestPlant) {
             const config =
@@ -1508,6 +1535,9 @@
             scheduleSave();
             usePhotoButton.innerHTML = '<i class="fas fa-check"></i> Identified <span>+10 ★</span>';
             showToast(`Identified as ${identification.common_name || identification.scientific_name}! +10 points.`, 'fa-leaf');
+            
+            // Reload achievements after snap
+            await loadAchievements();
         } catch (error) {
             usePhotoButton.disabled = false;
             showCameraError(error.message);
@@ -2538,12 +2568,122 @@
             loadFriends();
         }
 
+        if (
+            viewId ===
+            'achievementsView'
+        ) {
+            loadAchievements();
+        }
+
         window.scrollTo({
             top: 0,
             behavior: 'smooth'
         });
 
         closeSideMenu();
+    }
+
+    // =========================================================
+    // ACHIEVEMENTS
+    // =========================================================
+
+    async function loadAchievements() {
+        if (!currentUser) return;
+
+        try {
+            const data = await api('/api/achievements');
+            achievements = data.achievements || [];
+            renderAchievements();
+            updateStats();
+        } catch (error) {
+            console.error('Error loading achievements:', error);
+        }
+    }
+
+    function renderAchievements() {
+        if (!achievementsGrid) return;
+
+        // Update stats
+        const completed = achievements.filter(a => a.completed).length;
+        const totalPoints = achievements
+            .filter(a => a.completed)
+            .reduce((sum, a) => sum + a.points, 0);
+
+        if (achievementTotal) achievementTotal.textContent = completed;
+        if (achievementPoints) achievementPoints.textContent = totalPoints;
+
+        if (achievements.length === 0) {
+            achievementsGrid.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-trophy"></i>
+                    <strong>No achievements yet</strong>
+                    <span>Start playing to unlock your first achievement!</span>
+                </div>
+            `;
+            return;
+        }
+
+        // Get filter
+        const activeFilter = document.querySelector('.filter-btn.active');
+        const filter = activeFilter ? activeFilter.dataset.filter : 'all';
+
+        let filtered = achievements;
+        if (filter === 'completed') {
+            filtered = achievements.filter(a => a.completed);
+        } else if (filter === 'incomplete') {
+            filtered = achievements.filter(a => !a.completed);
+        }
+
+        achievementsGrid.innerHTML = '';
+
+        filtered.forEach(ach => {
+            achievementsGrid.appendChild(createAchievementCard(ach));
+        });
+
+        if (filtered.length === 0) {
+            achievementsGrid.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-filter"></i>
+                    <strong>No achievements match this filter</strong>
+                    <span>Try changing the filter above.</span>
+                </div>
+            `;
+        }
+    }
+
+    function createAchievementCard(ach) {
+        const card = document.createElement('div');
+        card.className = `achievement-card ${ach.completed ? 'completed' : 'incomplete'}`;
+
+        const progressPercent = ach.max_progress > 0
+            ? Math.min((ach.progress / ach.max_progress) * 100, 100)
+            : (ach.completed ? 100 : 0);
+
+        card.innerHTML = `
+            <div class="achievement-icon ${ach.completed ? 'completed' : ''}">
+                <i class="fas ${ach.icon}"></i>
+                ${ach.completed ? '<span class="check-mark">✓</span>' : ''}
+            </div>
+            <div class="achievement-info">
+                <div class="achievement-header">
+                    <span class="achievement-name">${escapeHtml(ach.name)}</span>
+                    <span class="achievement-points">+${ach.points} ★</span>
+                </div>
+                <p class="achievement-description">${escapeHtml(ach.description)}</p>
+                <div class="achievement-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill ${ach.completed ? 'complete' : ''}" 
+                             style="width: ${progressPercent}%"></div>
+                    </div>
+                    <span class="progress-text">
+                        ${ach.completed ? '✓ Completed' : `${ach.progress} / ${ach.max_progress}`}
+                    </span>
+                </div>
+                ${ach.completed && ach.unlocked_at ? `<span class="achievement-date">Unlocked: ${new Date(ach.unlocked_at).toLocaleDateString()}</span>` : ''}
+            </div>
+        `;
+
+        return card;
     }
 
     // =========================================================
@@ -2895,6 +3035,17 @@
                     );
                 }
             );
+
+        // Achievement filters
+        document
+            .querySelectorAll('.filter-btn')
+            .forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    renderAchievements();
+                });
+            });
 
         // Store
         document
