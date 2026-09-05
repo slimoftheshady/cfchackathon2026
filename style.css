@@ -69,6 +69,7 @@ button {
     position: relative;
     display: flex;
     flex-direction: column;
+    transform: translateZ(0);
 }
 
 .app-container.app-locked {
@@ -82,7 +83,7 @@ button {
 
 .view-page {
     display: none;
-    padding: 24px 20px 112px;
+    padding: 8px 20px 32px;
     animation: pageIn .24s ease both;
 }
 
@@ -1421,48 +1422,193 @@ button {
     }
 }
 
-/* ---------- NAV ---------- */
-.bottom-nav {
-    position: absolute;
-    z-index: 100;
-    left: 12px;
-    right: 12px;
-    bottom: 12px;
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 3px;
-    padding: 7px;
-    border-radius: 23px;
-    background: rgba(255, 255, 255, .92);
-    border: 1px solid rgba(90, 120, 99, .14);
-    box-shadow: 0 12px 34px rgba(59, 73, 83, .16);
-    backdrop-filter: blur(14px);
+/* ---------- TOP BAR ---------- */
+.app-topbar {
+    position: relative;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 20px 8px;
 }
 
-.nav-btn {
-    position: relative;
+.hamburger-btn {
+    flex: 0 0 auto;
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
     border: 0;
-    border-radius: 16px;
-    background: transparent;
-    color: #819087;
+    border-radius: 13px;
+    background: var(--soft);
+    color: var(--forest);
+    font-size: 16px;
+    cursor: pointer;
+    transition: background .15s ease, transform .15s ease;
+}
+
+.hamburger-btn:hover {
+    transform: translateY(-1px);
+}
+
+.topbar-brand {
+    flex: 1;
     min-width: 0;
-    padding: 8px 2px 7px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    border: 0;
+    background: transparent;
+    color: var(--teal);
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 900;
+    letter-spacing: -.01em;
+    cursor: pointer;
+    padding: 0;
+    text-align: left;
+}
+
+.topbar-brand i {
+    color: var(--forest);
+    font-size: 16px;
+    flex: 0 0 auto;
+}
+
+/* ---------- SIDE MENU ---------- */
+.side-menu-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(30, 40, 33, .38);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s ease;
+}
+
+.side-menu-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.side-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 201;
+    width: min(78vw, 280px);
+    background: #fdfcf7;
+    box-shadow: 14px 0 40px rgba(59, 73, 83, .22);
     display: flex;
     flex-direction: column;
+    padding: 16px 14px;
+    transform: translateX(-100%);
+    transition: transform .22s ease;
+}
+
+.side-menu.open {
+    transform: translateX(0);
+}
+
+.side-menu-header {
+    display: flex;
     align-items: center;
-    gap: 3px;
+    justify-content: space-between;
+    padding: 4px 6px 16px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid rgba(90, 120, 99, .14);
+}
+
+.side-menu-logo {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-weight: 900;
+    color: var(--teal);
+    font-size: 15px;
+}
+
+.side-menu-logo i {
+    color: var(--forest);
+}
+
+.side-menu-close {
+    flex: 0 0 auto;
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 10px;
+    background: var(--soft);
+    color: var(--forest);
     cursor: pointer;
-    font-size: 8px;
+}
+
+.side-menu-nav {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow-y: auto;
+}
+
+.side-menu-logout {
+    flex: 0 0 auto;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1px solid rgba(216, 111, 104, .3);
+    border-radius: 14px;
+    background: rgba(216, 111, 104, .08);
+    color: #b5504a;
+    font-weight: 850;
+    font-size: 13px;
+    padding: 11px;
+    cursor: pointer;
+    transition: background .15s ease;
+}
+
+.side-menu-logout:hover {
+    background: rgba(216, 111, 104, .14);
+}
+
+/* ---------- NAV (sidebar buttons) ---------- */
+.nav-btn {
+    position: relative;
+    width: 100%;
+    border: 0;
+    border-radius: 14px;
+    background: transparent;
+    color: #58685f;
+    min-width: 0;
+    padding: 11px 12px;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    cursor: pointer;
+    font-size: 13px;
     font-weight: 800;
-    transition: background .15s ease, color .15s ease, transform .15s ease;
+    text-align: left;
+    transition: background .15s ease, color .15s ease;
+}
+
+.nav-btn[hidden] {
+    display: none;
 }
 
 .nav-btn i {
-    font-size: 17px;
+    font-size: 16px;
+    width: 20px;
+    flex: 0 0 auto;
+    text-align: center;
 }
 
 .nav-btn:hover {
-    transform: translateY(-1px);
+    background: var(--soft);
 }
 
 .nav-btn.active-tab {
@@ -1470,10 +1616,13 @@ button {
     color: var(--forest);
 }
 
+.topbar-brand.active-tab {
+    background: transparent;
+    color: var(--teal);
+}
+
 .friend-notification {
-    position: absolute;
-    top: 2px;
-    right: 6px;
+    margin-left: auto;
     min-width: 18px;
     height: 18px;
     padding: 0 4px;
@@ -1483,7 +1632,7 @@ button {
     background: #d86f68;
     color: white;
     border: 2px solid white;
-    font-size: 7px;
+    font-size: 9px;
     font-weight: 950;
 }
 
@@ -1503,14 +1652,7 @@ button {
     }
 
     .view-page {
-        padding: 20px 16px 105px;
-    }
-
-    .bottom-nav {
-        position: fixed;
-        left: 10px;
-        right: 10px;
-        bottom: 9px;
+        padding: 8px 16px 28px;
     }
 
     .garden-picker {

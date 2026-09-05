@@ -37,6 +37,66 @@
     </div>
 
     <main class="app-container app-locked" id="app">
+        <div class="app-topbar">
+            <button class="hamburger-btn" id="menuToggleButton" type="button" aria-label="Open menu"
+                aria-expanded="false" aria-controls="sideMenu">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <button class="topbar-brand nav-btn" data-view="homeView" type="button">
+                <i class="fas fa-seedling"></i> GardenQuest
+            </button>
+
+            <div class="points-pill"><i class="fas fa-star"></i><span id="pointDisplay">240</span></div>
+        </div>
+
+        <div class="side-menu-overlay" id="sideMenuOverlay"></div>
+
+        <aside class="side-menu" id="sideMenu" aria-hidden="true">
+            <div class="side-menu-header">
+                <div class="side-menu-logo"><i class="fas fa-seedling"></i> GardenQuest</div>
+                <button class="side-menu-close" id="menuCloseButton" type="button" aria-label="Close menu">
+                    <i class="fas fa-xmark"></i>
+                </button>
+            </div>
+
+            <nav class="side-menu-nav" aria-label="Main navigation">
+                <button class="nav-btn side-nav-btn" data-view="profileView" type="button">
+                    <i class="fas fa-user-circle"></i><span>Profile</span>
+                </button>
+                <button class="nav-btn side-nav-btn" data-view="friendsView" id="friendsNavButton" type="button">
+                    <i class="fas fa-user-friends"></i><span>Social</span><span class="friend-notification hidden"
+                        id="friendNotification">0</span>
+                </button>
+                <button class="nav-btn side-nav-btn" data-view="questsView" type="button">
+                    <i class="fas fa-map-signs"></i><span>Quests</span>
+                </button>
+                <button class="nav-btn side-nav-btn" data-view="gachaView" type="button">
+                    <i class="fas fa-dice"></i><span>Gacha</span>
+                </button>
+                <button class="nav-btn side-nav-btn" data-view="storeView" type="button">
+                    <i class="fas fa-clinic-medical"></i><span>Haven</span>
+                </button>
+                <!-- Classroom: hidden until ready. Remove the hidden attribute below to reveal it. -->
+                <button class="nav-btn side-nav-btn" data-view="classroomView" type="button" hidden>
+                    <i class="fas fa-chalkboard-user"></i><span>Classroom</span>
+                </button>
+                <button class="nav-btn side-nav-btn" data-view="informationView" type="button">
+                    <i class="fas fa-circle-info"></i><span>Wiki</span>
+                </button>
+                <button class="nav-btn side-nav-btn" data-view="achievementsView" type="button">
+                    <i class="fas fa-trophy"></i><span>Achievements</span>
+                </button>
+                <button class="nav-btn side-nav-btn" data-view="settingsView" type="button">
+                    <i class="fas fa-gear"></i><span>Settings</span>
+                </button>
+            </nav>
+
+            <button class="side-menu-logout" id="logoutButton" type="button">
+                <i class="fas fa-right-from-bracket"></i> Log out
+            </button>
+        </aside>
+
         <div class="view-container">
             <!-- HOME -->
             <section id="homeView" class="view-page active">
@@ -46,7 +106,6 @@
                         <h1><span id="homeUsername">My</span> garden</h1>
                         <p>Tap any plot to choose what grows there.</p>
                     </div>
-                    <div class="points-pill"><i class="fas fa-star"></i><span id="pointDisplay">240</span></div>
                 </div>
 
                 <div class="garden-card">
@@ -193,29 +252,56 @@
                         <div><span id="profileLatestPlant">—</span><span id="profileLatestRarity"
                                 class="latest-rarity">—</span></div>
                     </div>
+                </div>
+            </section>
 
-                    <button class="logout-btn" id="logoutButton" type="button"><i class="fas fa-right-from-bracket"></i>
-                        Log out</button>
+            <!-- QUESTS -->
+            <section id="questsView" class="view-page">
+                <div class="page-heading">
+                    <div class="eyebrow">COMING SOON</div>
+                    <h1>Quests</h1>
+                    <p>Daily and weekly challenges are on their way — check back soon!</p>
+                </div>
+            </section>
+
+            <!-- CLASSROOM (hidden for now) -->
+            <section id="classroomView" class="view-page">
+                <div class="page-heading">
+                    <div class="eyebrow">COMING SOON</div>
+                    <h1>Classroom</h1>
+                    <p>Classroom tools are on their way — check back soon!</p>
+                </div>
+            </section>
+
+            <!-- INFORMATION -->
+            <section id="informationView" class="view-page">
+                <div class="page-heading">
+                    <div class="eyebrow">COMING SOON</div>
+                    <h1>Information</h1>
+                    <p>Guides and biodiversity facts are on their way — check back soon!</p>
+                </div>
+            </section>
+
+            <!-- ACHIEVEMENTS -->
+            <section id="achievementsView" class="view-page">
+                <div class="page-heading">
+                    <div class="eyebrow">COMING SOON</div>
+                    <h1>Achievements</h1>
+                    <p>Badges and milestones are on their way — check back soon!</p>
+                </div>
+            </section>
+
+            <!-- SETTINGS -->
+            <section id="settingsView" class="view-page">
+                <div class="page-heading">
+                    <div class="eyebrow">COMING SOON</div>
+                    <h1>Settings</h1>
+                    <p>Account and app settings are on their way — check back soon!</p>
                 </div>
             </section>
         </div>
 
         <div class="toast hidden" id="toastMessage" role="status"></div>
-
-        <nav class="bottom-nav" aria-label="Main navigation">
-            <button class="nav-btn active-tab" data-view="homeView" type="button"><i
-                    class="fas fa-house"></i><span>Home</span></button>
-            <button class="nav-btn" data-view="friendsView" id="friendsNavButton" type="button">
-                <i class="fas fa-user-friends"></i><span>Friends</span><span class="friend-notification hidden"
-                    id="friendNotification">0</span>
-            </button>
-            <button class="nav-btn" data-view="storeView" type="button"><i
-                    class="fas fa-clinic-medical"></i><span>Haven</span></button>
-            <button class="nav-btn" data-view="gachaView" type="button"><i
-                    class="fas fa-dice"></i><span>Gacha</span></button>
-            <button class="nav-btn" data-view="profileView" type="button"><i
-                    class="fas fa-user-circle"></i><span>Profile</span></button>
-        </nav>
     </main>
 
     <!-- ===== FRIEND GARDEN VISIT ===== -->
