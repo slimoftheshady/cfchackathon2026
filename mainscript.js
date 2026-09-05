@@ -416,7 +416,7 @@
             !hasClassroom
         );
 
-        bottomNav.classList.toggle(
+        sideMenu.classList.toggle(
             'has-classroom',
             hasClassroom
         );
@@ -464,10 +464,11 @@
             }
 
         } catch (error) {
-            if (
-                error.status !== 401
-            ) {
+            if (error.status === 401) {
+                authError.textContent = '';
+            } else {
                 authError.textContent =
+                    error.message ||
                     'Could not connect to the game server.';
             }
 
