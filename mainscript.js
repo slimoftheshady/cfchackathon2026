@@ -149,6 +149,10 @@
     const authForm = $('authForm');
     const authUsername = $('authUsername');
     const authPassword = $('authPassword');
+    const authRoleWrap = $('authRoleWrap');
+    const authRole = $('authRole');
+    const teacherCodeWrap = $('teacherCodeWrap');
+    const authTeacherCode = $('authTeacherCode');
     const authSubmit = $('authSubmit');
     const authError = $('authError');
     const loginTab = $('loginTab');
@@ -168,6 +172,7 @@
 
     // Profile
     const profileName = $('profileName');
+    const profileRole = $('profileRole');
     const profilePlantCount = $('profilePlantCount');
     const profileCollectionCount = $('profileCollectionCount');
     const profileScore = $('profileScore');
@@ -196,6 +201,19 @@
     const wikiList = $('wikiList');
     const clearPlotButton = $('clearPlotButton');
 
+    // Classrooms / RBAC
+    const classroomNavButton = $('classroomNavButton');
+    const bottomNav = document.querySelector('.bottom-nav');
+    const classroomPageTitle = $('classroomPageTitle');
+    const classroomPageSubtitle = $('classroomPageSubtitle');
+    const teacherClassroomTools = $('teacherClassroomTools');
+    const newClassroomName = $('newClassroomName');
+    const createClassroomButton = $('createClassroomButton');
+    const classroomList = $('classroomList');
+    const classroomEmpty = $('classroomEmpty');
+    const classroomEmptyText = $('classroomEmptyText');
+    const classroomDetail = $('classroomDetail');
+    let activeClassroomId = null;
     // Achievements
     const achievementsGrid = $('achievementsGrid');
     const achievementTotal = $('achievementTotal');
@@ -325,6 +343,20 @@
                 ? 'new-password'
                 : 'current-password';
 
+        authPassword.minLength =
+            registering
+                ? 8
+                : 1;
+
+        authRoleWrap.classList.toggle('hidden', !registering);
+
+        if (!registering) {
+            teacherCodeWrap.classList.add('hidden');
+            authTeacherCode.value = '';
+        } else {
+            updateTeacherCodeVisibility();
+        }
+
         authError.textContent = '';
     }
 
@@ -352,6 +384,70 @@
         );
     }
 
+    function updateTeacherCodeVisibility() {
+        const showTeacherCode =
+            authMode === 'register' &&
+            authRole.value === 'teacher';
+
+        teacherCodeWrap.classList.toggle(
+            'hidden',
+            !showTeacherCode
+        );
+
+        authTeacherCode.required =
+            showTeacherCode;
+    }
+
+    function configureRoleUI() {
+        const role =
+            currentUser?.role ||
+            'generic';
+
+        const labels = {
+            generic: 'Individual',
+            student: 'Student / Group',
+            teacher: 'Teacher / Admin'
+        };
+
+        profileRole.textContent =
+            labels[role] ||
+            'Individual';
+
+        const hasClassroom =
+            role === 'student' ||
+            role === 'teacher';
+
+        classroomNavButton.classList.toggle(
+            'hidden',
+            !hasClassroom
+        );
+
+        sideMenu.classList.toggle(
+            'has-classroom',
+            hasClassroom
+        );
+
+        teacherClassroomTools.classList.toggle(
+            'hidden',
+            role !== 'teacher'
+        );
+
+        classroomPageTitle.textContent =
+            role === 'teacher'
+                ? 'Classrooms'
+                : 'My class';
+
+        classroomPageSubtitle.textContent =
+            role === 'teacher'
+                ? 'Set quests, manage students and follow class progress.'
+                : 'Complete your quests and see how your class is progressing.';
+
+        classroomEmptyText.textContent =
+            role === 'teacher'
+                ? 'Create a classroom above, then add student accounts.'
+                : 'Your teacher will add your student account to a classroom.';
+    }
+
     async function bootstrap() {
         try {
             const data =
@@ -364,16 +460,22 @@
                 data.state
             );
 
+            configureRoleUI();
             showGame();
 
             await loadFriends();
             await loadAchievements();
 
+            if (currentUser.role !== 'generic') {
+                await loadClassrooms();
+            }
+
         } catch (error) {
-            if (
-                error.status !== 401
-            ) {
+            if (error.status === 401) {
+                authError.textContent = '';
+            } else {
                 authError.textContent =
+                    error.message ||
                     'Could not connect to the game server.';
             }
 
@@ -403,7 +505,14 @@
                             authUsername.value.trim(),
 
                         password:
-                            authPassword.value
+                            authPassword.value,
+
+                        ...(authMode === 'register'
+                            ? {
+                                role: authRole.value,
+                                teacher_code: authTeacherCode.value
+                            }
+                            : {})
                     })
                 }
             );
@@ -2503,6 +2612,705 @@
     }
 
     // =========================================================
+    // CLASSROOMS / RBAC
+    // =========================================================
+
+    async function loadClassrooms() {
+        if (!currentUser || currentUser.role === 'generic') {
+            return;
+        }
+
+        try {
+            const data = await api('/api/classrooms');
+            renderClassroomList(data.classrooms || []);
+        } catch (error) {
+            showToast(error.message, 'fa-triangle-exclamation');
+        }
+    }
+
+    function renderClassroomList(classrooms) {
+        classroomList.innerHTML = '';
+
+        classroomEmpty.classList.toggle(
+            'hidden',
+            classrooms.length !== 0
+        );
+
+        classrooms.forEach(classroom => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className =
+                `classroom-card${String(classroom.id) === String(activeClassroomId) ? ' active' : ''}`;
+
+            const meta =
+                currentUser.role === 'teacher'
+                    ? `${classroom.student_count || 0} students`
+                    : `${classroom.teacher_username ? `@${escapeHtml(classroom.teacher_username)} · ` : ''}${classroom.student_count || 0} students`;
+
+            button.innerHTML = `
+                <span class="classroom-card-icon">
+                    <i class="fas fa-school"></i>
+                </span>
+                <span class="classroom-card-copy">
+                    <strong>${escapeHtml(classroom.name)}</strong>
+                    <small>${meta}</small>
+                </span>
+                <i class="fas fa-chevron-right"></i>
+            `;
+
+            button.addEventListener(
+                'click',
+                () => openClassroom(classroom.id)
+            );
+
+            classroomList.appendChild(button);
+        });
+
+        if (
+            activeClassroomId &&
+            !classrooms.some(
+                classroom =>
+                    String(classroom.id) ===
+                    String(activeClassroomId)
+            )
+        ) {
+            activeClassroomId = null;
+            classroomDetail.classList.add('hidden');
+        }
+    }
+
+    async function createClassroom() {
+        const name =
+            newClassroomName.value.trim();
+
+        if (name.length < 2) {
+            showToast(
+                'Enter a classroom name.',
+                'fa-school'
+            );
+            return;
+        }
+
+        try {
+            const data = await api(
+                '/api/classrooms',
+                {
+                    method: 'POST',
+                    body: JSON.stringify({ name })
+                }
+            );
+
+            newClassroomName.value = '';
+            activeClassroomId =
+                data.classroom_id;
+
+            await loadClassrooms();
+            await openClassroom(
+                activeClassroomId
+            );
+
+            showToast(
+                'Classroom created.',
+                'fa-school'
+            );
+        } catch (error) {
+            showToast(
+                error.message,
+                'fa-triangle-exclamation'
+            );
+        }
+    }
+
+    async function openClassroom(classroomId) {
+        activeClassroomId =
+            Number(classroomId);
+
+        try {
+            const data = await api(
+                `/api/classrooms/${activeClassroomId}`
+            );
+
+            renderClassroomDetail(data);
+            await loadClassrooms();
+
+        } catch (error) {
+            showToast(
+                error.message,
+                'fa-triangle-exclamation'
+            );
+        }
+    }
+
+    function questTargetLabel(quest) {
+        const labels = {
+            manual: 'Teacher-set task',
+            score: `Reach ${quest.target_value} score`,
+            points: `Have ${quest.target_value} points`,
+            collection: `Unlock ${quest.target_value} items`,
+            placed: `Place ${quest.target_value} garden items`,
+            snaps: `Identify ${quest.target_value} plants`
+        };
+
+        return labels[quest.target_type] ||
+            'Quest';
+    }
+
+    function renderLeaderboard(rows) {
+        if (!rows.length) {
+            return `
+                <div class="empty-inline">
+                    No students in this class yet.
+                </div>
+            `;
+        }
+
+        return `
+            <div class="leaderboard">
+                ${rows.map((row, index) => `
+                    <div class="leaderboard-row">
+                        <span class="leaderboard-rank">${index + 1}</span>
+                        <span class="leaderboard-name">@${escapeHtml(row.username)}</span>
+                        <strong>${Number(row.score || 0)} pts</strong>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    function renderClassroomDetail(data) {
+        const classroom =
+            data.classroom;
+
+        const isTeacher =
+            data.viewer_role ===
+            'teacher';
+
+        const leaderboard =
+            data.leaderboard || [];
+
+        const quests =
+            data.quests || [];
+
+        classroomDetail.classList.remove(
+            'hidden'
+        );
+
+        classroomDetail.innerHTML = `
+            <div class="class-detail-head">
+                <button class="class-back-btn" id="closeClassroomDetailButton" type="button">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <div>
+                    <div class="eyebrow">${isTeacher ? 'TEACHER VIEW' : 'CLASSROOM'}</div>
+                    <h2>${escapeHtml(classroom.name)}</h2>
+                    <p>${isTeacher ? 'Manage this classroom.' : `Teacher: @${escapeHtml(classroom.teacher_username)}`}</p>
+                </div>
+            </div>
+
+            ${isTeacher ? teacherClassroomMarkup(data) : studentClassroomMarkup(data)}
+
+            <div class="class-card">
+                <div class="section-title">Class leaderboard</div>
+                ${renderLeaderboard(leaderboard)}
+            </div>
+
+            <div class="class-card">
+                <div class="section-title">Quests</div>
+                <div id="classQuestList">
+                    ${quests.length
+                        ? quests.map(
+                            quest =>
+                                isTeacher
+                                    ? teacherQuestMarkup(quest)
+                                    : studentQuestMarkup(quest)
+                        ).join('')
+                        : '<div class="empty-inline">No active quests yet.</div>'
+                    }
+                </div>
+            </div>
+        `;
+
+        bindClassroomDetailEvents(
+            data
+        );
+    }
+
+    function teacherClassroomMarkup(data) {
+        const roster =
+            data.roster || [];
+
+        return `
+            <div class="class-card">
+                <div class="section-title">Add a student</div>
+                <div class="class-inline-form">
+                    <input id="classStudentSearchInput" type="search" maxlength="20" placeholder="Search student username">
+                    <button class="soft-btn" id="classStudentSearchButton" type="button">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+                <div id="classStudentSearchResults" class="class-search-results"></div>
+            </div>
+
+            <div class="class-card">
+                <div class="section-title">Students</div>
+                <div class="class-roster">
+                    ${roster.length
+                        ? roster.map(student => `
+                            <div class="class-roster-row">
+                                <div>
+                                    <strong>@${escapeHtml(student.username)}</strong>
+                                    <small>${student.score || 0} score · ${student.snaps_completed || 0} snaps</small>
+                                </div>
+                                <button class="friend-action secondary remove-class-student"
+                                    data-student-id="${student.id}" type="button">
+                                    Remove
+                                </button>
+                            </div>
+                        `).join('')
+                        : '<div class="empty-inline">No students yet. Search for a student account above.</div>'
+                    }
+                </div>
+            </div>
+
+            <div class="class-card">
+                <div class="section-title">Create a quest</div>
+                <div class="quest-form">
+                    <input id="questTitleInput" maxlength="80" placeholder="Quest title">
+                    <textarea id="questDescriptionInput" maxlength="400"
+                        placeholder="Instructions for students"></textarea>
+                    <div class="quest-form-grid">
+                        <select id="questTargetType">
+                            <option value="manual">Manual task</option>
+                            <option value="snaps">Plant identifications</option>
+                            <option value="score">Score target</option>
+                            <option value="points">Points target</option>
+                            <option value="collection">Collection size</option>
+                            <option value="placed">Garden items placed</option>
+                        </select>
+                        <input id="questTargetValue" type="number" min="1" value="1" placeholder="Target">
+                    </div>
+                    <input id="questDueDate" type="date">
+                    <button class="primary-btn full-width" id="createQuestButton" type="button">
+                        <i class="fas fa-flag-checkered"></i> Assign quest
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    function studentClassroomMarkup(data) {
+        const me =
+            (data.leaderboard || []).find(
+                row =>
+                    Number(row.id) ===
+                    Number(currentUser.id)
+            );
+
+        return `
+            <div class="class-card class-my-progress">
+                <div>
+                    <span>My class score</span>
+                    <strong>${me ? Number(me.score || 0) : 0}</strong>
+                </div>
+                <div>
+                    <span>Plant snaps</span>
+                    <strong>${me ? Number(me.snaps_completed || 0) : 0}</strong>
+                </div>
+                <div>
+                    <span>Unlocked</span>
+                    <strong>${me ? Number(me.collection_count || 0) : 0}</strong>
+                </div>
+            </div>
+        `;
+    }
+
+    function teacherQuestMarkup(quest) {
+        return `
+            <div class="quest-card">
+                <div class="quest-card-top">
+                    <div>
+                        <strong>${escapeHtml(quest.title)}</strong>
+                        <small>${escapeHtml(questTargetLabel(quest))}</small>
+                    </div>
+                    <button class="icon-btn delete-class-quest"
+                        data-quest-id="${quest.id}" type="button" aria-label="Delete quest">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                ${quest.description
+                    ? `<p>${escapeHtml(quest.description)}</p>`
+                    : ''
+                }
+                <div class="quest-status-line">
+                    <span>${quest.completed_count || 0} / ${quest.student_count || 0} completed</span>
+                    ${quest.due_at ? `<span>Due ${escapeHtml(quest.due_at)}</span>` : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    function studentQuestMarkup(quest) {
+        const progress =
+            quest.progress || {
+                current: 0,
+                target: quest.target_value || 1,
+                percent: 0,
+                completed: false
+            };
+
+        return `
+            <div class="quest-card ${progress.completed ? 'quest-complete' : ''}">
+                <div class="quest-card-top">
+                    <div>
+                        <strong>${escapeHtml(quest.title)}</strong>
+                        <small>${escapeHtml(questTargetLabel(quest))}</small>
+                    </div>
+                    <span class="quest-status-badge">
+                        ${progress.completed ? 'Complete ✓' : `${progress.current}/${progress.target}`}
+                    </span>
+                </div>
+                ${quest.description
+                    ? `<p>${escapeHtml(quest.description)}</p>`
+                    : ''
+                }
+                <div class="quest-progress-track">
+                    <span style="width:${Math.max(0, Math.min(100, Number(progress.percent || 0)))}%"></span>
+                </div>
+                <div class="quest-status-line">
+                    ${quest.due_at ? `<span>Due ${escapeHtml(quest.due_at)}</span>` : '<span>No due date</span>'}
+                    ${quest.target_type === 'manual' && !progress.completed
+                        ? `<button class="friend-action complete-manual-quest"
+                            data-quest-id="${quest.id}" type="button">Mark done</button>`
+                        : ''
+                    }
+                </div>
+            </div>
+        `;
+    }
+
+    function bindClassroomDetailEvents(data) {
+        const closeButton =
+            $('closeClassroomDetailButton');
+
+        closeButton?.addEventListener(
+            'click',
+            () => {
+                activeClassroomId = null;
+                classroomDetail.classList.add('hidden');
+                loadClassrooms();
+            }
+        );
+
+        if (data.viewer_role === 'teacher') {
+            const searchButton =
+                $('classStudentSearchButton');
+
+            const searchInput =
+                $('classStudentSearchInput');
+
+            searchButton?.addEventListener(
+                'click',
+                searchStudentsForClassroom
+            );
+
+            searchInput?.addEventListener(
+                'keydown',
+                event => {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        searchStudentsForClassroom();
+                    }
+                }
+            );
+
+            document
+                .querySelectorAll('.remove-class-student')
+                .forEach(button =>
+                    button.addEventListener(
+                        'click',
+                        () =>
+                            removeStudentFromClassroom(
+                                button.dataset.studentId
+                            )
+                    )
+                );
+
+            $('questTargetType')?.addEventListener(
+                'change',
+                updateQuestTargetControl
+            );
+
+            $('createQuestButton')?.addEventListener(
+                'click',
+                createQuest
+            );
+
+            document
+                .querySelectorAll('.delete-class-quest')
+                .forEach(button =>
+                    button.addEventListener(
+                        'click',
+                        () =>
+                            deleteQuest(
+                                button.dataset.questId
+                            )
+                    )
+                );
+
+            updateQuestTargetControl();
+        } else {
+            document
+                .querySelectorAll('.complete-manual-quest')
+                .forEach(button =>
+                    button.addEventListener(
+                        'click',
+                        () =>
+                            completeManualQuest(
+                                button.dataset.questId
+                            )
+                    )
+                );
+        }
+    }
+
+    async function searchStudentsForClassroom() {
+        const input =
+            $('classStudentSearchInput');
+
+        const results =
+            $('classStudentSearchResults');
+
+        const query =
+            input?.value.trim() || '';
+
+        if (query.length < 2) {
+            if (results) {
+                results.innerHTML = '';
+            }
+            return;
+        }
+
+        try {
+            const data = await api(
+                `/api/classrooms/${activeClassroomId}/students/search?q=${encodeURIComponent(query)}`
+            );
+
+            if (!results) {
+                return;
+            }
+
+            results.innerHTML =
+                data.students.length
+                    ? data.students.map(student => `
+                        <div class="user-result">
+                            <div class="user-result-name">@${escapeHtml(student.username)}</div>
+                            <button class="friend-action add-class-student"
+                                data-student-id="${student.id}" type="button">Add</button>
+                        </div>
+                    `).join('')
+                    : '<div class="empty-inline">No matching student accounts.</div>';
+
+            results
+                .querySelectorAll('.add-class-student')
+                .forEach(button =>
+                    button.addEventListener(
+                        'click',
+                        () =>
+                            addStudentToClassroom(
+                                button.dataset.studentId
+                            )
+                    )
+                );
+
+        } catch (error) {
+            showToast(
+                error.message,
+                'fa-triangle-exclamation'
+            );
+        }
+    }
+
+    async function addStudentToClassroom(studentId) {
+        try {
+            await api(
+                `/api/classrooms/${activeClassroomId}/students`,
+                {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        student_id: Number(studentId)
+                    })
+                }
+            );
+
+            showToast(
+                'Student added to class.',
+                'fa-user-plus'
+            );
+
+            await openClassroom(
+                activeClassroomId
+            );
+
+        } catch (error) {
+            showToast(
+                error.message,
+                'fa-triangle-exclamation'
+            );
+        }
+    }
+
+    async function removeStudentFromClassroom(studentId) {
+        try {
+            await api(
+                `/api/classrooms/${activeClassroomId}/students/${studentId}`,
+                {
+                    method: 'DELETE'
+                }
+            );
+
+            showToast(
+                'Student removed.',
+                'fa-user-minus'
+            );
+
+            await openClassroom(
+                activeClassroomId
+            );
+
+        } catch (error) {
+            showToast(
+                error.message,
+                'fa-triangle-exclamation'
+            );
+        }
+    }
+
+    function updateQuestTargetControl() {
+        const type =
+            $('questTargetType');
+
+        const target =
+            $('questTargetValue');
+
+        if (!type || !target) {
+            return;
+        }
+
+        const manual =
+            type.value ===
+            'manual';
+
+        target.disabled =
+            manual;
+
+        if (manual) {
+            target.value = '1';
+        }
+    }
+
+    async function createQuest() {
+        const title =
+            $('questTitleInput')?.value.trim() || '';
+
+        const description =
+            $('questDescriptionInput')?.value.trim() || '';
+
+        const targetType =
+            $('questTargetType')?.value || 'manual';
+
+        const targetValue =
+            Number(
+                $('questTargetValue')?.value || 1
+            );
+
+        const dueAt =
+            $('questDueDate')?.value || '';
+
+        try {
+            await api(
+                `/api/classrooms/${activeClassroomId}/quests`,
+                {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        title,
+                        description,
+                        target_type: targetType,
+                        target_value: targetValue,
+                        due_at: dueAt
+                    })
+                }
+            );
+
+            showToast(
+                'Quest assigned.',
+                'fa-flag-checkered'
+            );
+
+            await openClassroom(
+                activeClassroomId
+            );
+
+        } catch (error) {
+            showToast(
+                error.message,
+                'fa-triangle-exclamation'
+            );
+        }
+    }
+
+    async function deleteQuest(questId) {
+        try {
+            await api(
+                `/api/classrooms/${activeClassroomId}/quests/${questId}`,
+                {
+                    method: 'DELETE'
+                }
+            );
+
+            showToast(
+                'Quest removed.',
+                'fa-trash'
+            );
+
+            await openClassroom(
+                activeClassroomId
+            );
+
+        } catch (error) {
+            showToast(
+                error.message,
+                'fa-triangle-exclamation'
+            );
+        }
+    }
+
+    async function completeManualQuest(questId) {
+        try {
+            await api(
+                `/api/classrooms/${activeClassroomId}/quests/${questId}/complete`,
+                {
+                    method: 'POST'
+                }
+            );
+
+            showToast(
+                'Quest marked complete.',
+                'fa-check'
+            );
+
+            await openClassroom(
+                activeClassroomId
+            );
+
+        } catch (error) {
+            showToast(
+                error.message,
+                'fa-triangle-exclamation'
+            );
+        }
+    }
+
+    // =========================================================
     // NAVIGATION
     // =========================================================
 
@@ -2570,6 +3378,10 @@
 
         if (
             viewId ===
+            'classroomView' &&
+            currentUser?.role !== 'generic'
+        ) {
+            loadClassrooms();
             'achievementsView'
         ) {
             loadAchievements();
@@ -2755,6 +3567,26 @@
                 setAuthMode(
                     'register'
                 )
+        );
+
+        authRole.addEventListener(
+            'change',
+            updateTeacherCodeVisibility
+        );
+
+        createClassroomButton.addEventListener(
+            'click',
+            createClassroom
+        );
+
+        newClassroomName.addEventListener(
+            'keydown',
+            event => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    createClassroom();
+                }
+            }
         );
 
         logoutButton.addEventListener(
