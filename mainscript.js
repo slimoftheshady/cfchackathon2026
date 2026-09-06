@@ -250,6 +250,7 @@
     const $ = id => document.getElementById(id);
 
     const app = $('app');
+    const appContent = $('appContent');
 
     // Login
     const authShell = $('authShell');
@@ -271,7 +272,17 @@
     const pointDisplay = $('pointDisplay');
     const plantCounter = $('plantCounter');
     const snapButton = $('snapButton');
+    const exploreSnapButton = $('exploreSnapButton');
     const toast = $('toastMessage');
+
+    // Home summaries
+    const homeGardenLevel = $('homeGardenLevel');
+    const homeGardenPlotsText = $('homeGardenPlotsText');
+    const homeGardenStrip = $('homeGardenStrip');
+    const homeQuestsProgressText = $('homeQuestsProgressText');
+    const homeQuestsClosest = $('homeQuestsClosest');
+    const homeOpenGardenButton = $('homeOpenGardenButton');
+    const homeViewQuestsButton = $('homeViewQuestsButton');
 
     // Player progression
     const playerLevelLabel = $('playerLevelLabel');
@@ -394,7 +405,6 @@
 
     // Classrooms / RBAC
     const classroomNavButton = $('classroomNavButton');
-    const bottomNav = document.querySelector('.bottom-nav');
     const classroomPageTitle = $('classroomPageTitle');
     const classroomPageSubtitle = $('classroomPageSubtitle');
     const teacherClassroomTools = $('teacherClassroomTools');
@@ -435,10 +445,6 @@
     // Navigation
     const navBtns = document.querySelectorAll('.nav-btn');
     const views = document.querySelectorAll('.view-page');
-    const menuToggleButton = $('menuToggleButton');
-    const menuCloseButton = $('menuCloseButton');
-    const sideMenu = $('sideMenu');
-    const sideMenuOverlay = $('sideMenuOverlay');
 
     // Camera
     const cameraBackdrop =
@@ -633,11 +639,6 @@
         classroomNavButton.classList.toggle(
             'hidden',
             !hasClassroom
-        );
-
-        sideMenu.classList.toggle(
-            'has-classroom',
-            hasClassroom
         );
 
         teacherClassroomTools.classList.toggle(
@@ -1710,6 +1711,24 @@
             return;
         }
 
+        const daily = Array.isArray(quests.daily) ? quests.daily : [];
+
+        if (homeQuestsProgressText) {
+            const completedCount = daily.filter(quest => quest.claimed).length;
+            homeQuestsProgressText.textContent = `${completedCount} / ${daily.length} quests complete`;
+        }
+
+        if (homeQuestsClosest) {
+            const active = daily.filter(quest => !quest.claimed);
+            const closest = active.slice().sort(
+                (a, b) => (b.progress / b.target) - (a.progress / a.target)
+            )[0];
+
+            homeQuestsClosest.textContent = closest
+                ? `Closest: ${closest.title} (${closest.progress}/${closest.target})`
+                : 'All of today\u2019s quests are complete!';
+        }
+
         const rewardSummary = (
             quest
         ) =>
@@ -2629,6 +2648,21 @@
 
         plantCounter.textContent =
             `${occupied} / ${unlockedPlots} placed`;
+
+        if (homeGardenLevel) {
+            homeGardenLevel.textContent = gardenProgression.level;
+        }
+
+        if (homeGardenPlotsText) {
+            homeGardenPlotsText.textContent = `${occupied} / ${unlockedPlots} occupied`;
+        }
+
+        if (homeGardenStrip) {
+            const filled = gardenSlots.filter(Boolean).slice(0, 6);
+            homeGardenStrip.innerHTML = filled.length
+                ? filled.map(item => `<span class="home-garden-strip-item">${renderIcon(item.icon)}</span>`).join('')
+                : '<span class="home-garden-strip-empty">Plant your first seed to fill this strip.</span>';
+        }
     }
 
 
@@ -6754,40 +6788,6 @@
     // NAVIGATION
     // =========================================================
 
-    function openSideMenu() {
-        sideMenu.classList.add(
-            'open'
-        );
-        sideMenuOverlay.classList.add(
-            'open'
-        );
-        sideMenu.setAttribute(
-            'aria-hidden',
-            'false'
-        );
-        menuToggleButton.setAttribute(
-            'aria-expanded',
-            'true'
-        );
-    }
-
-    function closeSideMenu() {
-        sideMenu.classList.remove(
-            'open'
-        );
-        sideMenuOverlay.classList.remove(
-            'open'
-        );
-        sideMenu.setAttribute(
-            'aria-hidden',
-            'true'
-        );
-        menuToggleButton.setAttribute(
-            'aria-expanded',
-            'false'
-        );
-    }
-
     function navigateTo(
         viewId
     ) {
@@ -6835,17 +6835,17 @@
             loadQuests();
         }
 
-        if (viewId === 'mapView') {
+        if (viewId === 'exploreView') {
             loadMapPlants({ fitBounds: true });
             setTimeout(() => leafletMap?.invalidateSize(), 0);
         }
 
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
-
-        closeSideMenu();
+        if (appContent) {
+            appContent.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
     }
 
     // =========================================================
@@ -7053,6 +7053,27 @@
             snapPlant
         );
 
+        if (exploreSnapButton) {
+            exploreSnapButton.addEventListener(
+                'click',
+                snapPlant
+            );
+        }
+
+        if (homeOpenGardenButton) {
+            homeOpenGardenButton.addEventListener(
+                'click',
+                () => navigateTo('gardenView')
+            );
+        }
+
+        if (homeViewQuestsButton) {
+            homeViewQuestsButton.addEventListener(
+                'click',
+                () => navigateTo('questsView')
+            );
+        }
+
         // Camera
         closeCameraButton
             .addEventListener(
@@ -7254,34 +7275,6 @@
         if (locateMeButton) {
             locateMeButton.addEventListener('click', locateOnMap);
         }
-
-        // Side menu
-        menuToggleButton.addEventListener(
-            'click',
-            openSideMenu
-        );
-
-        menuCloseButton.addEventListener(
-            'click',
-            closeSideMenu
-        );
-
-        sideMenuOverlay.addEventListener(
-            'click',
-            closeSideMenu
-        );
-
-        document.addEventListener(
-            'keydown',
-            event => {
-                if (
-                    event.key === 'Escape' &&
-                    sideMenu.classList.contains('open')
-                ) {
-                    closeSideMenu();
-                }
-            }
-        );
 
         // Friend search
         friendSearchButton.addEventListener(
