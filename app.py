@@ -9,10 +9,13 @@ import secrets
 import json
 from datetime import date, timedelta, timedelta, timedelta, timedelta, timedelta, timedelta, timedelta
 import requests
+from dotenv import load_dotenv
 from model.api_call import identify_plant_from_file, parse_results
 
 BASE_DIR = Path(__file__).resolve().parent
 GAME_DB = BASE_DIR / "game.db"
+
+load_dotenv(BASE_DIR / ".env")
 
 app = Flask(__name__, static_folder=None)
 app.secret_key = "dev-change-this-secret-before-deploying"
@@ -7293,4 +7296,8 @@ def complete_manual_quest(classroom_id, quest_id):
 init_db()
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000, debug=False)
+    app.run(
+        host="0.0.0.0",
+        port=5000,
+        debug=False
+    )
