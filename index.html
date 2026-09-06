@@ -4,8 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GardenQuest</title>
+    <title>Djilba</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -13,8 +15,8 @@
     <div class="auth-shell" id="authShell">
         <div class="auth-card">
             <div class="auth-logo"><i class="fas fa-seedling"></i></div>
-            <h1>GardenQuest</h1>
-            <p class="auth-subtitle">Grow something lovely, one snap at a time.</p>
+            <h1>Djilba</h1>
+            <p class="auth-subtitle">Follow the blooms as the season turns.</p>
 
             <div class="auth-tabs">
                 <button class="auth-tab active" id="loginTab" type="button">Log in</button>
@@ -50,90 +52,261 @@
         </div>
     </div>
 
-    <main class="app-container app-locked" id="app">
-        <div class="app-topbar">
-            <button class="hamburger-btn" id="menuToggleButton" type="button" aria-label="Open menu"
-                aria-expanded="false" aria-controls="sideMenu">
-                <i class="fas fa-bars"></i>
-            </button>
-
+    <main class="app-shell app-locked" id="app">
+        <header class="app-header">
             <button class="topbar-brand nav-btn" data-view="homeView" type="button">
-                <i class="fas fa-seedling"></i> GardenQuest
+                <i class="fas fa-seedling"></i> Djilba
             </button>
 
-            <div class="points-pill"><i class="fas fa-star"></i><span id="pointDisplay">240</span></div>
-        </div>
+            <div class="points-pill" title="Spendable coins"><i class="fas fa-coins"></i><span id="pointDisplay">240</span><small>coins</small></div>
+        </header>
 
-        <div class="side-menu-overlay" id="sideMenuOverlay"></div>
-
-        <aside class="side-menu" id="sideMenu" aria-hidden="true">
-            <div class="side-menu-header">
-                <div class="side-menu-logo"><i class="fas fa-seedling"></i> GardenQuest</div>
-                <button class="side-menu-close" id="menuCloseButton" type="button" aria-label="Close menu">
-                    <i class="fas fa-xmark"></i>
-                </button>
-            </div>
-
-            <nav class="side-menu-nav" aria-label="Main navigation">
-                <button class="nav-btn side-nav-btn" data-view="profileView" type="button">
-                    <i class="fas fa-user-circle"></i><span>Profile</span>
-                </button>
-                <button class="nav-btn side-nav-btn" data-view="friendsView" id="friendsNavButton" type="button">
-                    <i class="fas fa-user-friends"></i><span>Social</span><span class="friend-notification hidden"
-                        id="friendNotification">0</span>
-                </button>
-                <button class="nav-btn side-nav-btn" data-view="questsView" type="button">
-                    <i class="fas fa-map-signs"></i><span>Quests</span>
-                </button>
-                <button class="nav-btn side-nav-btn" data-view="gachaView" type="button">
-                    <i class="fas fa-dice"></i><span>Gacha</span>
-                </button>
-                <button class="nav-btn side-nav-btn" data-view="storeView" type="button">
-                    <i class="fas fa-clinic-medical"></i><span>Haven</span>
-                </button>
-                <button class="nav-btn side-nav-btn hidden" data-view="classroomView" id="classroomNavButton"
-                    type="button">
-                    <i class="fas fa-chalkboard-user"></i><span>Classroom</span>
-                </button>
-                <button class="nav-btn side-nav-btn" data-view="wikiView" type="button">
-                    <i class="fas fa-circle-info"></i><span>Wiki</span>
-                </button>
-                <button class="nav-btn side-nav-btn" data-view="mapView" type="button">
-                    <i class="fas fa-map"></i><span>Map</span>
-                </button>
-                <button class="nav-btn side-nav-btn" data-view="achievementsView" type="button">
-                    <i class="fas fa-trophy"></i><span>Achievements</span>
-                </button>
-                <button class="nav-btn side-nav-btn" data-view="settingsView" type="button">
-                    <i class="fas fa-gear"></i><span>Settings</span>
-                </button>
-            </nav>
-
-            <button class="side-menu-logout" id="logoutButton" type="button">
-                <i class="fas fa-right-from-bracket"></i> Log out
-            </button>
-        </aside>
-
+        <div class="app-content" id="appContent">
         <div class="view-container">
             <!-- HOME -->
             <section id="homeView" class="view-page active">
                 <div class="home-hero">
                     <div>
-                        <div class="eyebrow">YOUR LITTLE PATCH</div>
-                        <h1><span id="homeUsername">My</span> garden</h1>
-                        <p>Tap any plot to choose what grows there.</p>
+                        <div class="eyebrow">DJILBA FIELD NOTES</div>
+                        <h1><span id="homeUsername">My</span> patch</h1>
                     </div>
+                </div>
+
+                <div class="progression-card card-surface" id="progressionCard">
+                    <div class="progression-main">
+                        <div>
+                            <div class="eyebrow">PLAYER PROGRESSION</div>
+                            <h2>
+                                <span id="playerLevelLabel">Level 1</span>
+                                ·
+                                <span id="playerLevelTitle">New Gardener</span>
+                            </h2>
+                        </div>
+
+                        <div class="xp-badge">
+                            <strong id="playerXpTotal">0</strong>
+                            <span>XP</span>
+                        </div>
+                    </div>
+
+                    <div
+                        class="xp-progress-track"
+                        aria-label="Player XP progress"
+                    >
+                        <div
+                            class="xp-progress-fill"
+                            id="playerXpProgress"
+                        ></div>
+                    </div>
+
+                    <div class="xp-progress-copy">
+                        <span id="playerXpText">0 / 100 XP</span>
+                        <span id="playerNextUnlock">
+                            Next: Seed store at Level 2
+                        </span>
+                    </div>
+                </div>
+
+                <div class="snap-card">
+                    <div>
+                        <div class="snap-label">Explore &amp; identify a plant</div>
+                        <div class="snap-copy">Find plants nearby, identify new species and earn Coins + XP.</div>
+                    </div>
+                    <button class="snap-btn" id="snapButton" type="button">
+                        <i class="fas fa-camera"></i>
+                        <span>Snap a plant</span>
+                        <small>Rewards scale with biodiversity</small>
+                    </button>
+                </div>
+
+                <div
+                    class="next-goal-card card-surface"
+                    id="nextGoalCard"
+                >
+                    <div class="next-goal-head">
+
+                        <div>
+                            <div class="eyebrow">
+                                YOUR NEXT GOAL
+                            </div>
+
+                            <h2 id="nextGoalTitle">
+                                Upgrade Garden → Level 2
+                            </h2>
+                        </div>
+
+                        <div
+                            class="next-goal-icon"
+                            id="nextGoalIcon"
+                        >
+                            <i class="fas fa-seedling"></i>
+                        </div>
+
+                    </div>
+
+                    <div class="next-goal-progress-track">
+
+                        <div
+                            class="next-goal-progress-fill"
+                            id="nextGoalProgressFill"
+                        ></div>
+
+                    </div>
+
+                    <div class="next-goal-progress-copy">
+
+                        <strong id="nextGoalProgressText">
+                            0 / 150 coins
+                        </strong>
+
+                        <span id="nextGoalUnlocks">
+                            Unlocks 2 more garden plots.
+                        </span>
+
+                    </div>
+
+                    <button
+                        class="primary-btn next-goal-button"
+                        id="nextGoalButton"
+                        type="button"
+                    >
+                        <i class="fas fa-map-signs"></i>
+                        <span>View quests</span>
+                    </button>
+
+                </div>
+
+                <div class="home-garden-preview card-surface" id="homeGardenPreview">
+                    <div class="eyebrow">YOUR GARDEN</div>
+                    <h2>Garden Level <span id="homeGardenLevel">1</span></h2>
+                    <span id="homeGardenPlotsText">0 / 4 occupied</span>
+                    <div class="home-garden-strip" id="homeGardenStrip"></div>
+                    <button class="soft-btn" id="homeOpenGardenButton" type="button">
+                        <i class="fas fa-seedling"></i>
+                        Open Garden
+                    </button>
+                </div>
+
+                <div class="home-quests-summary card-surface" id="homeQuestsSummary">
+                    <div class="eyebrow">TODAY'S FIELDWORK</div>
+                    <h2 id="homeQuestsProgressText">0 / 0 quests complete</h2>
+                    <span id="homeQuestsClosest">Check today's quests to get started.</span>
+                    <button class="soft-btn" id="homeViewQuestsButton" type="button">
+                        <i class="fas fa-map-signs"></i>
+                        View quests
+                    </button>
+                </div>
+
+                <div class="biodiversity-card card-surface">
+                    <div class="biodiversity-card-top">
+
+                        <div class="biodiversity-card-title">
+
+                            <div class="biodiversity-icon">
+                                <i class="fas fa-leaf"></i>
+                            </div>
+
+                            <div>
+                                <div class="eyebrow">
+                                    BIODIVERSITY STREAK
+                                </div>
+
+                                <h2>
+                                    <span id="biodiversityStreakCount">
+                                        0
+                                    </span>
+                                    unique species today
+                                </h2>
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="biodiversity-multiplier"
+                            id="biodiversityMultiplier"
+                        >
+                            ×1
+                        </div>
+
+                    </div>
+
+                    <div
+                        class="biodiversity-streak-track"
+                        id="biodiversityStreakTrack"
+                    ></div>
+
+                    <div
+                        class="biodiversity-next"
+                        id="biodiversityNextBonus"
+                    >
+                        Find 3 different species to reach ×1.25.
+                    </div>
+
+                    <div class="biodiversity-footnote">
+
+                        <span id="biodiversityTotalUnique">
+                            0 species discovered overall
+                        </span>
+
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- GARDEN -->
+            <section id="gardenView" class="view-page">
+                <div class="page-heading">
+                    <div class="eyebrow">YOUR GARDEN</div>
+                    <h1>Garden</h1>
+                    <p>Plant, arrange and upgrade your patch.</p>
+                </div>
+
+                <div class="segmented-control" role="tablist" aria-label="Garden sections">
+                    <button class="segmented-btn nav-btn" data-view="gardenView" type="button">Garden</button>
+                    <button class="segmented-btn nav-btn" data-view="structuresView" type="button">Structures</button>
+                    <button class="segmented-btn nav-btn" data-view="storeView" type="button">Wildlife</button>
+                    <button class="segmented-btn nav-btn" data-view="gachaView" type="button">Seed store</button>
                 </div>
 
                 <div class="garden-card">
                     <div class="garden-card-top">
                         <div>
-                            <span class="garden-kicker"><i class="fas fa-sun"></i> today looks lovely</span>
+                            <span class="garden-kicker">
+                                <i class="fas fa-cloud-sun"></i>
+                                Djilba is waking
+                            </span>
 
+                            <div class="garden-level-line">
+                                <strong id="gardenLevelLabel">
+                                    Garden Level 1
+                                </strong>
+                                <span id="gardenPlotSummary">
+                                    4 plots unlocked
+                                </span>
+                            </div>
                         </div>
-                        <button class="soft-btn" id="openCollectionButton" type="button">
-                            <i class="fas fa-seedling"></i> Collection
-                        </button>
+
+                        <div class="garden-card-actions">
+                            <button
+                                class="soft-btn"
+                                id="gardenUpgradeButton"
+                                type="button"
+                            >
+                                <i class="fas fa-arrow-up"></i>
+                                <span id="gardenUpgradeText">
+                                    Level 2 · 150 coins
+                                </span>
+                            </button>
+
+                            <button
+                                class="soft-btn"
+                                id="openCollectionButton"
+                                type="button"
+                            >
+                                <i class="fas fa-seedling"></i>
+                                Collection
+                            </button>
+                        </div>
                     </div>
 
                     <div class="garden-scene">
@@ -144,30 +317,90 @@
                     </div>
 
                     <div class="garden-footer-row">
-                        <span><i class="fas fa-wand-magic-sparkles"></i> tap a plot to customise</span>
-                        <span id="plantCounter">0 / 16 placed</span>
+                        <span id="gardenUpgradeHint">
+                            <i class="fas fa-lock-open"></i>
+                            Next upgrade unlocks 6 plots
+                        </span>
+
+                        <span id="plantCounter">
+                            0 / 4 placed
+                        </span>
                     </div>
                 </div>
 
-                <div class="snap-card">
-                    <div>
-                        <div class="snap-label">Spotted something green?</div>
-                        <div class="snap-copy">Take a biodiversity snap and earn points.</div>
+                <div class="garden-strategy-card card-surface">
+
+                    <div class="garden-strategy-heading">
+                        <div>
+                            <span class="eyebrow">ACTIVE EFFECTS</span>
+                            <h2>Make your layout work for you</h2>
+                            <p>
+                                Passive plants and structures only work while they are placed in an unlocked garden plot.
+                            </p>
+                        </div>
+
+                        <div class="garden-strategy-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
                     </div>
-                    <button class="snap-btn" id="snapButton" type="button">
-                        <i class="fas fa-camera"></i>
-                        <span>Snap</span>
-                        <small>+10 <i class="fas fa-star"></i></small>
-                    </button>
+
+                    <div
+                        class="garden-effects-list"
+                        id="gardenEffectsList"
+                    ></div>
+
+                    <div
+                        class="garden-passive-list"
+                        id="gardenPassiveList"
+                    ></div>
+
                 </div>
             </section>
 
+            <!-- STRUCTURES -->
+            <section id="structuresView" class="view-page">
+                <div class="page-heading">
+                    <div class="eyebrow">GARDEN WORKSHOP</div>
+                    <h1>Structures</h1>
+                    <p>Build a structure once, then place it from Collection whenever you want its effect active.</p>
+                </div>
+
+                <div class="segmented-control" role="tablist" aria-label="Garden sections">
+                    <button class="segmented-btn nav-btn" data-view="gardenView" type="button">Garden</button>
+                    <button class="segmented-btn nav-btn" data-view="structuresView" type="button">Structures</button>
+                    <button class="segmented-btn nav-btn" data-view="storeView" type="button">Wildlife</button>
+                    <button class="segmented-btn nav-btn" data-view="gachaView" type="button">Seed store</button>
+                </div>
+
+                <div class="garden-workshop-card card-surface">
+
+                    <div class="garden-workshop-heading">
+                        <div>
+                            <span class="eyebrow">BUILD STRUCTURES</span>
+                            <h2>Build structures</h2>
+                        </div>
+
+                        <strong id="structureSummary">
+                            0 / 4 built
+                        </strong>
+                    </div>
+
+                    <div
+                        class="structure-grid"
+                        id="structureGrid"
+                    ></div>
+
+                </div>
+            </section>
+
+
             <!-- FRIENDS -->
             <section id="friendsView" class="view-page">
+                <button class="back-btn nav-btn" data-view="moreView" type="button"><i class="fas fa-arrow-left"></i> Back</button>
                 <div class="page-heading">
-                    <div class="eyebrow">GARDEN BUDDIES</div>
+                    <div class="eyebrow">SHARED FIELD NOTES</div>
                     <h1>Friends</h1>
-                    <p>Find other gardeners and keep up with their latest discoveries.</p>
+                    <p>Find fellow observers and keep up with their latest discoveries.</p>
                 </div>
 
                 <div class="friend-search card-surface">
@@ -187,59 +420,104 @@
                 <div class="friend-grid" id="friendsGrid"></div>
                 <div class="empty-state" id="emptyFriends">
                     <i class="fas fa-user-group"></i>
-                    <strong>No garden buddies yet</strong>
-                    <span>Search for someone above to get started.</span>
+                    <strong>No field companions yet</strong>
+                    <span>Search for someone above to start comparing sightings.</span>
                 </div>
             </section>
 
+
+
+
+
+
             <!-- STORE -->
             <section id="storeView" class="view-page">
-                <div class="page-heading">
-                    <div class="eyebrow">TINY EXTRAS</div>
-                    <h1>Animal Haven</h1>
-                    <p>Discover animals to protect, then create safe habitats for them to thrive.</p>
+
+                <div class="segmented-control" role="tablist" aria-label="Garden sections">
+                    <button class="segmented-btn nav-btn" data-view="gardenView" type="button">Garden</button>
+                    <button class="segmented-btn nav-btn" data-view="structuresView" type="button">Structures</button>
+                    <button class="segmented-btn nav-btn" data-view="storeView" type="button">Wildlife</button>
+                    <button class="segmented-btn nav-btn" data-view="gachaView" type="button">Seed store</button>
                 </div>
 
-                <div class="store-grid" id="storeGrid">
-                    <button class="store-item" data-key="echidna" data-name="Echidna" data-icon="icons/echidna.svg"
-                        data-cost="80" type="button">
-                        <span class="store-icon"><img src="icons/echidna.svg" class="icon-img" alt=""></span><span
-                            class="label">Echidna</span><span class="cost">80 ★</span>
-                    </button>
-                    <button class="store-item" data-key="wombat" data-name="Wombat" data-icon="icons/wombat.svg"
-                        data-cost="120" type="button">
-                        <span class="store-icon"><img src="icons/wombat.svg" class="icon-img" alt=""></span><span
-                            class="label">Wombat</span><span class="cost">120 ★</span>
-                    </button>
-                    <button class="store-item" data-key="emu" data-name="Emu" data-icon="icons/emu.svg" data-cost="100"
-                        type="button">
-                        <span class="store-icon"><img src="icons/emu.svg" class="icon-img" alt=""></span><span
-                            class="label">Emu</span><span class="cost">100 ★</span>
-                    </button>
-                    <button class="store-item" data-key="kangaroo" data-name="Kangaroo" data-icon="icons/kangaroo.svg"
-                        data-cost="150" type="button">
-                        <span class="store-icon"><img src="icons/kangaroo.svg" class="icon-img" alt=""></span><span
-                            class="label">Kangaroo</span><span class="cost">150 ★</span>
-                    </button>
-                    <button class="store-item" data-key="cockatoo" data-name="Cockatoo" data-icon="icons/cockatoo.svg"
-                        data-cost="60" type="button">
-                        <span class="store-icon"><img src="icons/cockatoo.svg" class="icon-img" alt=""></span><span
-                            class="label">Cockatoo</span><span class="cost">60 ★</span>
-                    </button>
+                <div class="page-heading">
+                    <div class="eyebrow">
+                        ANIMALS & WILDLIFE
+                    </div>
+
+                    <h1>Wildlife habitats</h1>
+
+                    <p>
+                        Discover plants, expand your garden and
+                        construct suitable habitat before wildlife
+                        can move into your patch.
+                    </p>
                 </div>
+
+                <div class="habitat-overview card-surface">
+
+                    <div>
+                        <span class="eyebrow">
+                            HABITAT PROGRESS
+                        </span>
+
+                        <strong id="habitatSummary">
+                            0 / 5 habitats built
+                        </strong>
+
+                        <span id="habitatSpeciesSummary">
+                            0 different species discovered
+                        </span>
+                    </div>
+
+                    <div class="habitat-overview-icon">
+                        <i class="fas fa-paw"></i>
+                    </div>
+
+                </div>
+
+                <div class="habitat-rule-note">
+
+                    <i class="fas fa-circle-info"></i>
+
+                    <span>
+                        Building a habitat automatically unlocks
+                        its animal. You can then place that animal
+                        in an unlocked garden plot from Collection.
+                    </span>
+
+                </div>
+
+                <div
+                    class="habitat-grid"
+                    id="habitatGrid"
+                ></div>
+
             </section>
 
             <!-- GACHA -->
             <section id="gachaView" class="view-page">
+                <div class="segmented-control" role="tablist" aria-label="Garden sections">
+                    <button class="segmented-btn nav-btn" data-view="gardenView" type="button">Garden</button>
+                    <button class="segmented-btn nav-btn" data-view="structuresView" type="button">Structures</button>
+                    <button class="segmented-btn nav-btn" data-view="storeView" type="button">Wildlife</button>
+                    <button class="segmented-btn nav-btn" data-view="gachaView" type="button">Seed store</button>
+                </div>
+
                 <div class="page-heading">
-                    <div class="eyebrow">PLANT DISCOVERY</div>
-                    <h1>Seed packet</h1>
-                    <p>Pull a plant to unlock it permanently for your garden collection.</p>
+                    <div class="eyebrow">WILDFLOWER COLLECTION</div>
+                    <h1>Seed store</h1>
+                    <p>Open a seed packet and bring a new Djilba bloom into your patch.</p>
                 </div>
 
                 <div class="gacha-card">
                     <div class="gacha-orbit"><i class="fas fa-seedling"></i></div>
-                    <div class="gacha-price"><i class="fas fa-star"></i> 60 points</div>
+                    <div class="gacha-price"><i class="fas fa-coins"></i> 60 coins · unlocks Level 2</div>
+                    <div class="seed-access-panel" id="seedAccessPanel">
+                        <div class="seed-access-heading"><span class="eyebrow">FIELDWORK UNLOCKS</span><strong>Seed rarity access</strong></div>
+                        <div class="seed-access-grid" id="seedAccessGrid"></div>
+                    </div>
+
                     <button class="primary-btn gacha-btn" id="gachaButton" type="button">
                         <i class="fas fa-gift"></i> Open seed packet
                     </button>
@@ -251,13 +529,14 @@
                 <div class="gacha-result" id="gachaResult">
                     <div class="result-placeholder">
                         <i class="fas fa-sparkles"></i>
-                        <span>Your next plant is waiting.</span>
+                        <span>Your next wildflower is waiting.</span>
                     </div>
                 </div>
             </section>
 
             <!-- CLASSROOMS -->
             <section id="classroomView" class="view-page">
+                <button class="back-btn nav-btn" data-view="moreView" type="button"><i class="fas fa-arrow-left"></i> Back</button>
                 <div class="page-heading">
                     <div class="eyebrow">LEARN TOGETHER</div>
                     <h1 id="classroomPageTitle">Classroom</h1>
@@ -287,23 +566,22 @@
                 <div id="classroomDetail" class="hidden"></div>
             </section>
 
-            <!-- PROFILE -->
-            <section id="profileView" class="view-page">
+            <!-- MORE -->
+            <section id="moreView" class="view-page">
                 <div class="page-heading">
-                    <div class="eyebrow">YOUR PATCH</div>
-                    <h1>Profile</h1>
+                    <div class="eyebrow">YOUR ACCOUNT</div>
+                    <h1>More</h1>
                 </div>
 
                 <div class="profile-card">
                     <div class="avatar"><i class="fas fa-seedling"></i></div>
                     <div class="pname">@<span id="profileName">Player</span></div>
                     <div class="profile-role" id="profileRole">Individual</div>
-                    <div class="profile-caption">garden caretaker & plant collector</div>
 
                     <div class="pstats" style="grid-template-columns: repeat(4, 1fr);">
                         <div><strong id="profilePlantCount">0</strong><span>placed</span></div>
                         <div><strong id="profileCollectionCount">0</strong><span>unlocked</span></div>
-                        <div><strong id="profileScore">0</strong><span>score</span></div>
+                        <div><strong id="profileScore">0</strong><span>XP</span></div>
                         <div><strong id="profileAchievements">0</strong><span>achievements</span></div>
                     </div>
 
@@ -313,14 +591,38 @@
                                 class="latest-rarity">—</span></div>
                     </div>
                 </div>
+
+                <div class="more-list">
+                    <button class="nav-btn more-list-btn" data-view="friendsView" id="friendsNavButton" type="button">
+                        <i class="fas fa-user-friends"></i><span>Friends</span><span class="friend-notification hidden"
+                            id="friendNotification">0</span>
+                    </button>
+                    <button class="nav-btn more-list-btn hidden" data-view="classroomView" id="classroomNavButton"
+                        type="button">
+                        <i class="fas fa-chalkboard-user"></i><span>Classroom</span>
+                    </button>
+                    <button class="nav-btn more-list-btn" data-view="achievementsView" type="button">
+                        <i class="fas fa-trophy"></i><span>Achievements</span>
+                    </button>
+                    <button class="nav-btn more-list-btn" data-view="wikiView" type="button">
+                        <i class="fas fa-circle-info"></i><span>Wiki</span>
+                    </button>
+                    <button class="nav-btn more-list-btn" data-view="settingsView" type="button">
+                        <i class="fas fa-gear"></i><span>Settings</span>
+                    </button>
+                </div>
+
+                <button class="logout-btn" id="logoutButton" type="button">
+                    <i class="fas fa-right-from-bracket"></i> Log out
+                </button>
             </section>
 
             <!-- QUESTS -->
             <section id="questsView" class="view-page">
                 <div class="page-heading">
-                    <div class="eyebrow">FIELDWORK & CHALLENGES</div>
+                    <div class="eyebrow">DJILBA FIELDWORK</div>
                     <h1>Quests</h1>
-                    <p>Small observations add up to a healthier picture of our wild places.</p>
+                    <p>Small observations help us notice how the landscape changes through Djilba.</p>
                 </div>
 
                 <div class="quest-section">
@@ -329,7 +631,23 @@
                 </div>
 
                 <div class="quest-section">
-                    <div class="section-title"><i class="fas fa-people-group"></i> Community fieldwork</div>
+                    <div class="section-title">
+                        <i class="fas fa-calendar-week"></i>
+                        This week
+                    </div>
+
+                    <div
+                        class="quest-grid"
+                        id="weeklyQuestList"
+                    ></div>
+                </div>
+
+                <div class="quest-section">
+                    <div class="section-title">
+                        <i class="fas fa-people-group"></i>
+                        Community fieldwork
+                    </div>
+
                     <div id="communityQuestCard"></div>
                 </div>
 
@@ -384,31 +702,68 @@
             </section>
             <!-- WIKI -->
             <section id="wikiView" class="view-page">
+                <button class="back-btn nav-btn" data-view="moreView" type="button"><i class="fas fa-arrow-left"></i> Back</button>
                 <div class="page-heading">
-                    <div class="eyebrow">FIELD GUIDE</div>
+                    <div class="eyebrow">DJILBA FIELD GUIDE</div>
                     <h1>Wiki</h1>
-                    <p>Learn about the plants you can grow in your garden.</p>
+                    <p>Learn about the wildflowers and plants that colour the season.</p>
                 </div>
 
                 <div class="wiki-list" id="wikiList"></div>
             </section>
 
-            <!-- MAP -->
-            <section id="mapView" class="view-page">
+            <!-- EXPLORE -->
+            <section id="exploreView" class="view-page">
                 <div class="page-heading">
-                    <div class="eyebrow">PLANT DISCOVERY</div>
-                    <h1>Map</h1>
-                    <p>This shows the location of plants taken.</p>
+                    <div class="eyebrow">BIODIVERSITY SIGHTINGS</div>
+                    <h1>Explore</h1>
+                    <p>Snap what you find and watch your discovery map grow.</p>
                 </div>
 
-                <div class="map-surface">
-                    <img src="images/map.png" alt="Map showing the locations of plants taken">
-                    <div class="map-markers" id="mapMarkers" aria-label="Plant locations"></div>
+                <div class="snap-card">
+                    <div>
+                        <div class="snap-label">Seen a bloom or wild visitor?</div>
+                        <div class="snap-copy">Find plants nearby, identify new species and earn Coins + XP.</div>
+                    </div>
+                    <button class="snap-btn" id="exploreSnapButton" type="button">
+                        <i class="fas fa-camera"></i>
+                        <span>Snap</span>
+                        <small>Rewards scale with biodiversity</small>
+                    </button>
+                </div>
+
+                <div class="map-toolbar card-surface">
+                    <div class="map-toolbar-copy">
+                        <strong id="mapObservationCount">0 sightings</strong>
+                        <span id="mapStatus">Take a biodiversity snap to add a sighting.</span>
+                    </div>
+                    <button class="soft-btn map-locate-btn" id="locateMeButton" type="button">
+                        <i class="fas fa-location-crosshairs"></i> My location
+                    </button>
+                </div>
+                <div class="exploration-summary card-surface">
+                    <div>
+                        <span class="eyebrow">EXPEDITION PROGRESS</span>
+                        <strong id="explorationSummary">0 / 5 regions completed</strong>
+                        <span id="explorationHint">Discover different species inside each region.</span>
+                    </div>
+                    <div class="exploration-summary-icon"><i class="fas fa-map-location-dot"></i></div>
+                </div>
+                <div class="exploration-area-grid" id="explorationAreaGrid"></div>
+
+
+
+                <div id="plantMap" class="plant-map" aria-label="Interactive map of your biodiversity sightings"></div>
+
+                <div class="map-rule-note">
+                    <i class="fas fa-circle-info"></i>
+                    <span>A maximum of 3 snaps of the same identified plant can be logged within 30 m of the same location.</span>
                 </div>
             </section>
 
             <!-- ACHIEVEMENTS -->
             <section id="achievementsView" class="view-page">
+                <button class="back-btn nav-btn" data-view="moreView" type="button"><i class="fas fa-arrow-left"></i> Back</button>
                 <div class="page-heading">
                     <div class="eyebrow">BADGES & MILESTONES</div>
                     <h1>Achievements</h1>
@@ -437,6 +792,7 @@
 
             <!-- SETTINGS -->
             <section id="settingsView" class="view-page">
+                <button class="back-btn nav-btn" data-view="moreView" type="button"><i class="fas fa-arrow-left"></i> Back</button>
                 <div class="page-heading">
                     <div class="eyebrow">COMING SOON</div>
                     <h1>Settings</h1>
@@ -446,6 +802,25 @@
         </div>
 
         <div class="toast hidden" id="toastMessage" role="status"></div>
+        </div>
+
+        <nav class="bottom-nav" id="bottomNav" aria-label="Main navigation">
+            <button class="nav-btn bottom-nav-btn active-tab" data-view="homeView" type="button" aria-label="Home">
+                <i class="fas fa-house"></i><span>Home</span>
+            </button>
+            <button class="nav-btn bottom-nav-btn" data-view="gardenView" type="button" aria-label="Garden">
+                <i class="fas fa-seedling"></i><span>Garden</span>
+            </button>
+            <button class="nav-btn bottom-nav-btn" data-view="exploreView" type="button" aria-label="Explore">
+                <i class="fas fa-camera"></i><span>Explore</span>
+            </button>
+            <button class="nav-btn bottom-nav-btn" data-view="questsView" type="button" aria-label="Quests">
+                <i class="fas fa-map-signs"></i><span>Quests</span>
+            </button>
+            <button class="nav-btn bottom-nav-btn" data-view="moreView" type="button" aria-label="More">
+                <i class="fas fa-ellipsis"></i><span>More</span>
+            </button>
+        </nav>
     </main>
 
     <!-- ===== FRIEND GARDEN VISIT ===== -->
@@ -696,7 +1071,9 @@
         </section>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="mainscript.js?v=20260905"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="mainscript.js?v=20260906-appshell1"></script>
 </body>
 
 </html>

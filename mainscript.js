@@ -51,7 +51,11 @@
         { key: 'wombat', name: 'Wombat', icon: 'icons/wombat.svg', rarity: 'decor', kind: 'decor', cost: 120 },
         { key: 'emu', name: 'Emu', icon: 'icons/emu.svg', rarity: 'decor', kind: 'decor', cost: 100 },
         { key: 'kangaroo', name: 'Kangaroo', icon: 'icons/kangaroo.svg', rarity: 'decor', kind: 'decor', cost: 150 },
-        { key: 'cockatoo', name: 'Cockatoo', icon: 'icons/cockatoo.svg', rarity: 'decor', kind: 'decor', cost: 60 }
+        { key: 'cockatoo', name: 'Cockatoo', icon: 'icons/cockatoo.svg', rarity: 'decor', kind: 'decor', cost: 60 },
+        { key: 'structure-nursery', name: 'Nursery', icon: 'fa-house-chimney-window', rarity: 'decor', kind: 'decor', cost: 0 },
+        { key: 'structure-research-station', name: 'Research Station', icon: 'fa-microscope', rarity: 'decor', kind: 'decor', cost: 0 },
+        { key: 'structure-birdhouse', name: 'Birdhouse', icon: 'fa-dove', rarity: 'decor', kind: 'decor', cost: 0 },
+        { key: 'structure-water-tank', name: 'Water Tank', icon: 'fa-droplet', rarity: 'decor', kind: 'decor', cost: 0 }
     ];
 
     const RARITY_CONFIG = {
@@ -93,6 +97,61 @@
 
     const MAX_SLOTS = 16;
 
+    // The existing database `score` value is now treated
+    // as permanent XP.
+    const PLAYER_LEVELS = [
+        {
+            level: 1,
+            title: 'New Gardener',
+            minXp: 0
+        },
+        {
+            level: 2,
+            title: 'Seedling Scout',
+            minXp: 100
+        },
+        {
+            level: 3,
+            title: 'Plant Spotter',
+            minXp: 200
+        },
+        {
+            level: 4,
+            title: 'Bushland Explorer',
+            minXp: 350
+        },
+        {
+            level: 5,
+            title: 'Biodiversity Ranger',
+            minXp: 550
+        },
+        {
+            level: 6,
+            title: 'Habitat Keeper',
+            minXp: 800
+        },
+        {
+            level: 7,
+            title: 'Wildflower Guardian',
+            minXp: 1100
+        },
+        {
+            level: 8,
+            title: 'Field Ecologist',
+            minXp: 1450
+        },
+        {
+            level: 9,
+            title: 'Conservation Leader',
+            minXp: 1850
+        },
+        {
+            level: 10,
+            title: 'Master Naturalist',
+            minXp: 2300
+        }
+    ];
+
     // =========================================================
     // GAME STATE
     // =========================================================
@@ -109,7 +168,54 @@
     let latestPlant = null;
     let achievements = [];
     let mapPlants = [];
+    let leafletMap = null;
+    let observationLayer = null;
+    let currentLocationLayer = null;
     let quests = null;
+    let explorationProgress = { playerLevel: 1, completedCount: 0, total: 5, outsideSightings: 0, areas: [] };
+    let rarityAccess = { uniqueSpecies: 0, completedAreas: 0, gardenLevel: 1, rarities: {} };
+    let explorationLayer = null;
+
+    let gardenProgression = {
+        level: 1,
+        unlockedPlots: 4,
+        maxPlots: MAX_SLOTS,
+        nextLevel: 2,
+        nextCost: 150,
+        nextPlots: 6
+    };
+
+    let biodiversity = {
+        todayUnique: 0,
+        totalUnique: 0,
+        multiplier: 1,
+        nextTarget: 3,
+        nextMultiplier: 1.25,
+        newAreaRadiusMetres: 250
+    };
+
+    let habitats = {
+        builtCount: 0,
+        total: 5,
+        uniqueSpecies: 0,
+        playerLevel: 1,
+        gardenLevel: 1,
+        items: []
+    };
+
+    let gardenStrategy = {
+        builtCount: 0,
+        totalStructures: 4,
+        playerLevel: 1,
+        gardenLevel: 1,
+        uniqueSpecies: 0,
+        seedPacketCost: 60,
+        gardenUpgradeDiscountPercent: 0,
+        communityCoinBonusPercent: 0,
+        plantPassives: [],
+        structures: [],
+        activeEffects: []
+    };
 
     // =========================================================
     // LOGIN / UI STATE
@@ -144,6 +250,7 @@
     const $ = id => document.getElementById(id);
 
     const app = $('app');
+    const appContent = $('appContent');
 
     // Login
     const authShell = $('authShell');
@@ -165,7 +272,93 @@
     const pointDisplay = $('pointDisplay');
     const plantCounter = $('plantCounter');
     const snapButton = $('snapButton');
+    const exploreSnapButton = $('exploreSnapButton');
     const toast = $('toastMessage');
+
+    // Home summaries
+    const homeGardenLevel = $('homeGardenLevel');
+    const homeGardenPlotsText = $('homeGardenPlotsText');
+    const homeGardenStrip = $('homeGardenStrip');
+    const homeQuestsProgressText = $('homeQuestsProgressText');
+    const homeQuestsClosest = $('homeQuestsClosest');
+    const homeOpenGardenButton = $('homeOpenGardenButton');
+    const homeViewQuestsButton = $('homeViewQuestsButton');
+
+    // Player progression
+    const playerLevelLabel = $('playerLevelLabel');
+    const playerLevelTitle = $('playerLevelTitle');
+    const playerXpTotal = $('playerXpTotal');
+    const playerXpProgress = $('playerXpProgress');
+    const playerXpText = $('playerXpText');
+    const playerNextUnlock = $('playerNextUnlock');
+
+    // Biodiversity progression
+    const biodiversityStreakCount =
+        $('biodiversityStreakCount');
+
+    const biodiversityMultiplier =
+        $('biodiversityMultiplier');
+
+    const biodiversityStreakTrack =
+        $('biodiversityStreakTrack');
+
+    const biodiversityNextBonus =
+        $('biodiversityNextBonus');
+
+    const biodiversityTotalUnique =
+        $('biodiversityTotalUnique');
+
+    // Next goal
+    const nextGoalCard =
+        $('nextGoalCard');
+
+    const nextGoalTitle =
+        $('nextGoalTitle');
+
+    const nextGoalIcon =
+        $('nextGoalIcon');
+
+    const nextGoalProgressFill =
+        $('nextGoalProgressFill');
+
+    const nextGoalProgressText =
+        $('nextGoalProgressText');
+
+    const nextGoalUnlocks =
+        $('nextGoalUnlocks');
+
+    const nextGoalButton =
+        $('nextGoalButton');
+
+    // Wildlife habitats
+    const habitatGrid =
+        $('habitatGrid');
+
+    const habitatSummary =
+        $('habitatSummary');
+
+    const habitatSpeciesSummary =
+        $('habitatSpeciesSummary');
+
+    // Strategic garden
+    const gardenEffectsList =
+        $('gardenEffectsList');
+
+    const gardenPassiveList =
+        $('gardenPassiveList');
+
+    const structureGrid =
+        $('structureGrid');
+
+    const structureSummary =
+        $('structureSummary');
+
+    // Garden progression
+    const gardenLevelLabel = $('gardenLevelLabel');
+    const gardenPlotSummary = $('gardenPlotSummary');
+    const gardenUpgradeButton = $('gardenUpgradeButton');
+    const gardenUpgradeText = $('gardenUpgradeText');
+    const gardenUpgradeHint = $('gardenUpgradeHint');
 
     // Gacha
     const gachaButton = $('gachaButton');
@@ -200,12 +393,18 @@
     const pickerSlotNumber = $('pickerSlotNumber');
     const collectionGrid = $('collectionGrid');
     const wikiList = $('wikiList');
-    const mapMarkers = $('mapMarkers');
+    const plantMap = $('plantMap');
+    const explorationAreaGrid = $('explorationAreaGrid');
+    const explorationSummary = $('explorationSummary');
+    const explorationHint = $('explorationHint');
+    const seedAccessGrid = $('seedAccessGrid');
+    const mapObservationCount = $('mapObservationCount');
+    const mapStatus = $('mapStatus');
+    const locateMeButton = $('locateMeButton');
     const clearPlotButton = $('clearPlotButton');
 
     // Classrooms / RBAC
     const classroomNavButton = $('classroomNavButton');
-    const bottomNav = document.querySelector('.bottom-nav');
     const classroomPageTitle = $('classroomPageTitle');
     const classroomPageSubtitle = $('classroomPageSubtitle');
     const teacherClassroomTools = $('teacherClassroomTools');
@@ -223,6 +422,7 @@
 
     // Quests
     const dailyQuestList = $('dailyQuestList');
+    const weeklyQuestList = $('weeklyQuestList');
     const communityQuestCard = $('communityQuestCard');
     const specialQuestList = $('specialQuestList');
     const specialQuestCodeInput = $('specialQuestCodeInput');
@@ -245,10 +445,6 @@
     // Navigation
     const navBtns = document.querySelectorAll('.nav-btn');
     const views = document.querySelectorAll('.view-page');
-    const menuToggleButton = $('menuToggleButton');
-    const menuCloseButton = $('menuCloseButton');
-    const sideMenu = $('sideMenu');
-    const sideMenuOverlay = $('sideMenuOverlay');
 
     // Camera
     const cameraBackdrop =
@@ -445,11 +641,6 @@
             !hasClassroom
         );
 
-        sideMenu.classList.toggle(
-            'has-classroom',
-            hasClassroom
-        );
-
         teacherClassroomTools.classList.toggle(
             'hidden',
             role !== 'teacher'
@@ -508,50 +699,259 @@
         }
     }
 
-    async function loadMapPlants() {
+    function getCurrentLocation() {
+        return new Promise((resolve, reject) => {
+            if (!navigator.geolocation) {
+                reject(new Error('Location is not supported by this browser.'));
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                position => resolve({
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude,
+                    accuracy: position.coords.accuracy || 0
+                }),
+                error => {
+                    const messages = {
+                        1: 'Location permission is required to log a biodiversity snap.',
+                        2: 'Your location could not be determined. Try moving somewhere with better GPS reception.',
+                        3: 'Getting your location took too long. Please try again.'
+                    };
+                    reject(new Error(
+                        messages[error.code] ||
+                        'Djilba could not access your current location.'
+                    ));
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 12000,
+                    maximumAge: 15000
+                }
+            );
+        });
+    }
+
+
+    function renderExplorationProgress() {
+        if (explorationSummary) {
+            explorationSummary.textContent = `${Number(explorationProgress.completedCount || 0)} / ${Number(explorationProgress.total || 5)} regions completed`;
+        }
+        if (explorationHint) {
+            const outside = Number(explorationProgress.outsideSightings || 0);
+            explorationHint.textContent = outside > 0
+                ? `${outside} sighting${outside === 1 ? '' : 's'} logged outside expedition regions.`
+                : 'Different species fill each region’s expedition meter.';
+        }
+        if (explorationAreaGrid) {
+            const areas = Array.isArray(explorationProgress.areas) ? explorationProgress.areas : [];
+            explorationAreaGrid.innerHTML = areas.map(area => {
+                const percent = Math.min(100, (Number(area.progress || 0) / Math.max(1, Number(area.target_species || 1))) * 100);
+                const status = area.completed ? 'Complete' : !area.unlocked ? `Unlocks at Level ${area.required_level}` : area.readyToComplete ? 'Reward ready' : `${area.currentSpecies} / ${area.target_species} species`;
+                return `
+                    <article class="exploration-area-card ${area.completed ? 'completed' : area.unlocked ? 'unlocked' : 'locked'}">
+                        <div class="exploration-area-card-top">
+                            <div><span class="exploration-difficulty">${escapeHtml(area.difficulty)}</span><h3>${escapeHtml(area.name)}</h3><p>${escapeHtml(area.subtitle)}</p></div>
+                            <div class="exploration-area-status-icon"><i class="fas ${area.completed ? 'fa-check' : area.unlocked ? 'fa-binoculars' : 'fa-lock'}"></i></div>
+                        </div>
+                        <div class="exploration-progress-track"><span style="width: ${percent}%"></span></div>
+                        <div class="exploration-area-meta"><span>${escapeHtml(status)}</span><strong>+${Number(area.reward_coins).toLocaleString()} coins · +${Number(area.reward_xp).toLocaleString()} XP</strong></div>
+                    </article>`;
+            }).join('');
+        }
+        renderExplorationAreasOnMap();
+    }
+
+    function renderRarityAccess() {
+        if (!seedAccessGrid) return;
+        const rarities = rarityAccess && rarityAccess.rarities ? rarityAccess.rarities : {};
+        const labels = { common: 'Common', rare: 'Rare', epic: 'Epic', legendary: 'Legendary' };
+        seedAccessGrid.innerHTML = ['common', 'rare', 'epic', 'legendary'].map(rarity => {
+            const gate = rarities[rarity] || { unlocked: rarity === 'common', label: rarity === 'common' ? 'Always available' : 'Complete more fieldwork' };
+            return `<div class="seed-access-item rarity-${rarity} ${gate.unlocked ? 'unlocked' : 'locked'}"><i class="fas ${gate.unlocked ? 'fa-circle-check' : 'fa-lock'}"></i><div><strong>${labels[rarity]}</strong><span>${escapeHtml(gate.label)}</span></div></div>`;
+        }).join('');
+    }
+
+    function explorationAreaForPoint(latitude, longitude) {
+        const areas = Array.isArray(explorationProgress.areas) ? explorationProgress.areas : [];
+        let best = null;
+        areas.forEach(area => {
+            const lat1 = Number(latitude), lon1 = Number(longitude), lat2 = Number(area.latitude), lon2 = Number(area.longitude);
+            if (![lat1, lon1, lat2, lon2].every(Number.isFinite)) return;
+            const toRadians = degrees => degrees * Math.PI / 180;
+            const phi1 = toRadians(lat1), phi2 = toRadians(lat2), dPhi = toRadians(lat2 - lat1), dLambda = toRadians(lon2 - lon1);
+            const a = Math.sin(dPhi / 2) ** 2 + Math.cos(phi1) * Math.cos(phi2) * Math.sin(dLambda / 2) ** 2;
+            const distance = 6371000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            if (distance <= Number(area.radius_m || 0) && (!best || distance < best.distance)) best = { area, distance };
+        });
+        return best ? best.area : null;
+    }
+
+    function renderExplorationAreasOnMap() {
+        if (!leafletMap || !window.L) return;
+        if (!explorationLayer) explorationLayer = L.layerGroup().addTo(leafletMap);
+        explorationLayer.clearLayers();
+        (explorationProgress.areas || []).forEach(area => {
+            const latitude = Number(area.latitude), longitude = Number(area.longitude), radius = Number(area.radius_m);
+            if (![latitude, longitude, radius].every(Number.isFinite)) return;
+            L.circle([latitude, longitude], { radius, weight: 1, fillOpacity: area.unlocked ? 0.05 : 0.015, dashArray: area.completed ? null : '6 6' })
+                .bindTooltip(`${escapeHtml(area.name)} · ${area.completed ? 'Complete' : area.unlocked ? `${area.currentSpecies}/${area.target_species} species` : `Level ${area.required_level}`}`)
+                .addTo(explorationLayer);
+        });
+    }
+
+    async function syncExplorationProgress({ announce = true } = {}) {
         try {
-            const data = await api('/api/map-plants');
+            const data = await api('/api/areas/sync', { method: 'POST' });
+            if (data.state) loadState(data.state);
+            if (announce && Array.isArray(data.completed) && data.completed.length) {
+                const names = data.completed.map(item => item.name).join(', ');
+                showToast(`Expedition complete: ${names}! +${data.rewardCoins} coins and +${data.rewardXp} XP.`, 'fa-map-location-dot');
+            }
+            return data;
+        } catch (error) {
+            console.error('Could not sync exploration progress:', error);
+            return null;
+        }
+    }
+
+    function ensureLeafletMap() {
+        if (!plantMap || !window.L) {
+            if (mapStatus) {
+                mapStatus.textContent = 'The interactive map library could not be loaded.';
+            }
+            return null;
+        }
+
+        if (leafletMap) {
+            return leafletMap;
+        }
+
+        leafletMap = L.map(plantMap).setView([-31.9505, 115.8605], 11);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(leafletMap);
+        observationLayer = L.layerGroup().addTo(leafletMap);
+        explorationLayer = L.layerGroup().addTo(leafletMap);
+        renderExplorationAreasOnMap();
+        return leafletMap;
+    }
+
+    async function loadMapPlants(options = {}) {
+        try {
+            await syncExplorationProgress({ announce: false });
+            const data = await api('/api/observations');
             mapPlants = Array.isArray(data.plants) ? data.plants : [];
-            renderMapPlants();
+            renderMapPlants(options);
         } catch (error) {
             if (error.status === 401) {
                 showAuth();
                 return;
             }
-
+            if (mapStatus) {
+                mapStatus.textContent = 'Could not load your sightings.';
+            }
             showToast('Could not load plant locations.', 'fa-triangle-exclamation');
         }
     }
 
-    function renderMapPlants() {
-        if (!mapMarkers) {
+    function renderMapPlants(options = {}) {
+        const map = ensureLeafletMap();
+        if (mapObservationCount) {
+            const count = mapPlants.length;
+            mapObservationCount.textContent = `${count} ${count === 1 ? 'sighting' : 'sightings'}`;
+        }
+        if (!map || !observationLayer) {
             return;
         }
 
-        const mapWidth = 1764;
-        const mapHeight = 1194;
-
-        mapMarkers.innerHTML = mapPlants.map(plant => {
-            const x = Number(plant.longitude);
-            const y = Number(plant.latitude);
-
-            if (!Number.isFinite(x) || !Number.isFinite(y)) {
-                return '';
+        observationLayer.clearLayers();
+        const bounds = [];
+        mapPlants.forEach(observation => {
+            const latitude = Number(observation.latitude);
+            const longitude = Number(observation.longitude);
+            if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+                return;
             }
 
-            const left = Math.max(0, Math.min(100, (x / mapWidth) * 100));
-            const top = Math.max(0, Math.min(100, (y / mapHeight) * 100));
-            const label = escapeHtml(plant.name || 'Plant');
+            const displayName = observation.common_name || observation.scientific_name || observation.name || 'Plant';
+            const expeditionArea = explorationAreaForPoint(latitude, longitude);
+            const areaLine = expeditionArea
+                ? `<span><i class="fas fa-map-location-dot"></i> ${escapeHtml(expeditionArea.name)}</span><br>`
+                : '<span>Open fieldwork</span><br>';
+            const scientificLine = observation.scientific_name && observation.scientific_name !== displayName
+                ? `<em>${escapeHtml(observation.scientific_name)}</em><br>`
+                : '';
+            const rawDate = String(observation.created_at || '');
+            const dateText = rawDate
+                ? new Date(`${rawDate.replace(' ', 'T')}Z`).toLocaleString()
+                : 'Recently logged';
+            const accuracy = Number(observation.accuracy_m || 0);
+            const accuracyText = accuracy > 0 ? `GPS accuracy +/-${Math.round(accuracy)} m` : 'GPS location';
 
-            return `
-                <button class="map-marker" type="button"
-                    data-plant-id="${plant.id}"
-                    style="left: ${left}%; top: ${top}%;"
-                    title="${label}"
-                    aria-label="${label} location">
-                    <i class="fas fa-location-dot"></i>
-                </button>`;
-        }).join('');
+            L.marker([latitude, longitude]).bindPopup(`
+                <div class="map-popup">
+                    <strong>${escapeHtml(displayName)}</strong><br>                    ${areaLine}
+
+                    ${scientificLine}
+                    <span>${escapeHtml(dateText)}</span><br>
+                    <small>${escapeHtml(accuracyText)}</small>
+                </div>
+            `).addTo(observationLayer);
+            bounds.push([latitude, longitude]);
+        });
+
+        if (mapStatus) {
+            mapStatus.textContent = mapPlants.length
+                ? 'Tap a marker to see what you found.'
+                : 'No sightings yet. Take a biodiversity snap to add the first one.';
+        }
+
+        if (options.focusObservation) {
+            const latitude = Number(options.focusObservation.latitude);
+            const longitude = Number(options.focusObservation.longitude);
+            if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
+                map.setView([latitude, longitude], 17);
+            }
+        } else if (options.fitBounds && bounds.length) {
+            bounds.length === 1
+                ? map.setView(bounds[0], 16)
+                : map.fitBounds(bounds, { padding: [24, 24], maxZoom: 17 });
+        }
+
+        setTimeout(() => map.invalidateSize(), 0);
+    }
+
+    async function locateOnMap() {
+        if (locateMeButton) locateMeButton.disabled = true;
+        if (mapStatus) mapStatus.textContent = 'Finding your current location...';
+        try {
+            const location = await getCurrentLocation();
+            const map = ensureLeafletMap();
+            if (!map) return;
+            currentLocationLayer?.remove();
+            currentLocationLayer = L.layerGroup().addTo(map);
+            L.circle([location.latitude, location.longitude], {
+                radius: Math.max(5, location.accuracy || 0),
+                weight: 1,
+                fillOpacity: 0.08
+            }).addTo(currentLocationLayer);
+            L.circleMarker([location.latitude, location.longitude], {
+                radius: 7,
+                weight: 3,
+                fillOpacity: 1
+            }).bindTooltip('You are here').addTo(currentLocationLayer);
+            map.setView([location.latitude, location.longitude], Math.max(map.getZoom(), 16));
+            if (mapStatus) {
+                mapStatus.textContent = `Current location found - accuracy +/-${Math.round(location.accuracy || 0)} m.`;
+            }
+        } catch (error) {
+            if (mapStatus) mapStatus.textContent = error.message;
+            showToast(error.message, 'fa-location-dot');
+        } finally {
+            if (locateMeButton) locateMeButton.disabled = false;
+        }
     }
 
     async function submitAuth(event) {
@@ -624,6 +1024,38 @@
                 null
             );
 
+        gardenProgression = {
+            level: 1,
+            unlockedPlots: 4,
+            maxPlots: MAX_SLOTS,
+            nextLevel: 2,
+            nextCost: 150,
+            nextPlots: 6
+        };
+
+        habitats = {
+            builtCount: 0,
+            total: 5,
+            uniqueSpecies: 0,
+            playerLevel: 1,
+            gardenLevel: 1,
+            items: []
+        };
+
+        gardenStrategy = {
+            builtCount: 0,
+            totalStructures: 4,
+            playerLevel: 1,
+            gardenLevel: 1,
+            uniqueSpecies: 0,
+            seedPacketCost: 60,
+            gardenUpgradeDiscountPercent: 0,
+            communityCoinBonusPercent: 0,
+            plantPassives: [],
+            structures: [],
+            activeEffects: []
+        };
+
         friendSearchResults.innerHTML =
             '';
 
@@ -652,6 +1084,484 @@
         latestPlant =
             state.latestPlant ||
             null;
+
+        gardenProgression =
+            state.garden
+            && typeof state.garden === 'object'
+                ? {
+                    level:
+                        Number(
+                            state.garden.level
+                            || state.gardenLevel
+                            || 1
+                        ),
+
+                    unlockedPlots:
+                        Number(
+                            state.garden.unlockedPlots
+                            || 4
+                        ),
+
+                    maxPlots:
+                        Number(
+                            state.garden.maxPlots
+                            || MAX_SLOTS
+                        ),
+
+                    nextLevel:
+                        state.garden.nextLevel == null
+                            ? null
+                            : Number(
+                                state.garden.nextLevel
+                            ),
+
+                    nextCost:
+                        state.garden.nextCost == null
+                            ? null
+                            : Number(
+                                state.garden.nextCost
+                            ),
+
+                    nextPlots:
+                        state.garden.nextPlots == null
+                            ? null
+                            : Number(
+                                state.garden.nextPlots
+                            )
+                }
+                : {
+                    level:
+                        Number(
+                            state.gardenLevel
+                            || 1
+                        ),
+
+                    unlockedPlots:
+                        MAX_SLOTS,
+
+                    maxPlots:
+                        MAX_SLOTS,
+
+                    nextLevel:
+                        null,
+
+                    nextCost:
+                        null,
+
+                    nextPlots:
+                        null
+                };
+
+        biodiversity =
+            state.biodiversity
+            && typeof state.biodiversity === 'object'
+
+                ? {
+                    todayUnique:
+                        Number(
+                            state.biodiversity.todayUnique
+                            || 0
+                        ),
+
+                    totalUnique:
+                        Number(
+                            state.biodiversity.totalUnique
+                            || 0
+                        ),
+
+                    multiplier:
+                        Number(
+                            state.biodiversity.multiplier
+                            || 1
+                        ),
+
+                    nextTarget:
+                        state.biodiversity.nextTarget == null
+                            ? null
+                            : Number(
+                                state.biodiversity.nextTarget
+                            ),
+
+                    nextMultiplier:
+                        state.biodiversity.nextMultiplier == null
+                            ? null
+                            : Number(
+                                state.biodiversity.nextMultiplier
+                            ),
+
+                    newAreaRadiusMetres:
+                        Number(
+                            state.biodiversity.newAreaRadiusMetres
+                            || 250
+                        )
+                }
+
+                : {
+                    todayUnique: 0,
+                    totalUnique: 0,
+                    multiplier: 1,
+                    nextTarget: 3,
+                    nextMultiplier: 1.25,
+                    newAreaRadiusMetres: 250
+                };
+
+        biodiversity =
+            state.biodiversity
+            && typeof state.biodiversity === 'object'
+
+                ? {
+                    todayUnique:
+                        Number(
+                            state.biodiversity.todayUnique
+                            || 0
+                        ),
+
+                    totalUnique:
+                        Number(
+                            state.biodiversity.totalUnique
+                            || 0
+                        ),
+
+                    multiplier:
+                        Number(
+                            state.biodiversity.multiplier
+                            || 1
+                        ),
+
+                    nextTarget:
+                        state.biodiversity.nextTarget == null
+                            ? null
+                            : Number(
+                                state.biodiversity.nextTarget
+                            ),
+
+                    nextMultiplier:
+                        state.biodiversity.nextMultiplier == null
+                            ? null
+                            : Number(
+                                state.biodiversity.nextMultiplier
+                            ),
+
+                    newAreaRadiusMetres:
+                        Number(
+                            state.biodiversity.newAreaRadiusMetres
+                            || 250
+                        )
+                }
+
+                : {
+                    todayUnique: 0,
+                    totalUnique: 0,
+                    multiplier: 1,
+                    nextTarget: 3,
+                    nextMultiplier: 1.25,
+                    newAreaRadiusMetres: 250
+                };
+
+        habitats =
+            state.habitats
+            && typeof state.habitats === 'object'
+
+                ? {
+                    builtCount:
+                        Number(
+                            state.habitats.builtCount
+                            || 0
+                        ),
+
+                    total:
+                        Number(
+                            state.habitats.total
+                            || 5
+                        ),
+
+                    uniqueSpecies:
+                        Number(
+                            state.habitats.uniqueSpecies
+                            || 0
+                        ),
+
+                    playerLevel:
+                        Number(
+                            state.habitats.playerLevel
+                            || 1
+                        ),
+
+                    gardenLevel:
+                        Number(
+                            state.habitats.gardenLevel
+                            || 1
+                        ),
+
+                    items:
+                        Array.isArray(
+                            state.habitats.items
+                        )
+                            ? state.habitats.items
+                            : []
+                }
+
+                : {
+                    builtCount: 0,
+                    total: 5,
+                    uniqueSpecies: 0,
+                    playerLevel: 1,
+                    gardenLevel: 1,
+                    items: []
+                };
+
+        habitats =
+            state.habitats
+            && typeof state.habitats === 'object'
+
+                ? {
+                    builtCount:
+                        Number(
+                            state.habitats.builtCount
+                            || 0
+                        ),
+
+                    total:
+                        Number(
+                            state.habitats.total
+                            || 5
+                        ),
+
+                    uniqueSpecies:
+                        Number(
+                            state.habitats.uniqueSpecies
+                            || 0
+                        ),
+
+                    playerLevel:
+                        Number(
+                            state.habitats.playerLevel
+                            || 1
+                        ),
+
+                    gardenLevel:
+                        Number(
+                            state.habitats.gardenLevel
+                            || 1
+                        ),
+
+                    items:
+                        Array.isArray(
+                            state.habitats.items
+                        )
+                            ? state.habitats.items
+                            : []
+                }
+
+                : {
+                    builtCount: 0,
+                    total: 5,
+                    uniqueSpecies: 0,
+                    playerLevel: 1,
+                    gardenLevel: 1,
+                    items: []
+                };
+
+        habitats =
+            state.habitats
+            && typeof state.habitats === 'object'
+
+                ? {
+                    builtCount:
+                        Number(
+                            state.habitats.builtCount
+                            || 0
+                        ),
+
+                    total:
+                        Number(
+                            state.habitats.total
+                            || 5
+                        ),
+
+                    uniqueSpecies:
+                        Number(
+                            state.habitats.uniqueSpecies
+                            || 0
+                        ),
+
+                    playerLevel:
+                        Number(
+                            state.habitats.playerLevel
+                            || 1
+                        ),
+
+                    gardenLevel:
+                        Number(
+                            state.habitats.gardenLevel
+                            || 1
+                        ),
+
+                    items:
+                        Array.isArray(
+                            state.habitats.items
+                        )
+                            ? state.habitats.items
+                            : []
+                }
+
+                : {
+                    builtCount: 0,
+                    total: 5,
+                    uniqueSpecies: 0,
+                    playerLevel: 1,
+                    gardenLevel: 1,
+                    items: []
+                };
+
+        habitats =
+            state.habitats
+            && typeof state.habitats === 'object'
+
+                ? {
+                    builtCount:
+                        Number(
+                            state.habitats.builtCount
+                            || 0
+                        ),
+
+                    total:
+                        Number(
+                            state.habitats.total
+                            || 5
+                        ),
+
+                    uniqueSpecies:
+                        Number(
+                            state.habitats.uniqueSpecies
+                            || 0
+                        ),
+
+                    playerLevel:
+                        Number(
+                            state.habitats.playerLevel
+                            || 1
+                        ),
+
+                    gardenLevel:
+                        Number(
+                            state.habitats.gardenLevel
+                            || 1
+                        ),
+
+                    items:
+                        Array.isArray(
+                            state.habitats.items
+                        )
+                            ? state.habitats.items
+                            : []
+                }
+
+                : {
+                    builtCount: 0,
+                    total: 5,
+                    uniqueSpecies: 0,
+                    playerLevel: 1,
+                    gardenLevel: 1,
+                    items: []
+                };
+
+        habitats =
+            state.habitats
+            && typeof state.habitats === 'object'
+
+                ? {
+                    builtCount:
+                        Number(
+                            state.habitats.builtCount
+                            || 0
+                        ),
+
+                    total:
+                        Number(
+                            state.habitats.total
+                            || 5
+                        ),
+
+                    uniqueSpecies:
+                        Number(
+                            state.habitats.uniqueSpecies
+                            || 0
+                        ),
+
+                    playerLevel:
+                        Number(
+                            state.habitats.playerLevel
+                            || 1
+                        ),
+
+                    gardenLevel:
+                        Number(
+                            state.habitats.gardenLevel
+                            || 1
+                        ),
+
+                    items:
+                        Array.isArray(
+                            state.habitats.items
+                        )
+                            ? state.habitats.items
+                            : []
+                }
+
+                : {
+                    builtCount: 0,
+                    total: 5,
+                    uniqueSpecies: 0,
+                    playerLevel: 1,
+                    gardenLevel: 1,
+                    items: []
+                };
+
+        gardenStrategy =
+            state.gardenStrategy
+            && typeof state.gardenStrategy === 'object'
+
+                ? {
+                    builtCount: Number(state.gardenStrategy.builtCount || 0),
+                    totalStructures: Number(state.gardenStrategy.totalStructures || 4),
+                    playerLevel: Number(state.gardenStrategy.playerLevel || 1),
+                    gardenLevel: Number(state.gardenStrategy.gardenLevel || 1),
+                    uniqueSpecies: Number(state.gardenStrategy.uniqueSpecies || 0),
+                    seedPacketCost: Number(state.gardenStrategy.seedPacketCost || 60),
+                    gardenUpgradeDiscountPercent: Number(state.gardenStrategy.gardenUpgradeDiscountPercent || 0),
+                    communityCoinBonusPercent: Number(state.gardenStrategy.communityCoinBonusPercent || 0),
+                    plantPassives: Array.isArray(state.gardenStrategy.plantPassives)
+                        ? state.gardenStrategy.plantPassives
+                        : [],
+                    structures: Array.isArray(state.gardenStrategy.structures)
+                        ? state.gardenStrategy.structures
+                        : [],
+                    activeEffects: Array.isArray(state.gardenStrategy.activeEffects)
+                        ? state.gardenStrategy.activeEffects
+                        : []
+                }
+
+                : {
+                    builtCount: 0,
+                    totalStructures: 4,
+                    playerLevel: 1,
+                    gardenLevel: 1,
+                    uniqueSpecies: 0,
+                    seedPacketCost: 60,
+                    gardenUpgradeDiscountPercent: 0,
+                    communityCoinBonusPercent: 0,
+                    plantPassives: [],
+                    structures: [],
+                    activeEffects: []
+                };
+
+        explorationProgress = state.exploration && typeof state.exploration === 'object'
+            ? { playerLevel: Number(state.exploration.playerLevel || 1), completedCount: Number(state.exploration.completedCount || 0), total: Number(state.exploration.total || 5), outsideSightings: Number(state.exploration.outsideSightings || 0), areas: Array.isArray(state.exploration.areas) ? state.exploration.areas : [] }
+            : { playerLevel: 1, completedCount: 0, total: 5, outsideSightings: 0, areas: [] };
+        rarityAccess = state.rarityAccess && typeof state.rarityAccess === 'object'
+            ? state.rarityAccess
+            : { uniqueSpecies: 0, completedAreas: 0, gardenLevel: 1, rarities: {} };
 
         collection =
             Array.isArray(
@@ -756,6 +1666,12 @@
 
         updateStats();
 
+        renderProgression();
+        renderBiodiversity();
+        renderGardenStrategy();
+        renderNextGoal();
+        renderExplorationProgress();
+        renderRarityAccess();
         renderStore();
 
         if (
@@ -785,72 +1701,682 @@
         return `<div class="quest-progress"><span style="width: ${percent}%"></span></div>`;
     }
 
+
     function renderQuests() {
-        if (!quests || !dailyQuestList) return;
 
-        dailyQuestList.innerHTML = quests.daily.map(quest => `
-            <article class="quest-card daily-quest-card ${quest.completed && !quest.claimed ? 'claimable' : ''} ${quest.claimed ? 'completed' : ''}" data-quest-key="${escapeHtml(quest.key)}" ${quest.completed && !quest.claimed ? 'tabindex="0" role="button"' : ''}>
-                <div class="quest-card-icon"><i class="fas ${quest.completed ? 'fa-check' : 'fa-camera'}"></i></div>
-                <div class="quest-card-body">
-                    <strong>${escapeHtml(quest.title)}</strong>
-                    <p>${escapeHtml(quest.description)}</p>
-                    ${questProgressBar(quest.progress, quest.target)}
-                    <span>${quest.progress} / ${quest.target} · +${quest.reward} points</span>
-                </div>
-                <div class="quest-reward ${quest.claimed ? 'claimed' : ''}"><i class="fas fa-star"></i><strong>${quest.reward}</strong><small>${quest.claimed ? 'Claimed' : quest.completed ? 'Claim' : 'points'}</small></div>
-            </article>
-        `).join('');
+        if (
+            !quests
+            || !dailyQuestList
+        ) {
+            return;
+        }
 
-        const community = quests.community;
-        communityQuestCard.innerHTML = `
-            <article class="community-quest-card ${community.progress >= community.target ? 'completed' : ''}">
-                <div class="community-quest-heading">
-                    <div>
-                        <span class="eyebrow">RESEARCHER-LED GOAL</span>
-                        <h2>${escapeHtml(community.title)}</h2>
-                        <p>${escapeHtml(community.description)}</p>
+        const daily = Array.isArray(quests.daily) ? quests.daily : [];
+
+        if (homeQuestsProgressText) {
+            const completedCount = daily.filter(quest => quest.claimed).length;
+            homeQuestsProgressText.textContent = `${completedCount} / ${daily.length} quests complete`;
+        }
+
+        if (homeQuestsClosest) {
+            const active = daily.filter(quest => !quest.claimed);
+            const closest = active.slice().sort(
+                (a, b) => (b.progress / b.target) - (a.progress / a.target)
+            )[0];
+
+            homeQuestsClosest.textContent = closest
+                ? `Closest: ${closest.title} (${closest.progress}/${closest.target})`
+                : 'All of today\u2019s quests are complete!';
+        }
+
+        const rewardSummary = (
+            quest
+        ) =>
+            (
+                `${Number(
+                    quest.reward
+                    || 0
+                )} coins · `
+                + `${Number(
+                    quest.xp_reward
+                    || 0
+                )} XP`
+            );
+
+        // -----------------------------------------
+        // Daily
+        // -----------------------------------------
+
+        dailyQuestList
+            .innerHTML =
+            quests.daily
+                .map(
+                    quest => `
+                        <article
+                            class="quest-card daily-quest-card ${
+                                quest.completed
+                                && !quest.claimed
+                                    ? 'claimable'
+                                    : ''
+                            } ${
+                                quest.claimed
+                                    ? 'completed'
+                                    : ''
+                            }"
+                            data-quest-key="${escapeHtml(quest.key)}"
+                            ${
+                                quest.completed
+                                && !quest.claimed
+                                    ? 'tabindex="0" role="button"'
+                                    : ''
+                            }
+                        >
+                            <div class="quest-card-icon">
+                                <i class="fas ${
+                                    quest.completed
+                                        ? 'fa-check'
+                                        : 'fa-camera'
+                                }"></i>
+                            </div>
+
+                            <div class="quest-card-body">
+                                <strong>
+                                    ${escapeHtml(quest.title)}
+                                </strong>
+
+                                <p>
+                                    ${escapeHtml(quest.description)}
+                                </p>
+
+                                ${
+                                    questProgressBar(
+                                        quest.progress,
+                                        quest.target
+                                    )
+                                }
+
+                                <span>
+                                    ${quest.progress}
+                                    /
+                                    ${quest.target}
+                                    ·
+                                    ${rewardSummary(quest)}
+                                </span>
+                            </div>
+
+                            <div
+                                class="quest-reward ${
+                                    quest.claimed
+                                        ? 'claimed'
+                                        : ''
+                                }"
+                            >
+                                <i class="fas ${
+                                    quest.claimed
+                                        ? 'fa-check'
+                                        : 'fa-coins'
+                                }"></i>
+
+                                <strong>
+                                    ${quest.reward}
+                                </strong>
+
+                                <small>
+                                    ${
+                                        quest.claimed
+                                            ? 'Claimed'
+                                            : quest.completed
+                                                ? 'Claim'
+                                                : 'coins'
+                                    }
+                                </small>
+                            </div>
+                        </article>
+                    `
+                )
+                .join('');
+
+        // -----------------------------------------
+        // Weekly
+        // -----------------------------------------
+
+        if (
+            weeklyQuestList
+        ) {
+            weeklyQuestList
+                .innerHTML =
+                (
+                    quests.weekly
+                    || []
+                )
+                    .map(
+                        quest => `
+                            <article
+                                class="quest-card weekly-quest-card ${
+                                    quest.completed
+                                    && !quest.claimed
+                                        ? 'claimable'
+                                        : ''
+                                } ${
+                                    quest.claimed
+                                        ? 'completed'
+                                        : ''
+                                }"
+                                data-quest-key="${escapeHtml(quest.key)}"
+                                ${
+                                    quest.completed
+                                    && !quest.claimed
+                                        ? 'tabindex="0" role="button"'
+                                        : ''
+                                }
+                            >
+                                <div class="quest-card-icon weekly-icon">
+                                    <i class="fas ${
+                                        quest.completed
+                                            ? 'fa-check'
+                                            : 'fa-calendar-week'
+                                    }"></i>
+                                </div>
+
+                                <div class="quest-card-body">
+                                    <strong>
+                                        ${escapeHtml(quest.title)}
+                                    </strong>
+
+                                    <p>
+                                        ${escapeHtml(quest.description)}
+                                    </p>
+
+                                    ${
+                                        questProgressBar(
+                                            quest.progress,
+                                            quest.target
+                                        )
+                                    }
+
+                                    <span>
+                                        ${quest.progress}
+                                        /
+                                        ${quest.target}
+                                        ·
+                                        ${rewardSummary(quest)}
+                                    </span>
+                                </div>
+
+                                <div
+                                    class="quest-reward ${
+                                        quest.claimed
+                                            ? 'claimed'
+                                            : ''
+                                    }"
+                                >
+                                    <i class="fas ${
+                                        quest.claimed
+                                            ? 'fa-check'
+                                            : 'fa-coins'
+                                    }"></i>
+
+                                    <strong>
+                                        ${quest.reward}
+                                    </strong>
+
+                                    <small>
+                                        ${
+                                            quest.claimed
+                                                ? 'Claimed'
+                                                : quest.completed
+                                                    ? 'Claim'
+                                                    : 'coins'
+                                        }
+                                    </small>
+                                </div>
+                            </article>
+                        `
+                    )
+                    .join('');
+        }
+
+        // -----------------------------------------
+        // Community
+        // -----------------------------------------
+
+        const community =
+            quests.community;
+
+        const nextMilestone =
+            community
+                .milestones
+                .find(
+                    milestone =>
+                        !milestone
+                            .reached
+                );
+
+        const claimableMilestones =
+            community
+                .milestones
+                .filter(
+                    milestone =>
+                        milestone
+                            .claimable
+                );
+
+        communityQuestCard
+            .innerHTML = `
+                <article
+                    class="community-quest-card ${
+                        community.progress
+                        >= community.target
+                            ? 'completed'
+                            : ''
+                    }"
+                >
+                    <div class="community-quest-heading">
+
+                        <div>
+                            <span class="eyebrow">
+                                RESEARCHER-LED GOAL
+                            </span>
+
+                            <h2>
+                                ${escapeHtml(community.title)}
+                            </h2>
+
+                            <p>
+                                ${escapeHtml(community.description)}
+                            </p>
+                        </div>
+
+                        <i class="fas fa-location-dot"></i>
+
                     </div>
-                    <i class="fas fa-location-dot"></i>
-                </div>
-                <div class="community-tracker">
-                    ${questProgressBar(community.progress, community.target)}
-                    <div class="community-milestones">${community.milestones.map(milestone => `
-                        <div class="community-milestone ${milestone.reached ? 'reached' : ''}" style="left: ${(milestone.target / community.target) * 100}%">
-                            <span class="community-milestone-dot"></span>
-                            <strong>${milestone.target.toLocaleString()}</strong>
-                            <small>+${milestone.reward} pts</small>
-                        </div>`).join('')}</div>
-                </div>
-                <div class="community-quest-total"><strong>${community.progress.toLocaleString()}</strong> / ${community.target.toLocaleString()} snaps</div>
-            </article>
-        `;
 
-        specialQuestList.innerHTML = quests.special.length
-            ? quests.special.map(quest => `
-                <article class="quest-card special-quest-card ${quest.completed ? 'completed' : ''}">
-                    <button class="special-quest-delete" type="button" data-special-quest-id="${quest.id}" aria-label="Remove ${escapeHtml(quest.plant)} quest"><i class="fas fa-xmark"></i></button>
-                    <div class="quest-card-icon"><i class="fas ${quest.completed ? 'fa-check' : 'fa-qrcode'}"></i></div>
-                    <div class="quest-card-body">
-                        <strong>${escapeHtml(quest.plant)} quest</strong>
-                        <p>${quest.tasks?.map(task => `${escapeHtml(task.plant)} × ${task.required_snaps}`).join(' · ') || 'Snap this quest target at the marked location.'}</p>
-                        ${questProgressBar(quest.progress, quest.target)}
-                        <span>${quest.progress} / ${quest.target} snaps</span>
+                    <div class="community-contribution-note">
+
+                        <i class="fas fa-leaf"></i>
+
+                        You have contributed
+
+                        <strong>
+                            ${Number(
+                                community.contribution
+                                || 0
+                            ).toLocaleString()}
+                        </strong>
+
+                        accepted sighting${
+                            Number(
+                                community.contribution
+                                || 0
+                            ) === 1
+                                ? ''
+                                : 's'
+                        }.
+
                     </div>
+
+                    <div class="community-tracker">
+
+                        ${
+                            questProgressBar(
+                                community.progress,
+                                community.target
+                            )
+                        }
+
+                        <div class="community-milestones">
+
+                            ${
+                                community
+                                    .milestones
+                                    .map(
+                                        milestone => `
+                                            <div
+                                                class="community-milestone ${
+                                                    milestone.reached
+                                                        ? 'reached'
+                                                        : ''
+                                                } ${
+                                                    milestone.claimed
+                                                        ? 'claimed'
+                                                        : ''
+                                                }"
+                                                style="left: ${
+                                                    (
+                                                        milestone.target
+                                                        / community.target
+                                                    )
+                                                    * 100
+                                                }%"
+                                            >
+                                                <span
+                                                    class="community-milestone-dot"
+                                                ></span>
+
+                                                <strong>
+                                                    ${milestone.target.toLocaleString()}
+                                                </strong>
+
+                                                <small>
+                                                    +${milestone.reward}
+                                                    coins
+                                                </small>
+                                            </div>
+                                        `
+                                    )
+                                    .join('')
+                            }
+
+                        </div>
+
+                    </div>
+
+                    <div class="community-quest-total">
+
+                        <strong>
+                            ${community.progress.toLocaleString()}
+                        </strong>
+
+                        /
+                        ${community.target.toLocaleString()}
+                        snaps
+
+                    </div>
+
+                    ${
+                        claimableMilestones.length
+
+                            ? `
+                                <div class="community-claim-box">
+
+                                    <strong>
+                                        Contributor rewards ready
+                                    </strong>
+
+                                    ${
+                                        claimableMilestones
+                                            .map(
+                                                milestone => `
+                                                    <button
+                                                        class="soft-btn community-claim-btn"
+                                                        data-community-target="${milestone.target}"
+                                                        type="button"
+                                                    >
+                                                        <i class="fas fa-gift"></i>
+
+                                                        Claim
+                                                        ${milestone.target.toLocaleString()}
+                                                        reward ·
+                                                        ${milestone.reward}
+                                                        coins +
+                                                        ${milestone.xp_reward}
+                                                        XP
+                                                    </button>
+                                                `
+                                            )
+                                            .join('')
+                                    }
+
+                                </div>
+                            `
+
+                            : `
+                                <div class="community-next-reward">
+
+                                    ${
+                                        Number(
+                                            community.contribution
+                                            || 0
+                                        ) <= 0
+
+                                            ? (
+                                                'Make one accepted '
+                                                + 'biodiversity snap '
+                                                + 'to become a '
+                                                + 'community contributor.'
+                                            )
+
+                                            : nextMilestone
+
+                                                ? (
+                                                    `Next contributor reward at `
+                                                    + `${nextMilestone.target.toLocaleString()} `
+                                                    + `sightings: `
+                                                    + `${nextMilestone.reward} coins `
+                                                    + `+ ${nextMilestone.xp_reward} XP.`
+                                                )
+
+                                                : (
+                                                    'All community '
+                                                    + 'milestones have '
+                                                    + 'been reached.'
+                                                )
+                                    }
+
+                                </div>
+                            `
+                    }
+
                 </article>
-            `).join('')
-            : '<div class="empty-state"><i class="fas fa-qrcode"></i><strong>No special quests yet</strong><span>Scan a sign or enter a code to add one.</span></div>';
+            `;
+
+        // -----------------------------------------
+        // Special
+        // -----------------------------------------
+
+        specialQuestList
+            .innerHTML =
+            quests.special.length
+
+                ? quests.special
+                    .map(
+                        quest => `
+                            <article
+                                class="quest-card special-quest-card ${
+                                    quest.completed
+                                        ? 'completed'
+                                        : ''
+                                }"
+                            >
+                                <button
+                                    class="special-quest-delete"
+                                    type="button"
+                                    data-special-quest-id="${quest.id}"
+                                    aria-label="Remove ${escapeHtml(quest.plant)} quest"
+                                >
+                                    <i class="fas fa-xmark"></i>
+                                </button>
+
+                                <div class="quest-card-icon">
+                                    <i class="fas ${
+                                        quest.completed
+                                            ? 'fa-check'
+                                            : 'fa-qrcode'
+                                    }"></i>
+                                </div>
+
+                                <div class="quest-card-body">
+
+                                    <strong>
+                                        ${escapeHtml(quest.plant)}
+                                        quest
+                                    </strong>
+
+                                    <p>
+                                        ${
+                                            quest.tasks
+                                                ?.map(
+                                                    task =>
+                                                        `${escapeHtml(task.plant)} × ${task.required_snaps}`
+                                                )
+                                                .join(' · ')
+                                            ||
+                                            'Snap this quest target at the marked location.'
+                                        }
+                                    </p>
+
+                                    ${
+                                        questProgressBar(
+                                            quest.progress,
+                                            quest.target
+                                        )
+                                    }
+
+                                    <span>
+                                        ${quest.progress}
+                                        /
+                                        ${quest.target}
+                                        snaps ·
+                                        ${quest.reward}
+                                        coins ·
+                                        ${quest.xp_reward}
+                                        XP
+                                    </span>
+
+                                </div>
+
+                            </article>
+                        `
+                    )
+                    .join('')
+
+                : `
+                    <div class="empty-state">
+                        <i class="fas fa-qrcode"></i>
+                        <strong>No special quests yet</strong>
+                        <span>
+                            Scan a sign or enter a code to add one.
+                        </span>
+                    </div>
+                `;
     }
 
-    async function claimDailyQuest(questKey) {
+
+    function applyQuestBalance(
+        data
+    ) {
+        if (
+            !data
+            || !data.balance
+        ) {
+            return;
+        }
+
+        points =
+            Number(
+                data
+                    .balance
+                    .coins
+                ?? points
+            );
+
+        score =
+            Number(
+                data
+                    .balance
+                    .xp
+                ?? score
+            );
+
+        renderEverything();
+    }
+
+
+    async function claimDailyQuest(
+        questKey
+    ) {
         try {
-            const data = await api(`/api/quests/daily/${encodeURIComponent(questKey)}/claim`, { method: 'POST' });
-            points += Number(data.reward || 0);
-            updateStats();
-            scheduleSave();
+            const data =
+                await api(
+                    `/api/quests/daily/${encodeURIComponent(questKey)}/claim`,
+                    {
+                        method:
+                            'POST'
+                    }
+                );
+
+            applyQuestBalance(
+                data
+            );
+
             await loadQuests();
-            showToast(`${data.title} reward claimed! +${data.reward} points.`, 'fa-star');
+
+            showToast(
+                `${data.title} complete! +${data.reward} coins and +${data.xp_reward} XP.`,
+                'fa-map-signs'
+            );
+
         } catch (error) {
-            showToast(error.message, 'fa-triangle-exclamation');
+            showToast(
+                error.message,
+                'fa-triangle-exclamation'
+            );
+        }
+    }
+
+
+    async function claimWeeklyQuest(
+        questKey
+    ) {
+        try {
+            const data =
+                await api(
+                    `/api/quests/weekly/${encodeURIComponent(questKey)}/claim`,
+                    {
+                        method:
+                            'POST'
+                    }
+                );
+
+            applyQuestBalance(
+                data
+            );
+
+            await loadQuests();
+
+            showToast(
+                `${data.title} complete! +${data.reward} coins and +${data.xp_reward} XP.`,
+                'fa-calendar-week'
+            );
+
+        } catch (error) {
+            showToast(
+                error.message,
+                'fa-triangle-exclamation'
+            );
+        }
+    }
+
+
+    async function claimCommunityMilestone(
+        target
+    ) {
+        try {
+            const data =
+                await api(
+                    `/api/quests/community/${Number(target)}/claim`,
+                    {
+                        method:
+                            'POST'
+                    }
+                );
+
+            applyQuestBalance(
+                data
+            );
+
+            await loadQuests();
+
+            showToast(
+                `Community reward claimed! +${data.reward} coins and +${data.xp_reward} XP.`,
+                'fa-people-group'
+            );
+
+        } catch (error) {
+            showToast(
+                error.message,
+                'fa-triangle-exclamation'
+            );
         }
     }
 
@@ -986,8 +2512,23 @@
     function renderGarden() {
         plotGrid.innerHTML = '';
 
+        const unlockedPlots = Math.max(
+            0,
+            Math.min(
+                MAX_SLOTS,
+                Number(
+                    gardenProgression
+                        .unlockedPlots
+                    || 4
+                )
+            )
+        );
+
         gardenSlots.forEach(
             (item, index) => {
+                const locked =
+                    index >=
+                    unlockedPlots;
 
                 const plot =
                     document.createElement(
@@ -997,14 +2538,59 @@
                 plot.type =
                     'button';
 
-                plot.className =
-                    `plot ${item
-                        ? `filled rarity-${item.rarity} kind-${item.kind}`
-                        : 'empty-plot'
-                    }`;
-
                 plot.dataset.slot =
                     index;
+
+                if (locked) {
+                    plot.className =
+                        'plot locked-plot';
+
+                    plot.setAttribute(
+                        'aria-label',
+                        `Plot ${index + 1}: locked. Upgrade your garden to unlock this plot.`
+                    );
+
+                    plot.innerHTML = `
+                        <i class="fas fa-lock"></i>
+                        <span>
+                            Level ${
+                                gardenProgression
+                                    .nextLevel
+                                || gardenProgression
+                                    .level
+                            }
+                        </span>
+                    `;
+
+                    plot.addEventListener(
+                        'click',
+                        () => {
+                            const nextLevel =
+                                gardenProgression
+                                    .nextLevel;
+
+                            showToast(
+                                nextLevel
+                                    ? `Upgrade your garden to Level ${nextLevel} to unlock more plots.`
+                                    : 'This plot is not available yet.',
+                                'fa-lock'
+                            );
+                        }
+                    );
+
+                    plotGrid.appendChild(
+                        plot
+                    );
+
+                    return;
+                }
+
+                plot.className =
+                    `plot ${
+                        item
+                            ? `filled rarity-${item.rarity} kind-${item.kind}`
+                            : 'empty-plot'
+                    }`;
 
                 plot.setAttribute(
                     'aria-label',
@@ -1053,13 +2639,733 @@
 
         const occupied =
             gardenSlots
+                .slice(
+                    0,
+                    unlockedPlots
+                )
                 .filter(Boolean)
                 .length;
 
         plantCounter.textContent =
-            `${occupied} / ${MAX_SLOTS} placed`;
+            `${occupied} / ${unlockedPlots} placed`;
+
+        if (homeGardenLevel) {
+            homeGardenLevel.textContent = gardenProgression.level;
+        }
+
+        if (homeGardenPlotsText) {
+            homeGardenPlotsText.textContent = `${occupied} / ${unlockedPlots} occupied`;
+        }
+
+        if (homeGardenStrip) {
+            const filled = gardenSlots.filter(Boolean).slice(0, 6);
+            homeGardenStrip.innerHTML = filled.length
+                ? filled.map(item => `<span class="home-garden-strip-item">${renderIcon(item.icon)}</span>`).join('')
+                : '<span class="home-garden-strip-empty">Plant your first seed to fill this strip.</span>';
+        }
     }
 
+
+    function getPlayerProgression() {
+        const xp =
+            Math.max(
+                0,
+                Number(
+                    score
+                    || 0
+                )
+            );
+
+        let current =
+            PLAYER_LEVELS[0];
+
+        for (
+            const level
+            of PLAYER_LEVELS
+        ) {
+            if (
+                xp >=
+                level.minXp
+            ) {
+                current =
+                    level;
+
+            } else {
+                break;
+            }
+        }
+
+        const currentIndex =
+            PLAYER_LEVELS.findIndex(
+                level =>
+                    level.level ===
+                    current.level
+            );
+
+        const next =
+            PLAYER_LEVELS[
+                currentIndex + 1
+            ]
+            || null;
+
+        const startXp =
+            current.minXp;
+
+        const endXp =
+            next
+                ? next.minXp
+                : startXp;
+
+        const range =
+            Math.max(
+                1,
+                endXp - startXp
+            );
+
+        const progress =
+            next
+                ? Math.max(
+                    0,
+                    Math.min(
+                        100,
+                        (
+                            (
+                                xp
+                                - startXp
+                            )
+                            / range
+                        )
+                        * 100
+                    )
+                )
+                : 100;
+
+        return {
+            xp,
+            current,
+            next,
+            progress
+        };
+    }
+
+
+    function nextUnlockCopy(level) {
+        if (level < 2) {
+            return (
+                'Next: Seed store at Level 2'
+            );
+        }
+
+        if (level < 3) {
+            return (
+                'Next: Wildlife at Level 3'
+            );
+        }
+
+        if (level < 4) {
+            return (
+                'Next: Special field quests at Level 4'
+            );
+        }
+
+        if (level < 5) {
+            return (
+                'Next: Rare habitats at Level 5'
+            );
+        }
+
+        return (
+            'Keep exploring to raise your naturalist rank'
+        );
+    }
+
+
+    function renderProgression() {
+        const player =
+            getPlayerProgression();
+
+        if (playerLevelLabel) {
+            playerLevelLabel.textContent =
+                `Level ${player.current.level}`;
+        }
+
+        if (playerLevelTitle) {
+            playerLevelTitle.textContent =
+                player.current.title;
+        }
+
+        if (playerXpTotal) {
+            playerXpTotal.textContent =
+                player.xp
+                    .toLocaleString();
+        }
+
+        if (playerXpProgress) {
+            playerXpProgress
+                .style
+                .width =
+                `${player.progress}%`;
+        }
+
+        if (playerXpText) {
+            playerXpText.textContent =
+                player.next
+                    ? `${player.xp.toLocaleString()} / ${player.next.minXp.toLocaleString()} XP`
+                    : `${player.xp.toLocaleString()} XP · maximum rank`;
+        }
+
+        if (playerNextUnlock) {
+            playerNextUnlock.textContent =
+                nextUnlockCopy(
+                    player.current.level
+                );
+        }
+
+        const unlockedPlots =
+            Number(
+                gardenProgression
+                    .unlockedPlots
+                || 4
+            );
+
+        if (gardenLevelLabel) {
+            gardenLevelLabel.textContent =
+                `Garden Level ${gardenProgression.level}`;
+        }
+
+        if (gardenPlotSummary) {
+            gardenPlotSummary.textContent =
+                `${unlockedPlots} plots unlocked`;
+        }
+
+        if (
+            gardenUpgradeButton
+            && gardenUpgradeText
+            && gardenUpgradeHint
+        ) {
+            if (
+                gardenProgression
+                    .nextLevel == null
+            ) {
+                gardenUpgradeButton
+                    .disabled =
+                    true;
+
+                gardenUpgradeText
+                    .textContent =
+                    'Fully expanded';
+
+                gardenUpgradeHint
+                    .innerHTML =
+                    '<i class="fas fa-circle-check"></i> All 16 garden plots unlocked';
+
+            } else {
+                const cost =
+                    Number(
+                        gardenProgression
+                            .nextCost
+                        || 0
+                    );
+
+                const nextPlots =
+                    Number(
+                        gardenProgression
+                            .nextPlots
+                        || unlockedPlots
+                    );
+
+                gardenUpgradeButton
+                    .disabled =
+                    false;
+
+                gardenUpgradeText
+                    .textContent =
+                    `Level ${gardenProgression.nextLevel} · ${cost} coins`;
+
+                gardenUpgradeHint
+                    .innerHTML =
+                    `<i class="fas fa-lock-open"></i> Next upgrade unlocks ${nextPlots} plots`;
+            }
+        }
+    }
+
+
+    function formatMultiplier(
+        value
+    ) {
+        const number =
+            Number(
+                value
+                || 1
+            );
+
+        return Number.isInteger(
+            number
+        )
+            ? number.toFixed(0)
+            : String(number);
+    }
+
+
+    function renderBiodiversity() {
+
+        const count =
+            Math.max(
+                0,
+                Number(
+                    biodiversity
+                        .todayUnique
+                    || 0
+                )
+            );
+
+        const multiplier =
+            Number(
+                biodiversity
+                    .multiplier
+                || 1
+            );
+
+        if (
+            biodiversityStreakCount
+        ) {
+            biodiversityStreakCount
+                .textContent =
+                count;
+        }
+
+        if (
+            biodiversityMultiplier
+        ) {
+            biodiversityMultiplier
+                .textContent =
+                `×${formatMultiplier(multiplier)}`;
+        }
+
+        if (
+            biodiversityTotalUnique
+        ) {
+            const total =
+                Math.max(
+                    0,
+                    Number(
+                        biodiversity
+                            .totalUnique
+                        || 0
+                    )
+                );
+
+            biodiversityTotalUnique
+                .textContent =
+                `${total} species discovered overall`;
+        }
+
+        if (
+            biodiversityStreakTrack
+        ) {
+            biodiversityStreakTrack
+                .innerHTML =
+                Array.from(
+                    {
+                        length: 10
+                    },
+
+                    (
+                        _,
+                        index
+                    ) => {
+                        const number =
+                            index + 1;
+
+                        const active =
+                            number
+                            <= count;
+
+                        const milestone =
+                            number === 3
+                            || number === 5
+                            || number === 10;
+
+                        return `
+                            <span
+                                class="biodiversity-streak-dot ${
+                                    active
+                                        ? 'active'
+                                        : ''
+                                } ${
+                                    milestone
+                                        ? 'milestone'
+                                        : ''
+                                }"
+                                title="${number} unique species"
+                            ></span>
+                        `;
+                    }
+                )
+                .join('');
+        }
+
+        if (
+            biodiversityNextBonus
+        ) {
+
+            if (
+                biodiversity
+                    .nextTarget
+                == null
+            ) {
+                biodiversityNextBonus
+                    .textContent =
+                    'Maximum ×2 biodiversity bonus reached for today.';
+
+            } else {
+                const target =
+                    Number(
+                        biodiversity
+                            .nextTarget
+                    );
+
+                const remaining =
+                    Math.max(
+                        0,
+                        target
+                        - count
+                    );
+
+                biodiversityNextBonus
+                    .textContent =
+                    `Find ${remaining} more different ${
+                        remaining === 1
+                            ? 'species'
+                            : 'species'
+                    } today to reach ×${
+                        formatMultiplier(
+                            biodiversity
+                                .nextMultiplier
+                        )
+                    }.`;
+            }
+        }
+    }
+
+
+
+    function renderNextGoal() {
+
+        if (
+            !nextGoalCard
+        ) {
+            return;
+        }
+
+        const player =
+            getPlayerProgression();
+
+        const nextGardenLevel =
+            gardenProgression
+                .nextLevel;
+
+
+        if (
+            nextGardenLevel
+            != null
+        ) {
+            const cost =
+                Number(
+                    gardenProgression
+                        .nextCost
+                    || 0
+                );
+
+            const nextPlots =
+                Number(
+                    gardenProgression
+                        .nextPlots
+                    || gardenProgression
+                        .unlockedPlots
+                );
+
+            const currentPlots =
+                Number(
+                    gardenProgression
+                        .unlockedPlots
+                    || 0
+                );
+
+            const percent =
+                cost > 0
+
+                    ? Math.min(
+                        100,
+
+                        Math.max(
+                            0,
+                            (
+                                points
+                                / cost
+                            )
+                            * 100
+                        )
+                    )
+
+                    : 100;
+
+            nextGoalTitle
+                .textContent =
+                `Upgrade Garden → Level ${nextGardenLevel}`;
+
+            nextGoalIcon
+                .innerHTML =
+                '<i class="fas fa-seedling"></i>';
+
+            nextGoalProgressFill
+                .style
+                .width =
+                `${percent}%`;
+
+            nextGoalProgressText
+                .textContent =
+                `${Math.min(
+                    points,
+                    cost
+                ).toLocaleString()} / ${cost.toLocaleString()} coins`;
+
+            const extraPlots = Math.max(0, nextPlots - currentPlots);
+            nextGoalUnlocks.textContent = extraPlots > 0
+                ? `Unlocks ${extraPlots} more garden plots.`
+                : (gardenProgression.nextTierName ? `Unlocks ${gardenProgression.nextTierName}.` : 'Unlocks the next conservation tier.');
+
+            if (
+                points
+                >= cost
+            ) {
+                nextGoalButton
+                    .dataset
+                    .action =
+                    'upgrade';
+
+                nextGoalButton
+                    .innerHTML =
+                    '<i class="fas fa-arrow-up"></i><span>Upgrade now</span>';
+
+            } else {
+                nextGoalButton
+                    .dataset
+                    .action =
+                    'quests';
+
+                nextGoalButton
+                    .innerHTML =
+                    '<i class="fas fa-map-signs"></i><span>Earn coins in quests</span>';
+            }
+
+            return;
+        }
+
+        if (
+            player.next
+        ) {
+            const currentXp =
+                Number(
+                    player.xp
+                    || 0
+                );
+
+            const targetXp =
+                Number(
+                    player.next
+                        .minXp
+                    || currentXp
+                );
+
+            const startXp =
+                Number(
+                    player.current
+                        .minXp
+                    || 0
+                );
+
+            const span =
+                Math.max(
+                    1,
+                    targetXp
+                    - startXp
+                );
+
+            const percent =
+                Math.min(
+                    100,
+
+                    Math.max(
+                        0,
+                        (
+                            (
+                                currentXp
+                                - startXp
+                            )
+                            / span
+                        )
+                        * 100
+                    )
+                );
+
+            nextGoalTitle
+                .textContent =
+                `Reach Level ${player.next.level} · ${player.next.title}`;
+
+            nextGoalIcon
+                .innerHTML =
+                '<i class="fas fa-compass"></i>';
+
+            nextGoalProgressFill
+                .style
+                .width =
+                `${percent}%`;
+
+            nextGoalProgressText
+                .textContent =
+                `${currentXp.toLocaleString()} / ${targetXp.toLocaleString()} XP`;
+
+            nextGoalUnlocks
+                .textContent =
+                nextUnlockCopy(
+                    player.current
+                        .level
+                );
+
+            nextGoalButton
+                .dataset
+                .action =
+                'snap';
+
+            nextGoalButton
+                .innerHTML =
+                '<i class="fas fa-camera"></i><span>Go exploring</span>';
+
+            return;
+        }
+
+        nextGoalTitle
+            .textContent =
+            'Complete this week’s fieldwork';
+
+        nextGoalIcon
+            .innerHTML =
+            '<i class="fas fa-calendar-week"></i>';
+
+        nextGoalProgressFill
+            .style
+            .width =
+            '100%';
+
+        nextGoalProgressText
+            .textContent =
+            'Maximum garden and player rank reached';
+
+        nextGoalUnlocks
+            .textContent =
+            (
+                'Weekly and community quests '
+                + 'keep earning coins and XP.'
+            );
+
+        nextGoalButton
+            .dataset
+            .action =
+            'quests';
+
+        nextGoalButton
+            .innerHTML =
+            '<i class="fas fa-map-signs"></i><span>View quests</span>';
+    }
+
+
+    async function upgradeGarden() {
+        if (
+            gardenProgression
+                .nextLevel == null
+        ) {
+            showToast(
+                'Your garden is already fully expanded.',
+                'fa-circle-check'
+            );
+
+            return;
+        }
+
+        const cost =
+            Number(
+                gardenProgression
+                    .nextCost
+                || 0
+            );
+
+        if (
+            points <
+            cost
+        ) {
+            showToast(
+                `You need ${cost} coins for the next garden upgrade.`,
+                'fa-coins'
+            );
+
+            return;
+        }
+
+        if (gardenUpgradeButton) {
+            gardenUpgradeButton
+                .disabled =
+                true;
+        }
+
+        try {
+            const data =
+                await api(
+                    '/api/garden/upgrade',
+                    {
+                        method:
+                            'POST'
+                    }
+                );
+
+            points =
+                Number(
+                    data.points
+                    || 0
+                );
+
+            gardenProgression = {
+                ...gardenProgression,
+                ...data.garden
+            };
+
+            renderEverything();
+
+            scheduleSave();
+
+            showToast(
+                `Garden upgraded to Level ${gardenProgression.level}! ${gardenProgression.unlockedPlots} plots are now available.`,
+                'fa-arrow-up'
+            );
+
+        } catch (error) {
+            showToast(
+                error.message,
+                'fa-triangle-exclamation'
+            );
+
+        } finally {
+            if (
+                gardenUpgradeButton
+                && gardenProgression
+                    .nextLevel != null
+            ) {
+                gardenUpgradeButton
+                    .disabled =
+                    false;
+            }
+        }
+    }
     // =========================================================
     // STATS / PROFILE
     // =========================================================
@@ -1443,134 +3749,46 @@
         return 'common';
     }
 
+
+
     async function pullGacha() {
-        if (
-            points < 60
-        ) {
-            showToast(
-                'You need 60 points to open a seed packet.',
-                'fa-star'
-            );
-
-            return;
-        }
-
-        points -= 60;
-
-        const rarity =
-            getRandomRarity();
-
-        const pool =
-            PLANT_POOL.filter(
-                item =>
-                    item.rarity ===
-                    rarity
-            );
-
-        const plant =
-            pool[
-            Math.floor(
-                Math.random() *
-                pool.length
-            )
-            ];
-
-        const config =
-            RARITY_CONFIG[
-            rarity
-            ];
-
-        const alreadyUnlocked =
-            collection.some(
-                item =>
-                    item.key ===
-                    plant.key
-            );
-
-        // Only add it to the permanent collection once.
-        if (!alreadyUnlocked) {
-            collection.push({
-                ...plant
-            });
-        }
-
-        // Duplicate pulls still give score.
-        score +=
-            config.points;
-
-        latestPlant = {
-            name:
-                plant.name,
-
-            rarity:
-                plant.rarity
-        };
-
-        gachaResult.innerHTML = `
-            <div class="result-card rarity-${rarity}">
-
-                <div class="result-burst">
-                    ${config.emoji}
-                </div>
-
-                <div class="result-icon">
-                    ${renderIcon(plant.icon)}
-                </div>
-
-                <div class="result-kicker">
-                    ${alreadyUnlocked
-                ? 'You found another'
-                : 'New plant unlocked!'
+        if (typeof getPlayerProgression === 'function') {
+            const player = getPlayerProgression();
+            if (player.current && player.current.level < 2) {
+                showToast('The Seed store unlocks at Player Level 2.', 'fa-lock');
+                return;
             }
-                </div>
-
-                <div class="result-name">
-                    ${escapeHtml(plant.name)}
-                </div>
-
-                <div class="result-rarity">
-                    ${config.label}
-                </div>
-
-                <div class="result-score">
-                    +${config.points} score
-                </div>
-
-                <div class="result-note">
-                    ${alreadyUnlocked
-                ? 'Already in your collection — score still awarded.'
-                : 'Tap a garden plot on Home to place it.'
-            }
-                </div>
-
-            </div>
-        `;
-
+        }
+        gachaButton.disabled = true;
         try {
-            const data = await api('/api/quests/event', {
-                method: 'POST',
-                body: JSON.stringify({ event: 'gacha' })
-            });
-            points += Number(data.questUpdate?.reward || 0);
-            if (data.questUpdate?.completed?.length) {
-                showToast(`Quest complete! +${data.questUpdate.reward} points.`, 'fa-map-signs');
-            }
+            const data = await api('/api/gacha/pull-v2', { method: 'POST' });
+            const plant = data.plant;
+            const rarity = data.rarity;
+            const config = RARITY_CONFIG[rarity] || RARITY_CONFIG.common;
+            if (data.state) loadState(data.state);
+            rarityAccess = data.rarityAccess || rarityAccess;
+            renderRarityAccess();
+            gachaResult.innerHTML = `
+                <div class="result-card rarity-${rarity}">
+                    <div class="result-burst">${config.emoji}</div>
+                    <div class="result-icon">${renderIcon(plant.icon)}</div>
+                    <div class="result-kicker">${data.alreadyOwned ? 'You found another' : 'New plant unlocked!'}</div>
+                    <div class="result-name">${escapeHtml(plant.name)}</div>
+                    <div class="result-rarity">${config.label}</div>
+                    <div class="result-score">+${Number(data.rewardXp || 0)} XP</div>
+                    <div class="result-note">${data.alreadyOwned ? 'Already in your collection — XP still awarded.' : 'Tap a garden plot on Home to place it.'}</div>
+                </div>`;
+            const questCoins = Number(data.questUpdate?.reward || 0);
+            const questXp = Number(data.questUpdate?.xp_reward || 0);
+            const questText = (questCoins || questXp) ? ` Quest bonus: +${questCoins} coins${questXp ? ` and +${questXp} XP` : ''}.` : '';
+            showToast(data.alreadyOwned ? `${plant.name} duplicate — +${data.rewardXp} XP.${questText}` : `${plant.name} unlocked! ${config.label} seed.${questText}`, 'fa-gift');
+            await loadQuests();
+            await loadAchievements();
         } catch (error) {
-            console.error('Could not update quest progress:', error);
+            showToast(error.message, 'fa-triangle-exclamation');
+        } finally {
+            gachaButton.disabled = false;
         }
-
-        renderEverything();
-
-        scheduleSave();
-        await loadQuests();
-
-        showToast(
-            alreadyUnlocked
-                ? `${plant.name} was already unlocked — +${config.points} score.`
-                : `${plant.name} added to your collection!`,
-
-            'fa-gift'
-        );
     }
 
     // =========================================================
@@ -1702,7 +3920,7 @@
             } else {
 
                 showCameraError(
-                    'GardenQuest could not open the camera.'
+                    'Djilba could not open the camera.'
                 );
 
             }
@@ -1858,7 +4076,7 @@
             false;
 
         usePhotoButton.innerHTML =
-            '<i class="fas fa-check"></i> Use photo <span>+10 ★</span>';
+            '<i class="fas fa-check"></i> Use photo <span>+10 XP · +15 coins</span>';
 
 
         capturedPhoto.src =
@@ -1914,13 +4132,18 @@
         }
 
         usePhotoButton.disabled = true;
-        cameraStatus.textContent = 'Identifying your plant...';
+        cameraStatus.textContent = 'Getting your current location...';
         cameraStatus.classList.remove('hidden');
 
         try {
+            const location = await getCurrentLocation();
+            cameraStatus.textContent = 'Identifying and logging your plant...';
             const imageBlob = await fetch(capturedImageData).then(response => response.blob());
             const formData = new FormData();
-            formData.append('image', imageBlob, 'gardenquest-snap.jpg');
+            formData.append('image', imageBlob, 'djilba-snap.jpg');
+            formData.append('latitude', String(location.latitude));
+            formData.append('longitude', String(location.longitude));
+            formData.append('accuracy', String(location.accuracy || 0));
 
             const data = await api('/api/identify', {
                 method: 'POST',
@@ -1931,15 +4154,118 @@
             identifiedPlantName.textContent = identification.common_name || identification.scientific_name;
             identifiedPlantDetails.textContent = identification.common_name
                 ? identification.scientific_name
-                : 'PlantNet match';
+                : 'Djilba field-note match';
             cameraIdentification.classList.remove('hidden');
             cameraStatus.classList.add('hidden');
 
-            points += 10 + Number(data.questUpdate?.reward || 0);
+            const questCoins =
+                Number(
+                    data.questUpdate?.reward
+                    || 0
+                );
+
+            const questXp =
+                Number(
+                    data.questUpdate?.xp_reward
+                    || 0
+                );
+
+            const reward =
+                data.reward
+                || {};
+
+            const rewardCoins =
+                Number(
+                    reward.coins
+                    || 0
+                );
+
+            const rewardXp =
+                Number(
+                    reward.xp
+                    || 0
+                );
+
+            // Flask now returns the authoritative
+            // post-snap balances.
+
+            if (
+                data.balance
+            ) {
+                points =
+                    Number(
+                        data.balance.coins
+                        ?? points
+                    );
+
+                score =
+                    Number(
+                        data.balance.xp
+                        ?? score
+                    );
+            }
+
+            if (
+                data.biodiversity
+            ) {
+                biodiversity = {
+                    ...biodiversity,
+                    ...data.biodiversity
+                };
+            }
+
             updateStats();
-            scheduleSave();
-            usePhotoButton.innerHTML = '<i class="fas fa-check"></i> Identified <span>+10 ★</span>';
-            showToast(`Identified as ${identification.common_name || identification.scientific_name}! +10 points.`, 'fa-leaf');
+            renderProgression();
+            renderBiodiversity();
+
+            usePhotoButton.innerHTML =
+                `<i class="fas fa-check"></i> Logged <span>+${rewardXp} XP · +${rewardCoins} coins</span>`;
+
+            if (data.observation) {
+                mapPlants = [
+                    data.observation,
+                    ...mapPlants.filter(item => item.id !== data.observation.id)
+                ];
+                renderMapPlants({ focusObservation: data.observation });
+            } else {
+                await loadMapPlants();
+            }
+
+            const remaining = Number(data.remaining_at_location);
+            const remainingText = Number.isFinite(remaining)
+                ? ` ${remaining} more of this species can be logged near here.`
+                : '';
+            const rewardLabel =
+                reward.label
+                || 'Biodiversity sighting';
+
+            const multiplierText =
+                Number(
+                    reward.multiplier
+                    || 1
+                ) > 1
+
+                    ? ` ×${formatMultiplier(
+                        reward.multiplier
+                    )} streak bonus!`
+
+                    : '';
+
+            const questText =
+                (
+                    questCoins
+                    || questXp
+                )
+
+                    ? ` Quest bonus: +${questCoins} coins${questXp ? ` and +${questXp} XP` : ''}.`
+
+                    : '';
+
+            showToast(
+                `${rewardLabel}: +${rewardXp} XP and +${rewardCoins} coins.${multiplierText}${questText}${remainingText}`,
+                'fa-location-dot'
+            );
+            await syncExplorationProgress();
             await loadQuests();
 
             // Reload achievements after snap
@@ -2024,7 +4350,7 @@
         identifiedPlantName.textContent = '';
         identifiedPlantDetails.textContent = '';
         usePhotoButton.disabled = false;
-        usePhotoButton.innerHTML = '<i class="fas fa-check"></i> Use photo <span>+10 ★</span>';
+        usePhotoButton.innerHTML = '<i class="fas fa-check"></i> Use photo <span>+10 XP · +15 coins</span>';
     }
 
 
@@ -2045,99 +4371,950 @@
     // STORE
     // =========================================================
 
-    function renderStore() {
-        document
-            .querySelectorAll(
-                '.store-item'
-            )
-            .forEach(
-                button => {
 
-                    const owned =
-                        collection.some(
-                            item =>
-                                item.key ===
-                                button.dataset.key
-                        );
 
-                    button.classList.toggle(
-                        'owned',
-                        owned
-                    );
-
-                    const cost =
-                        button.querySelector(
-                            '.cost'
-                        );
-
-                    cost.textContent =
-                        owned
-                            ? 'Owned ✓'
-                            : `${button.dataset.cost} ★`;
-                }
-            );
+    function strategyRequirement(
+        met,
+        icon,
+        text
+    ) {
+        return `
+            <span class="strategy-requirement ${met ? 'met' : ''}">
+                <i class="fas ${met ? 'fa-circle-check' : icon}"></i>
+                ${escapeHtml(text)}
+            </span>
+        `;
     }
 
-    function buyDecor(button) {
-        const key =
-            button.dataset.key;
+
+    function renderGardenStrategy() {
 
         if (
-            collection.some(
-                item =>
-                    item.key === key
+            structureSummary
+        ) {
+            structureSummary.textContent =
+                `${Number(gardenStrategy.builtCount || 0)} / ${Number(gardenStrategy.totalStructures || 4)} built`;
+        }
+
+        const gachaPrice =
+            document.querySelector(
+                '.gacha-price'
+            );
+
+        if (
+            gachaPrice
+        ) {
+            const cost =
+                Number(
+                    gardenStrategy.seedPacketCost
+                    || 60
+                );
+
+            gachaPrice.innerHTML =
+                `<i class="fas fa-coins"></i> ${cost} coins · unlocks Level 2${cost < 60 ? ' · Nursery active' : ''}`;
+        }
+
+        if (
+            gardenEffectsList
+        ) {
+            const effects =
+                Array.isArray(
+                    gardenStrategy.activeEffects
+                )
+                    ? gardenStrategy.activeEffects
+                    : [];
+
+            gardenEffectsList.innerHTML =
+                effects.length
+                    ? effects.map(
+                        effect => `
+                            <div class="active-effect-chip">
+                                <i class="fas ${escapeClass(effect.icon)}"></i>
+                                <span>
+                                    <strong>${escapeHtml(effect.source)}</strong>
+                                    ${escapeHtml(effect.effect)}
+                                </span>
+                            </div>
+                        `
+                    ).join('')
+                    : `
+                        <div class="strategy-empty-effect">
+                            <i class="fas fa-circle-info"></i>
+                            Place a passive plant or built structure in the garden to activate an effect.
+                        </div>
+                    `;
+        }
+
+        if (
+            gardenPassiveList
+        ) {
+            const passives =
+                Array.isArray(
+                    gardenStrategy.plantPassives
+                )
+                    ? gardenStrategy.plantPassives
+                    : [];
+
+            gardenPassiveList.innerHTML =
+                passives.map(
+                    passive => {
+                        let status = 'Not owned';
+
+                        if (
+                            passive.placed
+                        ) {
+                            status = 'Active';
+
+                        } else if (
+                            passive.owned
+                        ) {
+                            status = 'Owned · place it';
+                        }
+
+                        return `
+                            <div class="passive-row ${passive.placed ? 'active' : ''}">
+                                <div class="passive-row-icon">
+                                    <i class="fas ${escapeClass(passive.icon)}"></i>
+                                </div>
+
+                                <div class="passive-row-copy">
+                                    <strong>${escapeHtml(passive.name)}</strong>
+                                    <span>${escapeHtml(passive.effect)}</span>
+                                </div>
+
+                                <small>${escapeHtml(status)}</small>
+                            </div>
+                        `;
+                    }
+                ).join('');
+        }
+
+        if (
+            structureGrid
+        ) {
+            const structures =
+                Array.isArray(
+                    gardenStrategy.structures
+                )
+                    ? gardenStrategy.structures
+                    : [];
+
+            structureGrid.innerHTML =
+                structures.map(
+                    structure => {
+                        const built = Boolean(structure.built);
+                        const placed = Boolean(structure.placed);
+                        const canBuild = Boolean(structure.canBuild);
+
+                        let actionLabel = '';
+
+                        if (
+                            placed
+                        ) {
+                            actionLabel = 'Active in garden';
+
+                        } else if (
+                            built
+                        ) {
+                            actionLabel = 'Built · place from Collection';
+
+                        } else if (
+                            canBuild
+                        ) {
+                            actionLabel = `Build · ${Number(structure.cost).toLocaleString()} coins`;
+
+                        } else {
+                            actionLabel = 'Requirements locked';
+                        }
+
+                        return `
+                            <article class="structure-card ${placed ? 'active' : built ? 'built' : canBuild ? 'ready' : 'locked'}">
+
+                                <div class="structure-card-head">
+                                    <div class="structure-icon">
+                                        <i class="fas ${escapeClass(structure.icon)}"></i>
+                                    </div>
+
+                                    <div>
+                                        <span class="eyebrow">
+                                            ${placed ? 'ACTIVE STRUCTURE' : built ? 'BUILT' : 'GARDEN STRUCTURE'}
+                                        </span>
+                                        <h3>${escapeHtml(structure.name)}</h3>
+                                    </div>
+                                </div>
+
+                                <p>${escapeHtml(structure.description)}</p>
+
+                                <div class="structure-effect">
+                                    <i class="fas fa-bolt"></i>
+                                    ${escapeHtml(structure.effect)}
+                                </div>
+
+                                <div class="structure-requirements">
+                                    ${strategyRequirement(
+                                        structure.playerLevelMet,
+                                        'fa-lock',
+                                        `Player Level ${structure.requiredPlayerLevel}`
+                                    )}
+
+                                    ${strategyRequirement(
+                                        structure.gardenLevelMet,
+                                        'fa-seedling',
+                                        `Garden Level ${structure.requiredGardenLevel}`
+                                    )}
+
+                                    ${structure.requiredUniqueSpecies > 0
+                                        ? strategyRequirement(
+                                            structure.uniqueSpeciesMet,
+                                            'fa-leaf',
+                                            `${structure.requiredUniqueSpecies} species discovered`
+                                        )
+                                        : ''}
+                                </div>
+
+                                <button
+                                    class="${canBuild ? 'primary-btn' : 'soft-btn'} structure-build-btn"
+                                    type="button"
+                                    data-structure-key="${escapeHtml(structure.key)}"
+                                    ${built || !canBuild ? 'disabled' : ''}
+                                >
+                                    <i class="fas ${placed ? 'fa-bolt' : built ? 'fa-check' : canBuild ? 'fa-hammer' : 'fa-lock'}"></i>
+                                    ${escapeHtml(actionLabel)}
+                                </button>
+
+                            </article>
+                        `;
+                    }
+                ).join('');
+        }
+    }
+
+
+    async function buildStructure(
+        structureKey
+    ) {
+        const structure =
+            (gardenStrategy.structures || [])
+                .find(
+                    item =>
+                        item.key === structureKey
+                );
+
+        if (
+            !structure
+        ) {
+            showToast(
+                'That structure could not be found.',
+                'fa-triangle-exclamation'
+            );
+            return;
+        }
+
+        if (
+            structure.built
+        ) {
+            showToast(
+                `${structure.name} is already built. Place it from Collection to activate it.`,
+                'fa-check'
+            );
+            return;
+        }
+
+        if (
+            !structure.canBuild
+        ) {
+            if (
+                !structure.playerLevelMet
+            ) {
+                showToast(
+                    `Reach Player Level ${structure.requiredPlayerLevel} first.`,
+                    'fa-lock'
+                );
+
+            } else if (
+                !structure.gardenLevelMet
+            ) {
+                showToast(
+                    `Upgrade your garden to Level ${structure.requiredGardenLevel} first.`,
+                    'fa-seedling'
+                );
+
+            } else if (
+                !structure.uniqueSpeciesMet
+            ) {
+                showToast(
+                    `Discover ${structure.requiredUniqueSpecies} different species first.`,
+                    'fa-leaf'
+                );
+
+            } else {
+                showToast(
+                    `You need ${structure.cost} coins to build ${structure.name}.`,
+                    'fa-coins'
+                );
+            }
+
+            return;
+        }
+
+        try {
+            const data =
+                await api(
+                    `/api/structures/${encodeURIComponent(structureKey)}/build`,
+                    {
+                        method: 'POST'
+                    }
+                );
+
+            if (
+                data.state
+            ) {
+                loadState(
+                    data.state
+                );
+            }
+
+            showToast(
+                data.message,
+                'fa-hammer'
+            );
+
+        } catch (error) {
+            showToast(
+                error.message,
+                'fa-triangle-exclamation'
+            );
+        }
+    }
+
+
+    function habitatRequirementMarkup(
+        met,
+        icon,
+        text
+    ) {
+        return `
+            <div
+                class="habitat-requirement ${
+                    met
+                        ? 'met'
+                        : ''
+                }"
+            >
+                <i class="fas ${
+                    met
+                        ? 'fa-circle-check'
+                        : icon
+                }"></i>
+
+                <span>
+                    ${escapeHtml(text)}
+                </span>
+            </div>
+        `;
+    }
+
+
+    function getNextHabitatGoal() {
+
+        const items =
+            Array.isArray(
+                habitats.items
             )
-        ) {
-            showToast(
-                'You already own this decoration.',
-                'fa-heart'
-            );
+                ? habitats.items
+                : [];
 
-            return;
-        }
+        return (
+            items.find(
+                item =>
+                    !item.built
+                    && item.playerLevelMet
+                    && item.gardenLevelMet
+                    && item.uniqueSpeciesMet
+            )
+            || null
+        );
+    }
 
-        const cost =
-            Number(
-                button.dataset.cost
-            );
+
+
+    function habitatRequirementMarkup(
+        met,
+        icon,
+        text
+    ) {
+        return `
+            <div
+                class="habitat-requirement ${
+                    met
+                        ? 'met'
+                        : ''
+                }"
+            >
+                <i class="fas ${
+                    met
+                        ? 'fa-circle-check'
+                        : icon
+                }"></i>
+
+                <span>
+                    ${escapeHtml(text)}
+                </span>
+            </div>
+        `;
+    }
+
+
+    function getNextHabitatGoal() {
+
+        const items =
+            Array.isArray(
+                habitats.items
+            )
+                ? habitats.items
+                : [];
+
+        return (
+            items.find(
+                item =>
+                    !item.built
+                    && item.playerLevelMet
+                    && item.gardenLevelMet
+                    && item.uniqueSpeciesMet
+            )
+            || null
+        );
+    }
+
+
+
+    function habitatRequirementMarkup(
+        met,
+        icon,
+        text
+    ) {
+        return `
+            <div
+                class="habitat-requirement ${
+                    met
+                        ? 'met'
+                        : ''
+                }"
+            >
+                <i class="fas ${
+                    met
+                        ? 'fa-circle-check'
+                        : icon
+                }"></i>
+
+                <span>
+                    ${escapeHtml(text)}
+                </span>
+            </div>
+        `;
+    }
+
+
+    function getNextHabitatGoal() {
+
+        const items =
+            Array.isArray(
+                habitats.items
+            )
+                ? habitats.items
+                : [];
+
+        return (
+            items.find(
+                item =>
+                    !item.built
+                    && item.playerLevelMet
+                    && item.gardenLevelMet
+                    && item.uniqueSpeciesMet
+            )
+            || null
+        );
+    }
+
+
+
+    function habitatRequirementMarkup(
+        met,
+        icon,
+        text
+    ) {
+        return `
+            <div
+                class="habitat-requirement ${
+                    met
+                        ? 'met'
+                        : ''
+                }"
+            >
+                <i class="fas ${
+                    met
+                        ? 'fa-circle-check'
+                        : icon
+                }"></i>
+
+                <span>
+                    ${escapeHtml(text)}
+                </span>
+            </div>
+        `;
+    }
+
+
+    function getNextHabitatGoal() {
+
+        const items =
+            Array.isArray(
+                habitats.items
+            )
+                ? habitats.items
+                : [];
+
+        return (
+            items.find(
+                item =>
+                    !item.built
+                    && item.playerLevelMet
+                    && item.gardenLevelMet
+                    && item.uniqueSpeciesMet
+            )
+            || null
+        );
+    }
+
+
+    function renderStore() {
 
         if (
-            points < cost
+            !habitatGrid
+        ) {
+            return;
+        }
+
+        const items =
+            Array.isArray(
+                habitats.items
+            )
+                ? habitats.items
+                : [];
+
+        if (
+            habitatSummary
+        ) {
+            habitatSummary
+                .textContent =
+                `${Number(
+                    habitats.builtCount
+                    || 0
+                )} / ${Number(
+                    habitats.total
+                    || items.length
+                    || 5
+                )} habitats built`;
+        }
+
+        if (
+            habitatSpeciesSummary
+        ) {
+            const species =
+                Number(
+                    habitats.uniqueSpecies
+                    || 0
+                );
+
+            habitatSpeciesSummary
+                .textContent =
+                `${species} different ${
+                    species === 1
+                        ? 'species'
+                        : 'species'
+                } discovered`;
+        }
+
+        if (
+            !items.length
+        ) {
+            habitatGrid.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-paw"></i>
+                    <strong>Habitat data unavailable</strong>
+                    <span>
+                        Refresh the page after restarting Flask.
+                    </span>
+                </div>
+            `;
+
+            return;
+        }
+
+        habitatGrid.innerHTML =
+            items
+                .map(
+                    item => {
+
+                        const built =
+                            Boolean(
+                                item.built
+                            );
+
+                        const canBuild =
+                            Boolean(
+                                item.canBuild
+                            );
+
+                        const missingCoins =
+                            Math.max(
+                                0,
+                                Number(
+                                    item.cost
+                                    || 0
+                                )
+                                - points
+                            );
+
+                        let statusText =
+                            '';
+
+                        if (
+                            built
+                        ) {
+                            statusText =
+                                `${item.animalName} unlocked`;
+
+                        } else if (
+                            !item.playerLevelMet
+                        ) {
+                            statusText =
+                                `Reach Player Level ${item.requiredPlayerLevel}`;
+
+                        } else if (
+                            !item.gardenLevelMet
+                        ) {
+                            statusText =
+                                `Upgrade Garden to Level ${item.requiredGardenLevel}`;
+
+                        } else if (
+                            !item.uniqueSpeciesMet
+                        ) {
+                            const remaining =
+                                Math.max(
+                                    0,
+                                    Number(
+                                        item.requiredUniqueSpecies
+                                    )
+                                    - Number(
+                                        item.currentUniqueSpecies
+                                        || 0
+                                    )
+                                );
+
+                            statusText =
+                                `Discover ${remaining} more ${
+                                    remaining === 1
+                                        ? 'species'
+                                        : 'species'
+                                }`;
+
+                        } else if (
+                            missingCoins > 0
+                        ) {
+                            statusText =
+                                `Earn ${missingCoins} more coins`;
+
+                        } else {
+                            statusText =
+                                'Ready to build';
+                        }
+
+                        return `
+                            <article
+                                class="habitat-card ${
+                                    built
+                                        ? 'built'
+                                        : canBuild
+                                            ? 'ready'
+                                            : 'locked'
+                                }"
+                            >
+
+                                <div class="habitat-card-head">
+
+                                    <div class="habitat-animal-icon">
+                                        <img
+                                            src="${escapeHtml(item.animalIcon)}"
+                                            alt=""
+                                        >
+                                    </div>
+
+                                    <div class="habitat-card-heading">
+
+                                        <span class="eyebrow">
+                                            ${
+                                                built
+                                                    ? 'HABITAT COMPLETE'
+                                                    : 'WILDLIFE HABITAT'
+                                            }
+                                        </span>
+
+                                        <h2>
+                                            ${escapeHtml(item.name)}
+                                        </h2>
+
+                                        <span class="habitat-animal-name">
+                                            <i class="fas fa-paw"></i>
+                                            ${escapeHtml(item.animalName)}
+                                        </span>
+
+                                    </div>
+
+                                    ${
+                                        built
+                                            ? `
+                                                <div class="habitat-built-badge">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                            `
+                                            : ''
+                                    }
+
+                                </div>
+
+                                <p class="habitat-description">
+                                    ${escapeHtml(item.description)}
+                                </p>
+
+                                <div class="habitat-requirements">
+
+                                    ${
+                                        habitatRequirementMarkup(
+                                            item.playerLevelMet,
+                                            'fa-lock',
+                                            `Player Level ${item.requiredPlayerLevel} · currently ${item.currentPlayerLevel}`
+                                        )
+                                    }
+
+                                    ${
+                                        habitatRequirementMarkup(
+                                            item.gardenLevelMet,
+                                            'fa-seedling',
+                                            `Garden Level ${item.requiredGardenLevel} · currently ${item.currentGardenLevel}`
+                                        )
+                                    }
+
+                                    ${
+                                        habitatRequirementMarkup(
+                                            item.uniqueSpeciesMet,
+                                            'fa-leaf',
+                                            `${item.requiredUniqueSpecies} different species · currently ${item.currentUniqueSpecies}`
+                                        )
+                                    }
+
+                                    ${
+                                        habitatRequirementMarkup(
+                                            item.coinsMet || built,
+                                            'fa-coins',
+                                            `${Number(item.cost).toLocaleString()} coins`
+                                        )
+                                    }
+
+                                </div>
+
+                                <div class="habitat-card-footer">
+
+                                    <div class="habitat-status">
+                                        ${
+                                            built
+                                                ? '<i class="fas fa-circle-check"></i>'
+                                                : canBuild
+                                                    ? '<i class="fas fa-hammer"></i>'
+                                                    : '<i class="fas fa-lock"></i>'
+                                        }
+
+                                        <span>
+                                            ${escapeHtml(statusText)}
+                                        </span>
+                                    </div>
+
+                                    <button
+                                        class="${
+                                            canBuild
+                                                ? 'primary-btn'
+                                                : 'soft-btn'
+                                        } habitat-build-btn"
+                                        type="button"
+                                        data-habitat-key="${escapeHtml(item.key)}"
+                                        ${
+                                            built || !canBuild
+                                                ? 'disabled'
+                                                : ''
+                                        }
+                                    >
+                                        ${
+                                            built
+                                                ? '<i class="fas fa-check"></i> Built'
+                                                : `<i class="fas fa-hammer"></i> Build · ${Number(item.cost).toLocaleString()} coins`
+                                        }
+                                    </button>
+
+                                </div>
+
+                            </article>
+                        `;
+                    }
+                )
+                .join('');
+    }
+
+
+    async function buildHabitat(
+        habitatKey
+    ) {
+
+        const habitat =
+            (
+                habitats.items
+                || []
+            )
+                .find(
+                    item =>
+                        item.key ===
+                        habitatKey
+                );
+
+        if (
+            !habitat
         ) {
             showToast(
-                `You need ${cost} points for this decoration.`,
-                'fa-star'
+                'That habitat could not be found.',
+                'fa-triangle-exclamation'
             );
 
             return;
         }
 
-        points -= cost;
+        if (
+            habitat.built
+        ) {
+            showToast(
+                `${habitat.name} is already complete.`,
+                'fa-circle-check'
+            );
 
-        collection.push({
-            key,
+            return;
+        }
 
-            name:
-                button.dataset.name,
+        if (
+            !habitat.canBuild
+        ) {
+            if (
+                !habitat.playerLevelMet
+            ) {
+                showToast(
+                    `Reach Player Level ${habitat.requiredPlayerLevel} first.`,
+                    'fa-lock'
+                );
 
-            icon:
-                button.dataset.icon,
+            } else if (
+                !habitat.gardenLevelMet
+            ) {
+                showToast(
+                    `Upgrade your garden to Level ${habitat.requiredGardenLevel} first.`,
+                    'fa-seedling'
+                );
 
-            rarity:
-                'decor',
+            } else if (
+                !habitat.uniqueSpeciesMet
+            ) {
+                showToast(
+                    `Discover ${habitat.requiredUniqueSpecies} different species before building this habitat.`,
+                    'fa-leaf'
+                );
 
-            kind:
-                'decor'
-        });
+            } else {
+                showToast(
+                    `You need ${habitat.cost} coins to build ${habitat.name}.`,
+                    'fa-coins'
+                );
+            }
 
-        renderEverything();
+            return;
+        }
 
-        scheduleSave();
+        const button =
+            habitatGrid
+                ?.querySelector(
+                    `[data-habitat-key="${CSS.escape(habitatKey)}"]`
+                );
 
-        showToast(
-            `${button.dataset.name} unlocked! Place it from any garden plot.`,
-            'fa-heart'
-        );
+        if (
+            button
+        ) {
+            button.disabled =
+                true;
+
+            button.innerHTML =
+                '<i class="fas fa-spinner fa-spin"></i> Building...';
+        }
+
+        try {
+            const data =
+                await api(
+                    `/api/habitats/${encodeURIComponent(habitatKey)}/build`,
+                    {
+                        method:
+                            'POST'
+                    }
+                );
+
+            if (
+                data.state
+            ) {
+                loadState(
+                    data.state
+                );
+            }
+
+            showToast(
+                data.message
+                || `${habitat.animalName} unlocked!`,
+                'fa-paw'
+            );
+
+            await loadAchievements();
+
+        } catch (error) {
+
+            showToast(
+                error.message,
+                'fa-triangle-exclamation'
+            );
+
+            if (
+                currentUser
+            ) {
+                try {
+                    const data =
+                        await api(
+                            '/api/state'
+                        );
+
+                    if (
+                        data.state
+                    ) {
+                        loadState(
+                            data.state
+                        );
+                    }
+
+                } catch (_) {
+                    // Keep the current screen if refresh fails.
+                }
+            }
+        }
     }
 
     // =========================================================
@@ -3042,7 +6219,7 @@
         const labels = {
             manual: 'Teacher-set task',
             score: `Reach ${quest.target_value} score`,
-            points: `Have ${quest.target_value} points`,
+            points: `Have ${quest.target_value} coins`,
             collection: `Unlock ${quest.target_value} items`,
             placed: `Place ${quest.target_value} garden items`,
             snaps: `Identify ${quest.target_value} plants`
@@ -3067,7 +6244,7 @@
                     <div class="leaderboard-row">
                         <span class="leaderboard-rank">${index + 1}</span>
                         <span class="leaderboard-name">@${escapeHtml(row.username)}</span>
-                        <strong>${Number(row.score || 0)} pts</strong>
+                        <strong>${Number(row.score || 0)} XP</strong>
                     </div>
                 `).join('')}
             </div>
@@ -3180,7 +6357,7 @@
                             <option value="manual">Manual task</option>
                             <option value="snaps">Plant identifications</option>
                             <option value="score">Score target</option>
-                            <option value="points">Points target</option>
+                            <option value="points">Coins target</option>
                             <option value="collection">Collection size</option>
                             <option value="placed">Garden items placed</option>
                         </select>
@@ -3611,40 +6788,6 @@
     // NAVIGATION
     // =========================================================
 
-    function openSideMenu() {
-        sideMenu.classList.add(
-            'open'
-        );
-        sideMenuOverlay.classList.add(
-            'open'
-        );
-        sideMenu.setAttribute(
-            'aria-hidden',
-            'false'
-        );
-        menuToggleButton.setAttribute(
-            'aria-expanded',
-            'true'
-        );
-    }
-
-    function closeSideMenu() {
-        sideMenu.classList.remove(
-            'open'
-        );
-        sideMenuOverlay.classList.remove(
-            'open'
-        );
-        sideMenu.setAttribute(
-            'aria-hidden',
-            'true'
-        );
-        menuToggleButton.setAttribute(
-            'aria-expanded',
-            'false'
-        );
-    }
-
     function navigateTo(
         viewId
     ) {
@@ -3692,12 +6835,17 @@
             loadQuests();
         }
 
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
+        if (viewId === 'exploreView') {
+            loadMapPlants({ fitBounds: true });
+            setTimeout(() => leafletMap?.invalidateSize(), 0);
+        }
 
-        closeSideMenu();
+        if (appContent) {
+            appContent.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
     }
 
     // =========================================================
@@ -3784,7 +6932,7 @@
             <div class="achievement-info">
                 <div class="achievement-header">
                     <span class="achievement-name">${escapeHtml(ach.name)}</span>
-                    <span class="achievement-points">+${ach.points} ★</span>
+                    <span class="achievement-points">+${ach.points} XP</span>
                 </div>
                 <p class="achievement-description">${escapeHtml(ach.description)}</p>
                 <div class="achievement-progress">
@@ -3905,6 +7053,27 @@
             snapPlant
         );
 
+        if (exploreSnapButton) {
+            exploreSnapButton.addEventListener(
+                'click',
+                snapPlant
+            );
+        }
+
+        if (homeOpenGardenButton) {
+            homeOpenGardenButton.addEventListener(
+                'click',
+                () => navigateTo('gardenView')
+            );
+        }
+
+        if (homeViewQuestsButton) {
+            homeViewQuestsButton.addEventListener(
+                'click',
+                () => navigateTo('questsView')
+            );
+        }
+
         // Camera
         closeCameraButton
             .addEventListener(
@@ -4017,11 +7186,72 @@
         );
 
         dailyQuestList.addEventListener('click', event => {
-            const questCard = event.target.closest('.daily-quest-card.claimable');
-            if (questCard) {
-                claimDailyQuest(questCard.dataset.questKey);
+
+            const questCard =
+                event.target.closest(
+                    '.daily-quest-card.claimable'
+                );
+
+            if (
+                questCard
+            ) {
+                claimDailyQuest(
+                    questCard
+                        .dataset
+                        .questKey
+                );
             }
         });
+
+        if (
+            weeklyQuestList
+        ) {
+            weeklyQuestList.addEventListener(
+                'click',
+                event => {
+
+                    const questCard =
+                        event.target.closest(
+                            '.weekly-quest-card.claimable'
+                        );
+
+                    if (
+                        questCard
+                    ) {
+                        claimWeeklyQuest(
+                            questCard
+                                .dataset
+                                .questKey
+                        );
+                    }
+                }
+            );
+        }
+
+        if (
+            communityQuestCard
+        ) {
+            communityQuestCard.addEventListener(
+                'click',
+                event => {
+
+                    const claimButton =
+                        event.target.closest(
+                            '.community-claim-btn'
+                        );
+
+                    if (
+                        claimButton
+                    ) {
+                        claimCommunityMilestone(
+                            claimButton
+                                .dataset
+                                .communityTarget
+                        );
+                    }
+                }
+            );
+        }
 
         specialQuestList.addEventListener('click', event => {
             const deleteButton = event.target.closest('.special-quest-delete');
@@ -4042,45 +7272,9 @@
                 )
         );
 
-        mapMarkers?.addEventListener('click', event => {
-            const marker = event.target.closest('.map-marker');
-            if (!marker) {
-                return;
-            }
-
-            const plant = mapPlants.find(item => String(item.id) === marker.dataset.plantId);
-            if (plant) {
-                showToast(`${plant.name} location`, 'fa-seedling');
-            }
-        });
-
-        // Side menu
-        menuToggleButton.addEventListener(
-            'click',
-            openSideMenu
-        );
-
-        menuCloseButton.addEventListener(
-            'click',
-            closeSideMenu
-        );
-
-        sideMenuOverlay.addEventListener(
-            'click',
-            closeSideMenu
-        );
-
-        document.addEventListener(
-            'keydown',
-            event => {
-                if (
-                    event.key === 'Escape' &&
-                    sideMenu.classList.contains('open')
-                ) {
-                    closeSideMenu();
-                }
-            }
-        );
+        if (locateMeButton) {
+            locateMeButton.addEventListener('click', locateOnMap);
+        }
 
         // Friend search
         friendSearchButton.addEventListener(
@@ -4256,6 +7450,78 @@
                 }
             );
 
+        if (gardenUpgradeButton) {
+            gardenUpgradeButton.addEventListener(
+                'click',
+                upgradeGarden
+            );
+        }
+
+        if (
+            nextGoalButton
+        ) {
+            nextGoalButton.addEventListener(
+                'click',
+                () => {
+
+                    const action =
+                        nextGoalButton
+                            .dataset
+                            .action;
+
+                    if (
+                        action
+                        && action.startsWith(
+                            'habitat:'
+                        )
+                    ) {
+                        buildHabitat(
+                            action.slice(
+                                'habitat:'.length
+                            )
+                        );
+
+                        return;
+                    }
+
+                    if (
+                        action
+                        && action.startsWith(
+                            'habitat:'
+                        )
+                    ) {
+                        buildHabitat(
+                            action.slice(
+                                'habitat:'.length
+                            )
+                        );
+
+                        return;
+                    }
+
+                    if (
+                        action
+                        === 'upgrade'
+                    ) {
+                        upgradeGarden();
+                        return;
+                    }
+
+                    if (
+                        action
+                        === 'snap'
+                    ) {
+                        snapPlant();
+                        return;
+                    }
+
+                    navigateTo(
+                        'questsView'
+                    );
+                }
+            );
+        }
+
         // Achievement filters
         document
             .querySelectorAll('.filter-btn')
@@ -4267,21 +7533,60 @@
                 });
             });
 
-        // Store
-        document
-            .querySelectorAll(
-                '.store-item'
-            )
-            .forEach(
-                button =>
-                    button.addEventListener(
-                        'click',
-                        () =>
-                            buyDecor(
-                                button
-                            )
-                    )
+        // Strategic garden structures
+        if (
+            structureGrid
+        ) {
+            structureGrid.addEventListener(
+                'click',
+                event => {
+                    const button =
+                        event.target.closest(
+                            '.structure-build-btn'
+                        );
+
+                    if (
+                        !button
+                        || button.disabled
+                    ) {
+                        return;
+                    }
+
+                    buildStructure(
+                        button.dataset.structureKey
+                    );
+                }
             );
+        }
+
+        // Wildlife habitats
+        if (
+            habitatGrid
+        ) {
+            habitatGrid.addEventListener(
+                'click',
+                event => {
+
+                    const button =
+                        event.target.closest(
+                            '.habitat-build-btn'
+                        );
+
+                    if (
+                        !button
+                        || button.disabled
+                    ) {
+                        return;
+                    }
+
+                    buildHabitat(
+                        button
+                            .dataset
+                            .habitatKey
+                    );
+                }
+            );
+        }
     }
 
     // =========================================================
